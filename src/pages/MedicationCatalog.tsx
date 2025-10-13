@@ -526,10 +526,10 @@ const MedicationCatalog = () => {
 
             <div className="px-6 py-4 border-t shrink-0 bg-background">
               <div className="flex gap-2">
-                <Button variant="outline" onClick={closeDialog} className="flex-1">
+                <Button variant="outline" onClick={closeDialog} className="flex-1 h-9">
                   Annuler
                 </Button>
-                <Button onClick={handleSubmit} className="flex-1 gradient-primary">
+                <Button onClick={handleSubmit} className="flex-1 gradient-primary h-9">
                   {editingMed ? "Modifier" : "Ajouter"}
                 </Button>
               </div>
