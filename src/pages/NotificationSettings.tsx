@@ -61,6 +61,21 @@ export default function NotificationSettings() {
           )}
         </div>
 
+        {/* Deployed App Notice */}
+        <Card className="p-4 border-primary bg-primary/5">
+          <div className="flex items-start gap-3">
+            <Bell className="h-5 w-5 text-primary mt-0.5" />
+            <div>
+              <p className="font-medium">ℹ️ Notifications disponibles après déploiement</p>
+              <p className="text-sm text-muted-foreground">
+                Les notifications push fonctionnent uniquement sur l'application déployée, 
+                pas dans l'environnement de prévisualisation. Cliquez sur <strong>Publish</strong> 
+                pour déployer votre app et tester les notifications.
+              </p>
+            </div>
+          </div>
+        </Card>
+
         {/* Permission Status */}
         {!isSupported && (
           <Card className="p-4 border-warning bg-warning/5">
