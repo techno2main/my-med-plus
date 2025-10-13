@@ -2,7 +2,7 @@ import { AppLayout } from "@/components/Layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FileText, Download, Eye } from "lucide-react";
+import { Plus, FileText, Download, Eye, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function Prescriptions() {
@@ -54,15 +54,20 @@ export default function Prescriptions() {
   return (
     <AppLayout>
       <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Ordonnances</h1>
-            <p className="text-muted-foreground">Vos prescriptions médicales</p>
-          </div>
-          <Button onClick={() => navigate("/prescriptions/new")}>
-            <Plus className="mr-2 h-4 w-4" />
-            Ajouter
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4" />
           </Button>
+          <div className="flex-1 flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">Ordonnances</h1>
+              <p className="text-muted-foreground">Vos prescriptions médicales</p>
+            </div>
+            <Button onClick={() => navigate("/prescriptions/new")}>
+              <Plus className="mr-2 h-4 w-4" />
+              Ajouter
+            </Button>
+          </div>
         </div>
 
         {/* Liste des ordonnances */}

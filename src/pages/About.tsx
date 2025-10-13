@@ -1,0 +1,114 @@
+import { AppLayout } from "@/components/Layout/AppLayout";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Heart, Mail, Globe, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+export default function About() {
+  const navigate = useNavigate();
+
+  return (
+    <AppLayout showBottomNav={false}>
+      <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold">À propos</h1>
+            <p className="text-muted-foreground">Informations sur l'application</p>
+          </div>
+        </div>
+
+        {/* Logo et version */}
+        <Card className="p-8 text-center">
+          <div className="flex items-center justify-center mb-4">
+            <div className="p-6 rounded-full bg-primary/10">
+              <Heart className="h-12 w-12 text-primary" />
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold mb-2">MediTrack</h2>
+          <p className="text-muted-foreground mb-1">Votre assistant santé personnel</p>
+          <p className="text-sm text-muted-foreground">Version 1.0.0</p>
+        </Card>
+
+        {/* Description */}
+        <Card className="p-6">
+          <h3 className="font-semibold mb-3">Notre mission</h3>
+          <p className="text-muted-foreground leading-relaxed">
+            MediTrack est une application conçue pour vous aider à gérer vos traitements médicaux en toute simplicité. 
+            Suivez vos prises, gérez vos stocks et consultez vos ordonnances en un seul endroit.
+          </p>
+        </Card>
+
+        {/* Fonctionnalités */}
+        <Card className="p-6">
+          <h3 className="font-semibold mb-4">Fonctionnalités principales</h3>
+          <ul className="space-y-3">
+            <li className="flex items-start gap-3">
+              <div className="p-1 rounded-full bg-primary/10 mt-1">
+                <Star className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium">Suivi des traitements</p>
+                <p className="text-sm text-muted-foreground">Rappels personnalisés pour ne jamais oublier</p>
+              </div>
+            </li>
+            <li className="flex items-start gap-3">
+              <div className="p-1 rounded-full bg-primary/10 mt-1">
+                <Star className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium">Gestion des stocks</p>
+                <p className="text-sm text-muted-foreground">Alertes de réapprovisionnement</p>
+              </div>
+            </li>
+            <li className="flex items-start gap-3">
+              <div className="p-1 rounded-full bg-primary/10 mt-1">
+                <Star className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium">Ordonnances numériques</p>
+                <p className="text-sm text-muted-foreground">Stockage sécurisé de vos prescriptions</p>
+              </div>
+            </li>
+            <li className="flex items-start gap-3">
+              <div className="p-1 rounded-full bg-primary/10 mt-1">
+                <Star className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium">Historique détaillé</p>
+                <p className="text-sm text-muted-foreground">Suivi de votre observance thérapeutique</p>
+              </div>
+            </li>
+          </ul>
+        </Card>
+
+        {/* Contact */}
+        <Card className="p-6">
+          <h3 className="font-semibold mb-4">Contactez-nous</h3>
+          <div className="space-y-3">
+            <Button variant="outline" className="w-full justify-start">
+              <Mail className="mr-2 h-4 w-4" />
+              support@meditrack.app
+            </Button>
+            <Button variant="outline" className="w-full justify-start">
+              <Globe className="mr-2 h-4 w-4" />
+              www.meditrack.app
+            </Button>
+          </div>
+        </Card>
+
+        {/* Crédits */}
+        <Card className="p-6 text-center">
+          <p className="text-sm text-muted-foreground">
+            Développé avec <Heart className="inline h-4 w-4 text-danger" /> pour votre santé
+          </p>
+          <p className="text-xs text-muted-foreground mt-2">
+            © 2025 MediTrack. Tous droits réservés.
+          </p>
+        </Card>
+      </div>
+    </AppLayout>
+  );
+}

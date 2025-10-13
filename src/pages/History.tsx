@@ -1,12 +1,15 @@
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle2, XCircle, Clock, Calendar as CalendarIcon } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Calendar as CalendarIcon, ArrowLeft } from "lucide-react";
 import { format, subDays } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
 
 export default function History() {
+  const navigate = useNavigate();
   // Mock data - à remplacer par des vraies données
   const historyData = [
     {
@@ -69,9 +72,14 @@ export default function History() {
   return (
     <AppLayout>
       <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Historique</h1>
-          <p className="text-muted-foreground">Suivez vos prises de médicaments</p>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold">Historique</h1>
+            <p className="text-muted-foreground">Suivez vos prises de médicaments</p>
+          </div>
         </div>
 
         <Tabs defaultValue="history" className="space-y-6">
