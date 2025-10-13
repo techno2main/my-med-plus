@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Plus, Trash2, Edit, Search, ArrowLeft } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { toast } from "sonner"
@@ -25,6 +26,8 @@ const MedicationCatalog = () => {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [showDialog, setShowDialog] = useState(false)
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [editingMed, setEditingMed] = useState<MedicationCatalog | null>(null)
   const [formData, setFormData] = useState({
     name: "",
@@ -96,14 +99,14 @@ const MedicationCatalog = () => {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer ce médicament ?")) return
+  const handleDelete = async () => {
+    if (!deletingId) return
 
     try {
       const { error } = await supabase
         .from("medication_catalog")
         .delete()
-        .eq("id", id)
+        .eq("id", deletingId)
 
       if (error) throw error
       toast.success("Médicament supprimé")
@@ -111,7 +114,15 @@ const MedicationCatalog = () => {
     } catch (error) {
       console.error("Error deleting medication:", error)
       toast.error("Erreur lors de la suppression")
+    } finally {
+      setShowDeleteAlert(false)
+      setDeletingId(null)
     }
+  }
+
+  const confirmDelete = (id: string) => {
+    setDeletingId(id)
+    setShowDeleteAlert(true)
   }
 
   const openDialog = (med?: MedicationCatalog) => {
@@ -204,7 +215,7 @@ const MedicationCatalog = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDelete(med.id)}
+                      onClick={() => confirmDelete(med.id)}
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>

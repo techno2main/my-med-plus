@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Plus, Trash2, Edit, Search, ArrowLeft } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { supabase } from "@/integrations/supabase/client"
@@ -25,6 +26,8 @@ const Allergies = () => {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [showDialog, setShowDialog] = useState(false)
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [editingItem, setEditingItem] = useState<Allergy | null>(null)
   const [formData, setFormData] = useState({
     name: "",
@@ -93,14 +96,14 @@ const Allergies = () => {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer cette allergie ?")) return
+  const handleDelete = async () => {
+    if (!deletingId) return
 
     try {
       const { error } = await supabase
         .from("allergies")
         .delete()
-        .eq("id", id)
+        .eq("id", deletingId)
 
       if (error) throw error
       toast.success("Allergie supprimée")
@@ -108,7 +111,15 @@ const Allergies = () => {
     } catch (error) {
       console.error("Error deleting allergy:", error)
       toast.error("Erreur lors de la suppression")
+    } finally {
+      setShowDeleteAlert(false)
+      setDeletingId(null)
     }
+  }
+
+  const confirmDelete = (id: string) => {
+    setDeletingId(id)
+    setShowDeleteAlert(true)
   }
 
   const openDialog = (item?: Allergy) => {
@@ -206,7 +217,7 @@ const Allergies = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDelete(item.id)}
+                      onClick={() => confirmDelete(item.id)}
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
@@ -273,6 +284,24 @@ const Allergies = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Delete Alert Dialog */}
+        <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Êtes-vous sûr de vouloir supprimer cette allergie ? Cette action est irréversible.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                OK
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   )

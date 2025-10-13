@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus, Trash2, Edit, Search, Star, Phone, Mail, MapPin, ArrowLeft } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -32,6 +33,8 @@ const HealthProfessionals = () => {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [showDialog, setShowDialog] = useState(false)
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [editingItem, setEditingItem] = useState<HealthProfessional | null>(null)
   const [activeTab, setActiveTab] = useState("medecins")
   const [formData, setFormData] = useState({
@@ -117,14 +120,14 @@ const HealthProfessionals = () => {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer ce professionnel ?")) return
+  const handleDelete = async () => {
+    if (!deletingId) return
 
     try {
       const { error } = await supabase
         .from("health_professionals")
         .delete()
-        .eq("id", id)
+        .eq("id", deletingId)
 
       if (error) throw error
       toast.success("Professionnel supprimé")
@@ -132,7 +135,15 @@ const HealthProfessionals = () => {
     } catch (error) {
       console.error("Error deleting professional:", error)
       toast.error("Erreur lors de la suppression")
+    } finally {
+      setShowDeleteAlert(false)
+      setDeletingId(null)
     }
+  }
+
+  const confirmDelete = (id: string) => {
+    setDeletingId(id)
+    setShowDeleteAlert(true)
   }
 
   const openDialog = (type: string, item?: HealthProfessional) => {
@@ -231,7 +242,7 @@ const HealthProfessionals = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => handleDelete(item.id)}
+            onClick={() => confirmDelete(item.id)}
           >
             <Trash2 className="h-4 w-4 text-destructive" />
           </Button>
@@ -441,6 +452,24 @@ const HealthProfessionals = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Delete Alert Dialog */}
+        <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Êtes-vous sûr de vouloir supprimer ce professionnel de santé ? Cette action est irréversible.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                OK
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   )
