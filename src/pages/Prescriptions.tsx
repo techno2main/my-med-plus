@@ -181,15 +181,19 @@ export default function Prescriptions() {
     }
 
     try {
+      // Télécharger le fichier et créer un blob URL pour contourner ERR_BLOCKED_BY_CLIENT
       const { data, error } = await supabase.storage
         .from("prescriptions")
-        .createSignedUrl(prescription.file_path, 3600);
+        .download(prescription.file_path);
 
       if (error) throw error;
 
-      if (data?.signedUrl) {
-        window.open(data.signedUrl, "_blank");
-      }
+      // Créer un blob URL et ouvrir dans un nouvel onglet
+      const url = URL.createObjectURL(data);
+      window.open(url, "_blank");
+      
+      // Nettoyer l'URL après un délai
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (error) {
       console.error("Error viewing prescription:", error);
       toast.error("Erreur lors de l'ouverture du document");
