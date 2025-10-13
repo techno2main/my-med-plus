@@ -10,6 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Plus, Trash2, Edit, Search, ArrowLeft } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { toast } from "sonner"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { useNavigate } from "react-router-dom"
 
 interface Pathology {
@@ -212,38 +213,53 @@ const Pathologies = () => {
         )}
 
         <Dialog open={showDialog} onOpenChange={closeDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingItem ? "Modifier la pathologie" : "Ajouter une pathologie"}
-              </DialogTitle>
+          <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0">
+            <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
+              <div className="flex items-center gap-3">
+                <Button variant="ghost" size="sm" onClick={closeDialog} className="h-8 w-8 p-0">
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <DialogTitle>
+                  {editingItem ? "Modifier la pathologie" : "Ajouter une pathologie"}
+                </DialogTitle>
+              </div>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nom de la pathologie *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Ex: Diabète Type 2"
-                  className="bg-surface"
-                />
-              </div>
+            
+            <ScrollArea className="flex-1 px-6">
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nom de la pathologie *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Ex: Diabète Type 2"
+                    className="bg-surface"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Description de la pathologie..."
-                  className="bg-surface"
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Description de la pathologie..."
+                    className="bg-surface"
+                  />
+                </div>
               </div>
+            </ScrollArea>
 
-              <Button onClick={handleSubmit} className="w-full gradient-primary">
-                {editingItem ? "Modifier" : "Ajouter"}
-              </Button>
+            <div className="px-6 py-4 border-t shrink-0 bg-background">
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={closeDialog} className="flex-1 h-9">
+                  Annuler
+                </Button>
+                <Button onClick={handleSubmit} className="flex-1 gradient-primary h-9">
+                  {editingItem ? "Modifier" : "Ajouter"}
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>

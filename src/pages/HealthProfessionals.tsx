@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge"
 import { supabase } from "@/integrations/supabase/client"
 import { toast } from "sonner"
 import { Checkbox } from "@/components/ui/checkbox"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { useNavigate } from "react-router-dom"
 
 interface HealthProfessional {
@@ -366,89 +367,104 @@ const HealthProfessionals = () => {
         </Tabs>
 
         <Dialog open={showDialog} onOpenChange={closeDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingItem ? `Modifier ${formData.type}` : `Ajouter un ${formData.type}`}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nom *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Nom complet"
-                  className="bg-surface"
-                />
+          <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0">
+            <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
+              <div className="flex items-center gap-3">
+                <Button variant="ghost" size="sm" onClick={closeDialog} className="h-8 w-8 p-0">
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <DialogTitle>
+                  {editingItem ? `Modifier ${formData.type}` : `Ajouter un ${formData.type}`}
+                </DialogTitle>
               </div>
-
-              {(formData.type === "medecin" || formData.type === "doctor") && (
+            </DialogHeader>
+            
+            <ScrollArea className="flex-1 px-6">
+              <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="specialty">Spécialité</Label>
+                  <Label htmlFor="name">Nom *</Label>
                   <Input
-                    id="specialty"
-                    value={formData.specialty}
-                    onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
-                    placeholder="Ex: Cardiologue"
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Nom complet"
                     className="bg-surface"
                   />
                 </div>
-              )}
 
-              <div className="space-y-2">
-                <Label htmlFor="phone">Téléphone</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="Ex: 01 23 45 67 89"
-                  className="bg-surface"
-                />
-              </div>
+                {(formData.type === "medecin" || formData.type === "doctor") && (
+                  <div className="space-y-2">
+                    <Label htmlFor="specialty">Spécialité</Label>
+                    <Input
+                      id="specialty"
+                      value={formData.specialty}
+                      onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
+                      placeholder="Ex: Cardiologue"
+                      className="bg-surface"
+                    />
+                  </div>
+                )}
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="email@exemple.com"
-                  className="bg-surface"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="address">Adresse</Label>
-                <Textarea
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  placeholder="Adresse complète"
-                  className="bg-surface"
-                />
-              </div>
-
-              {(formData.type === "medecin" || formData.type === "doctor") && (
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="primary"
-                    checked={formData.is_primary_doctor}
-                    onCheckedChange={(checked) => 
-                      setFormData({ ...formData, is_primary_doctor: checked as boolean })
-                    }
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Téléphone</Label>
+                  <Input
+                    id="phone"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="Ex: 01 23 45 67 89"
+                    className="bg-surface"
                   />
-                  <Label htmlFor="primary" className="cursor-pointer">
-                    Médecin traitant
-                  </Label>
                 </div>
-              )}
 
-              <Button onClick={handleSubmit} className="w-full gradient-primary">
-                {editingItem ? "Modifier" : "Ajouter"}
-              </Button>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="email@exemple.com"
+                    className="bg-surface"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="address">Adresse</Label>
+                  <Textarea
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    placeholder="Adresse complète"
+                    className="bg-surface"
+                  />
+                </div>
+
+                {(formData.type === "medecin" || formData.type === "doctor") && (
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="primary"
+                      checked={formData.is_primary_doctor}
+                      onCheckedChange={(checked) => 
+                        setFormData({ ...formData, is_primary_doctor: checked as boolean })
+                      }
+                    />
+                    <Label htmlFor="primary" className="cursor-pointer">
+                      Médecin traitant
+                    </Label>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+
+            <div className="px-6 py-4 border-t shrink-0 bg-background">
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={closeDialog} className="flex-1 h-9">
+                  Annuler
+                </Button>
+                <Button onClick={handleSubmit} className="flex-1 gradient-primary h-9">
+                  {editingItem ? "Modifier" : "Ajouter"}
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
