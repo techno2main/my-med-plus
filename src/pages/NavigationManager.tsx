@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
-  Trash2, GripVertical, Save,
+  Trash2, Save, ChevronUp, ChevronDown,
   Home, Pill, Package, Calendar, Settings,
   User, Heart, Bell, Shield, FileText,
   ClipboardList, Users, Database, Smartphone,
@@ -24,6 +24,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { cn } from "@/lib/utils";
 
 const ICON_MAP: Record<string, any> = {
   Home, Pill, Package, Calendar, Settings,
@@ -33,6 +51,133 @@ const ICON_MAP: Record<string, any> = {
 };
 
 const iconNames = Object.keys(ICON_MAP);
+
+interface SortableItemProps {
+  item: any;
+  onEdit: (item: any) => void;
+  onDelete: (id: string) => void;
+  onMoveUp: (id: string) => void;
+  onMoveDown: (id: string) => void;
+  isFirst: boolean;
+  isLast: boolean;
+}
+
+function SortableItem({ item, onEdit, onDelete, onMoveUp, onMoveDown, isFirst, isLast }: SortableItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  const getIconComponent = (iconName: string) => {
+    return ICON_MAP[iconName] || Home;
+  };
+
+  const Icon = getIconComponent(item.icon);
+
+  return (
+    <Card
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "p-4 cursor-move touch-none",
+        isDragging && "opacity-50 shadow-lg"
+      )}
+      {...attributes}
+      {...listeners}
+    >
+      <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-5 w-5 p-0 hover:bg-transparent"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMoveUp(item.id);
+            }}
+            disabled={isFirst}
+            onPointerDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+          >
+            <ChevronUp className={cn(
+              "h-4 w-4",
+              isFirst ? "text-muted-foreground/30" : "text-muted-foreground"
+            )} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-5 w-5 p-0 hover:bg-transparent"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMoveDown(item.id);
+            }}
+            disabled={isLast}
+            onPointerDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+          >
+            <ChevronDown className={cn(
+              "h-4 w-4",
+              isLast ? "text-muted-foreground/30" : "text-muted-foreground"
+            )} />
+          </Button>
+        </div>
+        
+        <div className="flex items-center gap-3 flex-1">
+          <div className={`p-2 rounded-full ${item.is_active ? 'bg-primary/10' : 'bg-muted'}`}>
+            <Icon className={`h-5 w-5 ${item.is_active ? 'text-primary' : 'text-muted-foreground'}`} />
+          </div>
+          
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold">{item.name}</h3>
+              {!item.is_active && (
+                <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                  Inactif
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground">{item.path}</p>
+          </div>
+        </div>
+
+        <div className="flex gap-2" onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(item);
+            }}
+          >
+            Modifier
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (confirm("Êtes-vous sûr de vouloir supprimer cet item ?")) {
+                onDelete(item.id);
+              }
+            }}
+          >
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
 
 export default function NavigationManager() {
   const navigate = useNavigate();
@@ -47,6 +192,17 @@ export default function NavigationManager() {
     position: 1,
     is_active: true,
   });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const { data: navItems, isLoading } = useQuery({
     queryKey: ["navigation-items"],
@@ -128,6 +284,29 @@ export default function NavigationManager() {
     },
   });
 
+  const updatePositionsMutation = useMutation({
+    mutationFn: async (items: Array<{ id: string; position: number }>) => {
+      const updates = items.map(({ id, position }) =>
+        supabase
+          .from("navigation_items")
+          .update({ position })
+          .eq("id", id)
+      );
+      
+      await Promise.all(updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["navigation-items"] });
+    },
+    onError: () => {
+      toast({
+        title: "Erreur",
+        description: "Impossible de réorganiser les items",
+        variant: "destructive",
+      });
+    },
+  });
+
   const resetForm = () => {
     setFormData({
       name: "",
@@ -162,6 +341,55 @@ export default function NavigationManager() {
     }
   };
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id && navItems) {
+      const oldIndex = navItems.findIndex((item) => item.id === active.id);
+      const newIndex = navItems.findIndex((item) => item.id === over.id);
+
+      const reorderedItems = arrayMove(navItems, oldIndex, newIndex);
+      
+      const updates = reorderedItems.map((item, index) => ({
+        id: item.id,
+        position: index + 1,
+      }));
+
+      queryClient.setQueryData(["navigation-items"], reorderedItems);
+      updatePositionsMutation.mutate(updates);
+    }
+  };
+
+  const handleMoveUp = (id: string) => {
+    if (!navItems) return;
+    const index = navItems.findIndex((item) => item.id === id);
+    if (index <= 0) return;
+
+    const reorderedItems = arrayMove(navItems, index, index - 1);
+    const updates = reorderedItems.map((item, idx) => ({
+      id: item.id,
+      position: idx + 1,
+    }));
+
+    queryClient.setQueryData(["navigation-items"], reorderedItems);
+    updatePositionsMutation.mutate(updates);
+  };
+
+  const handleMoveDown = (id: string) => {
+    if (!navItems) return;
+    const index = navItems.findIndex((item) => item.id === id);
+    if (index === -1 || index >= navItems.length - 1) return;
+
+    const reorderedItems = arrayMove(navItems, index, index + 1);
+    const updates = reorderedItems.map((item, idx) => ({
+      id: item.id,
+      position: idx + 1,
+    }));
+
+    queryClient.setQueryData(["navigation-items"], reorderedItems);
+    updatePositionsMutation.mutate(updates);
+  };
+
   const getIconComponent = (iconName: string) => {
     return ICON_MAP[iconName] || Home;
   };
@@ -177,73 +405,43 @@ export default function NavigationManager() {
           onAdd={() => setIsDialogOpen(true)}
         />
 
-        {/* Liste des items */}
-        <div className="space-y-3">
-          {isLoading ? (
-            <Card className="p-6 text-center text-muted-foreground">
-              Chargement...
-            </Card>
-          ) : navItems?.length === 0 ? (
-            <Card className="p-6 text-center text-muted-foreground">
-              Aucun item de navigation
-            </Card>
-          ) : (
-            navItems?.map((item) => {
-              const Icon = getIconComponent(item.icon);
-              return (
-                <Card key={item.id} className="p-4">
-                  <div className="flex items-center gap-3">
-                    <GripVertical className="h-5 w-5 text-muted-foreground" />
-                    
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className={`p-2 rounded-full ${item.is_active ? 'bg-primary/10' : 'bg-muted'}`}>
-                        <Icon className={`h-5 w-5 ${item.is_active ? 'text-primary' : 'text-muted-foreground'}`} />
-                      </div>
-                      
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold">{item.name}</h3>
-                          {!item.is_active && (
-                            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                              Inactif
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {item.path} • Position {item.position}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(item)}
-                      >
-                        Modifier
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          if (confirm("Êtes-vous sûr de vouloir supprimer cet item ?")) {
-                            deleteMutation.mutate(item.id);
-                          }
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={navItems?.map(item => item.id) || []}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-3">
+              {isLoading ? (
+                <Card className="p-6 text-center text-muted-foreground">
+                  Chargement...
                 </Card>
-              );
-            })
-          )}
-        </div>
+              ) : navItems?.length === 0 ? (
+                <Card className="p-6 text-center text-muted-foreground">
+                  Aucun item de navigation
+                </Card>
+              ) : (
+                navItems?.map((item, index) => (
+                  <SortableItem
+                    key={item.id}
+                    item={item}
+                    onEdit={handleEdit}
+                    onDelete={deleteMutation.mutate}
+                    onMoveUp={handleMoveUp}
+                    onMoveDown={handleMoveDown}
+                    isFirst={index === 0}
+                    isLast={index === navItems.length - 1}
+                  />
+                ))
+              )}
+            </div>
+          </SortableContext>
+        </DndContext>
       </div>
 
-      {/* Dialog Formulaire */}
       <Dialog open={isDialogOpen} onOpenChange={(open) => {
         setIsDialogOpen(open);
         if (!open) resetForm();
