@@ -145,11 +145,11 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
       ) : (
         <div className="space-y-4">
           {formData.medications.map((med, index) => (
-            <Card key={index} className="p-4 space-y-4">
+            <Card key={index} className="p-4 space-y-4 bg-card border-border">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-semibold">{med.name}</h4>
+                    <h4 className="font-semibold text-foreground">{med.name}</h4>
                     {med.pathology && (
                       <Badge variant="secondary">{med.pathology}</Badge>
                     )}
@@ -172,8 +172,16 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
                     type="number"
                     min="1"
                     value={med.takesPerDay}
-                    onChange={(e) => updateMedication(index, { takesPerDay: parseInt(e.target.value) || 1 })}
-                    className="bg-surface"
+                    onChange={(e) => {
+                      const newTakes = parseInt(e.target.value) || 1;
+                      const updated = [...formData.medications];
+                      updated[index] = { 
+                        ...updated[index], 
+                        takesPerDay: newTakes,
+                        times: Array(newTakes).fill("").map((_, i) => updated[index].times[i] || "")
+                      };
+                      setFormData({ ...formData, medications: updated });
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
@@ -183,32 +191,22 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
                     min="1"
                     value={med.unitsPerTake}
                     onChange={(e) => updateMedication(index, { unitsPerTake: parseInt(e.target.value) || 1 })}
-                    className="bg-surface"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label>Horaires de prise</Label>
-                {med.times.map((time, timeIndex) => (
-                  <Input
-                    key={timeIndex}
-                    type="time"
-                    value={time}
-                    onChange={(e) => updateTimeSlot(index, timeIndex, e.target.value)}
-                    className="bg-surface"
-                  />
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => addTimeSlot(index)}
-                  className="w-full"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ajouter un horaire
-                </Button>
+                <div className="grid gap-2">
+                  {med.times.map((time, timeIndex) => (
+                    <Input
+                      key={timeIndex}
+                      type="time"
+                      value={time}
+                      onChange={(e) => updateTimeSlot(index, timeIndex, e.target.value)}
+                    />
+                  ))}
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -246,12 +244,12 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
                 {filteredCatalog.map((med) => (
                   <Card
                     key={med.id}
-                    className="p-4 cursor-pointer hover:bg-accent transition-colors"
+                    className="p-4 cursor-pointer hover:bg-accent/50 transition-colors bg-card border-border"
                     onClick={() => addMedicationFromCatalog(med)}
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <h4 className="font-semibold">{med.name}</h4>
+                        <h4 className="font-semibold text-foreground">{med.name}</h4>
                         {med.pathology && (
                           <Badge variant="secondary" className="mt-1">
                             {med.pathology}
