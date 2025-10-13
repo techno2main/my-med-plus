@@ -69,12 +69,18 @@ export function BottomNavigation() {
   };
 
   // Filter items based on admin status
+  console.log('BottomNavigation - isAdmin:', isAdmin);
+  console.log('BottomNavigation - navItems:', navItems);
+  
   const filteredNavItems = navItems?.filter(item => {
+    console.log('Checking item:', item.name, item.path, 'isAdmin:', isAdmin);
     if (item.path === '/admin') {
       return isAdmin;
     }
     return true;
   });
+  
+  console.log('BottomNavigation - filteredNavItems:', filteredNavItems);
 
   if (!filteredNavItems?.length) return null;
 
