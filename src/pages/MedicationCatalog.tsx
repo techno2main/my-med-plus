@@ -27,6 +27,7 @@ interface MedicationCatalog {
 }
 
 const MedicationCatalog = () => {
+  const navigate = useNavigate()
   const [medications, setMedications] = useState<MedicationCatalog[]>([])
   const [pathologies, setPathologies] = useState<{ id: string; name: string }[]>([])
   const [loading, setLoading] = useState(true)
@@ -213,7 +214,22 @@ const MedicationCatalog = () => {
     med.pathology?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const navigate = useNavigate()
+  const handleStockClick = async (catalogId: string) => {
+    // Trouver le premier médicament dans les traitements qui utilise ce catalog_id
+    const { data } = await supabase
+      .from("medications")
+      .select("id")
+      .eq("catalog_id", catalogId)
+      .limit(1)
+      .single();
+    
+    if (data) {
+      navigate(`/stock/${data.id}`);
+    } else {
+      navigate("/stock");
+    }
+  }
+
 
   return (
     <AppLayout>
@@ -256,54 +272,64 @@ const MedicationCatalog = () => {
           <div className="grid gap-4 md:grid-cols-2">
             {filteredMedications.map((med) => (
               <Card key={med.id} className="p-4 surface-elevated hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold">{med.name}</h3>
-                      {med.pathology && (
-                        <Badge variant="secondary">
-                          {med.pathology}
-                        </Badge>
-                      )}
+                <div className="space-y-2">
+                  {/* Ligne 1: Nom + Stock */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 flex-wrap flex-1">
+                      <h3 className="font-semibold text-lg">{med.name}</h3>
                       {med.total_stock !== undefined && (
-                        <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10">
+                        <button
+                          onClick={() => handleStockClick(med.id)}
+                          className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors cursor-pointer"
+                        >
                           <Pill className="h-3 w-3 text-primary" />
                           <span className="text-xs font-semibold text-primary">
                             {med.total_stock}
                           </span>
-                        </div>
+                        </button>
                       )}
                     </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openDialog(med)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => confirmDelete(med.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openDialog(med)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => confirmDelete(med.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
+
+                  {/* Ligne 2: Pathologie */}
+                  {med.pathology && (
+                    <div>
+                      <Badge variant="secondary">
+                        {med.pathology}
+                      </Badge>
+                    </div>
+                  )}
+
+                  {/* Ligne 3: Posologie */}
+                  {med.default_dosage && (
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-medium">Posologie :</span> {med.default_dosage}
+                    </p>
+                  )}
+
+                  {/* Ligne 4: Description */}
+                  {med.description && (
+                    <p className="text-sm text-muted-foreground">
+                      {med.description}
+                    </p>
+                  )}
                 </div>
-
-                {med.default_dosage && (
-                  <p className="text-sm text-muted-foreground mb-2">
-                    <span className="font-medium">Posologie :</span> {med.default_dosage}
-                  </p>
-                )}
-
-                {med.description && (
-                  <p className="text-sm text-muted-foreground">
-                    {med.description}
-                  </p>
-                )}
               </Card>
             ))}
           </div>
@@ -378,6 +404,7 @@ const MedicationCatalog = () => {
                     onChange={(e) => setFormData({ ...formData, initial_stock: e.target.value })}
                     placeholder="0"
                     className="bg-surface"
+                    disabled={!!editingMed}
                   />
                   <p className="text-xs text-muted-foreground">Stock par défaut lors de l'ajout</p>
                 </div>
@@ -392,18 +419,22 @@ const MedicationCatalog = () => {
                     onChange={(e) => setFormData({ ...formData, min_threshold: e.target.value })}
                     placeholder="10"
                     className="bg-surface"
+                    disabled={!!editingMed}
                   />
                   <p className="text-xs text-muted-foreground">Seuil d'alerte par défaut</p>
                 </div>
               </div>
 
               {editingMed && editingMed.total_stock !== undefined && (
-                <div className="p-3 rounded-lg bg-muted/30">
+                <div className="p-3 rounded-lg bg-muted/30 border border-primary/20">
                   <p className="text-sm text-muted-foreground mb-1">Stock actuel total</p>
-                  <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => handleStockClick(editingMed.id)}
+                    className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                  >
                     <Pill className="h-4 w-4 text-primary" />
-                    <p className="text-lg font-semibold">{editingMed.total_stock} unités</p>
-                  </div>
+                    <p className="text-lg font-semibold text-primary">{editingMed.total_stock} unités</p>
+                  </button>
                   <p className="text-xs text-muted-foreground mt-1">
                     Somme de tous les stocks dans vos traitements
                   </p>
