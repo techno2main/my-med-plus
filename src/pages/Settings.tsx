@@ -101,41 +101,18 @@ export default function Settings() {
         </Card>
 
         {/* Notifications */}
-        <Card className="p-4 space-y-4">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 rounded-full bg-primary/10">
-              <Bell className="h-6 w-6 text-primary" />
+        <Card className="p-4" onClick={() => navigate("/notifications")}>
+          <div className="flex items-center justify-between cursor-pointer">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-full bg-primary/10">
+                <Bell className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Notifications</h3>
+                <p className="text-sm text-muted-foreground">Configurez vos rappels</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold">Notifications</h3>
-              <p className="text-sm text-muted-foreground">Configurez vos rappels</p>
-            </div>
-          </div>
-
-          <div className="space-y-4 pl-15">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="push-notifications" className="flex-1">
-                <p className="font-medium">Notifications push</p>
-                <p className="text-sm text-muted-foreground">Recevoir les rappels de prises</p>
-              </Label>
-              <Switch id="push-notifications" defaultChecked />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Label htmlFor="email-reminders" className="flex-1">
-                <p className="font-medium">Rappels par email</p>
-                <p className="text-sm text-muted-foreground">Alertes de renouvellement</p>
-              </Label>
-              <Switch id="email-reminders" />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Label htmlFor="stock-alerts" className="flex-1">
-                <p className="font-medium">Alertes de stock</p>
-                <p className="text-sm text-muted-foreground">Quand le stock est bas</p>
-              </Label>
-              <Switch id="stock-alerts" defaultChecked />
-            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
           </div>
         </Card>
 
