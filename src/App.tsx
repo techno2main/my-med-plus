@@ -19,6 +19,9 @@ import PrescriptionForm from "./pages/PrescriptionForm";
 import ProForm from "./pages/ProForm";
 import MedicationCatalog from "./pages/MedicationCatalog";
 import Referentials from "./pages/Referentials";
+import HealthProfessionals from "./pages/HealthProfessionals";
+import Pathologies from "./pages/Pathologies";
+import Allergies from "./pages/Allergies";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +47,9 @@ const App = () => (
           <Route path="/prescriptions/new" element={<ProtectedRoute><PrescriptionForm /></ProtectedRoute>} />
           <Route path="/medications" element={<ProtectedRoute><MedicationCatalog /></ProtectedRoute>} />
           <Route path="/referentials" element={<ProtectedRoute><Referentials /></ProtectedRoute>} />
+          <Route path="/referentials/health-professionals" element={<ProtectedRoute><HealthProfessionals /></ProtectedRoute>} />
+          <Route path="/referentials/pathologies" element={<ProtectedRoute><Pathologies /></ProtectedRoute>} />
+          <Route path="/referentials/allergies" element={<ProtectedRoute><Allergies /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
