@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Bell, 
   Moon, 
@@ -21,6 +23,22 @@ import {
 
 export default function Settings() {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de se déconnecter",
+        variant: "destructive",
+      });
+    } else {
+      navigate("/auth");
+    }
+  };
+
   return (
     <AppLayout>
       <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
@@ -172,7 +190,11 @@ export default function Settings() {
         </Card>
 
         {/* Déconnexion */}
-        <Button variant="outline" className="w-full border-danger text-danger hover:bg-danger hover:text-white">
+        <Button 
+          variant="outline" 
+          className="w-full border-danger text-danger hover:bg-danger hover:text-white"
+          onClick={handleSignOut}
+        >
           <LogOut className="mr-2 h-4 w-4" />
           Déconnexion
         </Button>
