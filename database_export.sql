@@ -41,6 +41,8 @@ CREATE TABLE public.pathologies (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   name text NOT NULL,
   description text,
+  is_approved boolean NOT NULL DEFAULT false,
+  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   PRIMARY KEY (id)
@@ -111,6 +113,8 @@ CREATE TABLE public.medication_catalog (
   default_times text[] DEFAULT ARRAY[]::text[],
   min_threshold integer DEFAULT 10,
   initial_stock integer DEFAULT 0,
+  is_approved boolean NOT NULL DEFAULT false,
+  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   PRIMARY KEY (id)
@@ -294,21 +298,21 @@ CREATE POLICY "Admins can delete roles"
   USING (has_role(auth.uid(), 'admin'::app_role));
 
 -- Pathologies Policies
-CREATE POLICY "Everyone can view pathologies"
+CREATE POLICY "Users can view approved pathologies"
   ON public.pathologies FOR SELECT
-  USING (true);
+  USING (is_approved = true OR created_by = auth.uid() OR has_role(auth.uid(), 'admin'::app_role));
 
-CREATE POLICY "Authenticated users can add pathologies"
+CREATE POLICY "Authenticated users can create pathologies"
   ON public.pathologies FOR INSERT
-  WITH CHECK (auth.uid() IS NOT NULL);
+  WITH CHECK (auth.uid() IS NOT NULL AND created_by = auth.uid());
 
-CREATE POLICY "Authenticated users can update pathologies"
+CREATE POLICY "Admins can update pathologies"
   ON public.pathologies FOR UPDATE
-  USING (auth.uid() IS NOT NULL);
+  USING (has_role(auth.uid(), 'admin'::app_role));
 
-CREATE POLICY "Authenticated users can delete pathologies"
+CREATE POLICY "Admins can delete pathologies"
   ON public.pathologies FOR DELETE
-  USING (auth.uid() IS NOT NULL);
+  USING (has_role(auth.uid(), 'admin'::app_role));
 
 -- Allergies Policies
 CREATE POLICY "Users can view own allergies"
@@ -362,21 +366,21 @@ CREATE POLICY "Users can delete own prescriptions"
   USING (auth.uid() = user_id);
 
 -- Medication Catalog Policies
-CREATE POLICY "Authenticated users can view medication catalog"
+CREATE POLICY "Users can view approved medications"
   ON public.medication_catalog FOR SELECT
-  USING (auth.uid() IS NOT NULL);
+  USING (is_approved = true OR created_by = auth.uid() OR has_role(auth.uid(), 'admin'::app_role));
 
-CREATE POLICY "Authenticated users can add to medication catalog"
+CREATE POLICY "Authenticated users can create medications"
   ON public.medication_catalog FOR INSERT
-  WITH CHECK (auth.uid() IS NOT NULL);
+  WITH CHECK (auth.uid() IS NOT NULL AND created_by = auth.uid());
 
-CREATE POLICY "Authenticated users can update medication catalog"
+CREATE POLICY "Admins can update medications"
   ON public.medication_catalog FOR UPDATE
-  USING (auth.uid() IS NOT NULL);
+  USING (has_role(auth.uid(), 'admin'::app_role));
 
-CREATE POLICY "Authenticated users can delete from medication catalog"
+CREATE POLICY "Admins can delete medications"
   ON public.medication_catalog FOR DELETE
-  USING (auth.uid() IS NOT NULL);
+  USING (has_role(auth.uid(), 'admin'::app_role));
 
 -- Treatments Policies
 CREATE POLICY "Users can view own treatments"
