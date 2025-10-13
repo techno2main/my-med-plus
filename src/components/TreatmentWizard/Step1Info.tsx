@@ -80,7 +80,7 @@ export function Step1Info({ formData, setFormData, prescriptions, pharmacies }: 
         </div>
 
         <div className="space-y-2">
-          <Label>Upload d'ordonnance (optionnel)</Label>
+          <Label>Upload d&apos;ordonnance (optionnel)</Label>
           {!formData.prescriptionFile ? (
             <label htmlFor="file-upload" className="block">
               <div className="border-2 border-dashed border-muted rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors bg-surface">
@@ -101,17 +101,32 @@ export function Step1Info({ formData, setFormData, prescriptions, pharmacies }: 
               />
             </label>
           ) : (
-            <div className="flex items-center gap-2 p-3 bg-surface rounded-lg border">
-              <FileText className="h-5 w-5 text-primary" />
-              <span className="text-sm flex-1 truncate">{formData.prescriptionFileName}</span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={removeFile}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 p-3 bg-surface rounded-lg border">
+                <FileText className="h-5 w-5 text-primary" />
+                <span className="text-sm flex-1 truncate">{formData.prescriptionFile.name}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={removeFile}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="display-name">Nom d&apos;affichage du fichier</Label>
+                <Input
+                  id="display-name"
+                  value={formData.prescriptionFileName}
+                  onChange={(e) => setFormData({ ...formData, prescriptionFileName: e.target.value })}
+                  placeholder="Ex: Ordonnance Dr. Martin - Janvier 2024"
+                  className="bg-surface"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Ce nom sera affiché dans l&apos;application
+                </p>
+              </div>
             </div>
           )}
         </div>
