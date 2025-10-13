@@ -21,10 +21,31 @@ const ICON_MAP: Record<string, any> = {
 export function BottomNavigation() {
   const location = useLocation()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const activeItemRef = useRef<HTMLAnchorElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [startX, setStartX] = useState(0)
   const [scrollLeft, setScrollLeft] = useState(0)
   const { isAdmin } = useUserRole()
+
+  // Scroll to active item when route changes
+  useEffect(() => {
+    if (activeItemRef.current && scrollContainerRef.current) {
+      const container = scrollContainerRef.current
+      const activeItem = activeItemRef.current
+      
+      const itemLeft = activeItem.offsetLeft
+      const itemWidth = activeItem.offsetWidth
+      const containerWidth = container.offsetWidth
+      
+      // Calculate scroll position to center the active item
+      const scrollTo = itemLeft - (containerWidth / 2) + (itemWidth / 2)
+      
+      container.scrollTo({
+        left: scrollTo,
+        behavior: 'smooth'
+      })
+    }
+  }, [location.pathname])
 
   const { data: navItems } = useQuery({
     queryKey: ["navigation-items"],
@@ -106,6 +127,7 @@ export function BottomNavigation() {
               <NavLink
                 key={item.id}
                 to={item.path}
+                ref={isActive ? activeItemRef : null}
                 className={cn(
                   "flex flex-col items-center justify-center gap-1 px-4 py-2 min-w-[80px] flex-shrink-0 transition-colors select-none",
                   isActive 
