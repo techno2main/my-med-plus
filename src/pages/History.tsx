@@ -36,8 +36,9 @@ interface GroupedIntakes {
 
 export default function History() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const defaultTab = searchParams.get("tab") || "history";
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [loading, setLoading] = useState(true);
   const [historyData, setHistoryData] = useState<GroupedIntakes[]>([]);
   const [stats, setStats] = useState({
@@ -165,7 +166,7 @@ export default function History() {
           </div>
         </div>
 
-        <Tabs defaultValue={defaultTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="history">Historique</TabsTrigger>
             <TabsTrigger value="stats">Statistiques</TabsTrigger>
@@ -243,11 +244,17 @@ export default function History() {
             <Card className="p-6">
               <h3 className="font-semibold mb-4">Résumé</h3>
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-lg bg-success/10">
+                <div 
+                  className="p-4 rounded-lg bg-success/10 cursor-pointer hover:bg-success/20 transition-colors" 
+                  onClick={() => setActiveTab("history")}
+                >
                   <p className="text-sm text-muted-foreground mb-1">Prises validées</p>
                   <p className="text-3xl font-bold text-success">{stats.taken}</p>
                 </div>
-                <div className="p-4 rounded-lg bg-danger/10">
+                <div 
+                  className="p-4 rounded-lg bg-danger/10 cursor-pointer hover:bg-danger/20 transition-colors" 
+                  onClick={() => setActiveTab("history")}
+                >
                   <p className="text-sm text-muted-foreground mb-1">Prises oubliées</p>
                   <p className="text-3xl font-bold text-danger">{stats.skipped}</p>
                 </div>
