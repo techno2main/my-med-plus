@@ -283,7 +283,7 @@ const HealthProfessionals = () => {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <header>
-            <h1 className="text-2xl font-bold">Professionnels de Santé</h1>
+            <h1 className="text-2xl font-bold">Professionnels</h1>
             <p className="text-sm text-muted-foreground">Médecins, pharmacies et laboratoires</p>
           </header>
         </div>
