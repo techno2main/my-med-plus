@@ -4,13 +4,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AdvancedCalendar } from "@/components/ui/advanced-calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Upload, FileText, X, CalendarIcon } from "lucide-react";
+import { ModernDatePicker } from "@/components/ui/modern-date-picker";
+import { Upload, FileText, X } from "lucide-react";
 import { TreatmentFormData } from "./types";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { cn } from "@/lib/utils";
 
 interface Step1InfoProps {
   formData: TreatmentFormData;
@@ -195,41 +191,22 @@ export function Step1Info({ formData, setFormData, prescriptions, doctors, pharm
 
         <div className="space-y-2">
           <Label htmlFor="first-visit">Première visite en pharmacie</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal bg-surface",
-                  !formData.firstPharmacyVisit && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {formData.firstPharmacyVisit ? (
-                  format(new Date(formData.firstPharmacyVisit), "PPP", { locale: fr })
-                ) : (
-                  <span>Sélectionner une date</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <AdvancedCalendar
-                mode="single"
-                selected={formData.firstPharmacyVisit ? new Date(formData.firstPharmacyVisit) : undefined}
-                onSelect={(date) => {
-                  if (date) {
-                    setFormData({ 
-                      ...formData, 
-                      firstPharmacyVisit: format(date, "yyyy-MM-dd") 
-                    });
-                  }
-                }}
-                initialFocus
-                locale={fr}
-                disabled={(date) => date < new Date("1900-01-01")}
-              />
-            </PopoverContent>
-          </Popover>
+          <ModernDatePicker
+            value={formData.firstPharmacyVisit ? new Date(formData.firstPharmacyVisit) : undefined}
+            onChange={(date) => {
+              if (date) {
+                const year = date.getFullYear()
+                const month = String(date.getMonth() + 1).padStart(2, '0')
+                const day = String(date.getDate()).padStart(2, '0')
+                setFormData({ 
+                  ...formData, 
+                  firstPharmacyVisit: `${year}-${month}-${day}`
+                })
+              }
+            }}
+            placeholder="Sélectionner une date"
+            disabled={(date) => date < new Date("1900-01-01")}
+          />
           <p className="text-xs text-muted-foreground">
             Les 2 prochaines visites seront automatiquement planifiées à 1 mois d'intervalle
           </p>
