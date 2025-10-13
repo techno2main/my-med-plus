@@ -22,6 +22,7 @@ export type Database = {
           name: string
           severity: string | null
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -30,6 +31,7 @@ export type Database = {
           name: string
           severity?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -38,6 +40,7 @@ export type Database = {
           name?: string
           severity?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
