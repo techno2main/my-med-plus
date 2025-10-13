@@ -308,34 +308,36 @@ const Index = () => {
                     return intakeDate.getTime() === today.getTime();
                   })
                   .map((intake) => (
-                    <Card key={intake.id} className="p-4 surface-elevated hover:shadow-md transition-shadow">
-                      <div className="flex items-center gap-4">
-                        <div className="flex flex-col items-center justify-center min-w-[80px] p-2 rounded-lg bg-primary/10">
-                          <Clock className="h-4 w-4 text-primary mb-1" />
-                          <span className="text-sm font-semibold text-primary">{intake.time}</span>
-                          <span className="text-xs text-muted-foreground">{format(intake.date, "dd/MM")}</span>
+                    <Card key={intake.id} className="p-3 surface-elevated hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-3">
+                        <div className="flex flex-col items-center justify-center min-w-[60px] p-1.5 rounded-lg bg-primary/10">
+                          <Clock className="h-3.5 w-3.5 text-primary mb-0.5" />
+                          <span className="text-xs font-semibold text-primary">{intake.time}</span>
+                          <span className="text-[10px] text-muted-foreground">{format(intake.date, "dd/MM")}</span>
                         </div>
                         
-                        <div className="flex-1">
-                          <p className="font-medium">{intake.medication}</p>
-                          <p className="text-sm text-muted-foreground">{intake.treatment}</p>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{intake.medication}</p>
+                          <p className="text-xs text-muted-foreground truncate">{intake.treatment}</p>
                         </div>
 
-                        <div className={`flex items-center gap-1 px-3 py-1 rounded-full ${getStockBgColor(intake.currentStock, intake.minThreshold)}`}>
-                          <Pill className={`h-3 w-3 ${getStockColor(intake.currentStock, intake.minThreshold)}`} />
-                          <span className={`text-sm font-semibold ${getStockColor(intake.currentStock, intake.minThreshold)}`}>
-                            {intake.currentStock}
-                          </span>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${getStockBgColor(intake.currentStock, intake.minThreshold)}`}>
+                            <Pill className={`h-3 w-3 ${getStockColor(intake.currentStock, intake.minThreshold)}`} />
+                            <span className={`text-xs font-semibold ${getStockColor(intake.currentStock, intake.minThreshold)}`}>
+                              {intake.currentStock}
+                            </span>
+                          </div>
+                          
+                          <Button 
+                            size="sm" 
+                            className="gradient-primary h-8 w-8 p-0"
+                            onClick={() => handleTakeIntake(intake)}
+                            disabled={intake.currentStock === 0}
+                          >
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
-                        
-                        <Button 
-                          size="sm" 
-                          className="gradient-primary"
-                          onClick={() => handleTakeIntake(intake)}
-                          disabled={intake.currentStock === 0}
-                        >
-                          <CheckCircle2 className="h-4 w-4" />
-                        </Button>
                       </div>
                     </Card>
                   ))}
@@ -365,34 +367,36 @@ const Index = () => {
                     return intakeDate.getTime() === tomorrow.getTime();
                   })
                   .map((intake) => (
-                    <Card key={intake.id} className="p-4 surface-elevated hover:shadow-md transition-shadow">
-                      <div className="flex items-center gap-4">
-                        <div className="flex flex-col items-center justify-center min-w-[80px] p-2 rounded-lg bg-primary/10">
-                          <Clock className="h-4 w-4 text-primary mb-1" />
-                          <span className="text-sm font-semibold text-primary">{intake.time}</span>
-                          <span className="text-xs text-muted-foreground">{format(intake.date, "dd/MM")}</span>
+                    <Card key={intake.id} className="p-3 surface-elevated hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-3">
+                        <div className="flex flex-col items-center justify-center min-w-[60px] p-1.5 rounded-lg bg-primary/10">
+                          <Clock className="h-3.5 w-3.5 text-primary mb-0.5" />
+                          <span className="text-xs font-semibold text-primary">{intake.time}</span>
+                          <span className="text-[10px] text-muted-foreground">{format(intake.date, "dd/MM")}</span>
                         </div>
                         
-                        <div className="flex-1">
-                          <p className="font-medium">{intake.medication}</p>
-                          <p className="text-sm text-muted-foreground">{intake.treatment}</p>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{intake.medication}</p>
+                          <p className="text-xs text-muted-foreground truncate">{intake.treatment}</p>
                         </div>
 
-                        <div className={`flex items-center gap-1 px-3 py-1 rounded-full ${getStockBgColor(intake.currentStock, intake.minThreshold)}`}>
-                          <Pill className={`h-3 w-3 ${getStockColor(intake.currentStock, intake.minThreshold)}`} />
-                          <span className={`text-sm font-semibold ${getStockColor(intake.currentStock, intake.minThreshold)}`}>
-                            {intake.currentStock}
-                          </span>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${getStockBgColor(intake.currentStock, intake.minThreshold)}`}>
+                            <Pill className={`h-3 w-3 ${getStockColor(intake.currentStock, intake.minThreshold)}`} />
+                            <span className={`text-xs font-semibold ${getStockColor(intake.currentStock, intake.minThreshold)}`}>
+                              {intake.currentStock}
+                            </span>
+                          </div>
+                          
+                          <Button 
+                            size="sm" 
+                            className="gradient-primary h-8 w-8 p-0"
+                            onClick={() => handleTakeIntake(intake)}
+                            disabled={intake.currentStock === 0}
+                          >
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
-                        
-                        <Button 
-                          size="sm" 
-                          className="gradient-primary"
-                          onClick={() => handleTakeIntake(intake)}
-                          disabled={intake.currentStock === 0}
-                        >
-                          <CheckCircle2 className="h-4 w-4" />
-                        </Button>
                       </div>
                     </Card>
                   ))}
