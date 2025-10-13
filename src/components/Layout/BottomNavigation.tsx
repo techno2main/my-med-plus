@@ -24,41 +24,45 @@ export function BottomNavigation() {
   const [isDragging, setIsDragging] = useState(false)
   const [startX, setStartX] = useState(0)
   const [scrollLeft, setScrollLeft] = useState(0)
-  const savedScrollPos = useRef(0)
   const { isAdmin } = useUserRole()
 
-  // Save scroll position (works for both mouse and touch)
+  // Restore scroll position on mount and route change
   useEffect(() => {
     const container = scrollContainerRef.current
     if (!container) return
 
-    const handleScroll = () => {
-      savedScrollPos.current = container.scrollLeft
+    const savedPosition = localStorage.getItem('nav-scroll-position')
+    if (savedPosition) {
+      // Use multiple methods to ensure it works
+      container.scrollLeft = parseInt(savedPosition, 10)
+      
+      requestAnimationFrame(() => {
+        container.scrollLeft = parseInt(savedPosition, 10)
+      })
+      
+      setTimeout(() => {
+        container.scrollLeft = parseInt(savedPosition, 10)
+      }, 100)
+    }
+  }, [location.pathname])
+
+  // Save scroll position on scroll and touch
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const savePosition = () => {
+      localStorage.setItem('nav-scroll-position', container.scrollLeft.toString())
     }
 
-    const handleTouchEnd = () => {
-      savedScrollPos.current = container.scrollLeft
-    }
-
-    container.addEventListener('scroll', handleScroll)
-    container.addEventListener('touchend', handleTouchEnd)
+    container.addEventListener('scroll', savePosition, { passive: true })
+    container.addEventListener('touchend', savePosition, { passive: true })
     
     return () => {
-      container.removeEventListener('scroll', handleScroll)
-      container.removeEventListener('touchend', handleTouchEnd)
+      container.removeEventListener('scroll', savePosition)
+      container.removeEventListener('touchend', savePosition)
     }
   }, [])
-
-  // Restore scroll position after navigation
-  useEffect(() => {
-    const container = scrollContainerRef.current
-    if (!container) return
-
-    // Restore position without animation on mobile
-    requestAnimationFrame(() => {
-      container.scrollLeft = savedScrollPos.current
-    })
-  }, [location.pathname])
 
   const { data: navItems } = useQuery({
     queryKey: ["navigation-items"],
