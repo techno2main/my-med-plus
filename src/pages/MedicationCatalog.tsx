@@ -20,6 +20,8 @@ interface MedicationCatalog {
   pathology: string | null
   default_dosage: string | null
   description: string | null
+  initial_stock: number
+  min_threshold: number
 }
 
 const MedicationCatalog = () => {
@@ -35,7 +37,9 @@ const MedicationCatalog = () => {
     name: "",
     pathology: "",
     default_dosage: "",
-    description: ""
+    description: "",
+    initial_stock: "0",
+    min_threshold: "10"
   })
 
   useEffect(() => {
@@ -88,7 +92,9 @@ const MedicationCatalog = () => {
             name: formData.name,
             pathology: formData.pathology || null,
             default_dosage: formData.default_dosage || null,
-            description: formData.description || null
+            description: formData.description || null,
+            initial_stock: parseInt(formData.initial_stock) || 0,
+            min_threshold: parseInt(formData.min_threshold) || 10
           })
           .eq("id", editingMed.id)
 
@@ -101,7 +107,9 @@ const MedicationCatalog = () => {
             name: formData.name,
             pathology: formData.pathology || null,
             default_dosage: formData.default_dosage || null,
-            description: formData.description || null
+            description: formData.description || null,
+            initial_stock: parseInt(formData.initial_stock) || 0,
+            min_threshold: parseInt(formData.min_threshold) || 10
           })
 
         if (error) throw error
@@ -149,11 +157,20 @@ const MedicationCatalog = () => {
         name: med.name,
         pathology: med.pathology || "",
         default_dosage: med.default_dosage || "",
-        description: med.description || ""
+        description: med.description || "",
+        initial_stock: String(med.initial_stock || 0),
+        min_threshold: String(med.min_threshold || 10)
       })
     } else {
       setEditingMed(null)
-      setFormData({ name: "", pathology: "", default_dosage: "", description: "" })
+      setFormData({ 
+        name: "", 
+        pathology: "", 
+        default_dosage: "", 
+        description: "",
+        initial_stock: "0",
+        min_threshold: "10"
+      })
     }
     setShowDialog(true)
   }
@@ -161,7 +178,14 @@ const MedicationCatalog = () => {
   const closeDialog = () => {
     setShowDialog(false)
     setEditingMed(null)
-    setFormData({ name: "", pathology: "", default_dosage: "", description: "" })
+    setFormData({ 
+      name: "", 
+      pathology: "", 
+      default_dosage: "", 
+      description: "",
+      initial_stock: "0",
+      min_threshold: "10"
+    })
   }
 
   const filteredMedications = medications.filter(med =>
@@ -311,6 +335,34 @@ const MedicationCatalog = () => {
                   placeholder="Ex: Antalgique et antipyrétique"
                   className="bg-surface"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="initial_stock">Stock initial</Label>
+                  <Input
+                    id="initial_stock"
+                    type="number"
+                    min="0"
+                    value={formData.initial_stock}
+                    onChange={(e) => setFormData({ ...formData, initial_stock: e.target.value })}
+                    placeholder="0"
+                    className="bg-surface"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="min_threshold">Seuil minimum</Label>
+                  <Input
+                    id="min_threshold"
+                    type="number"
+                    min="0"
+                    value={formData.min_threshold}
+                    onChange={(e) => setFormData({ ...formData, min_threshold: e.target.value })}
+                    placeholder="10"
+                    className="bg-surface"
+                  />
+                </div>
               </div>
 
               <Button onClick={handleSubmit} className="w-full gradient-primary">

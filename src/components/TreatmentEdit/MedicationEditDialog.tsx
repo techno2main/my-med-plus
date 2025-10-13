@@ -13,6 +13,8 @@ interface CatalogMedication {
   name: string;
   pathology: string;
   default_dosage: string;
+  initial_stock?: number;
+  min_threshold?: number;
 }
 
 interface Medication {
@@ -61,7 +63,7 @@ export function MedicationEditDialog({ open, onOpenChange, medication, treatment
   const loadCatalog = async () => {
     const { data, error } = await supabase
       .from("medication_catalog")
-      .select("id, name, pathology, default_dosage")
+      .select("id, name, pathology, default_dosage, initial_stock, min_threshold")
       .order("name");
 
     if (error) {
@@ -125,8 +127,8 @@ export function MedicationEditDialog({ open, onOpenChange, medication, treatment
             name: selectedMed.name,
             dosage,
             times,
-            current_stock: 0,
-            min_threshold: 10
+            current_stock: selectedMed.initial_stock || 0,
+            min_threshold: selectedMed.min_threshold || 10
           });
 
         if (error) throw error;

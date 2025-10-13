@@ -100,6 +100,8 @@ export type Database = {
           dosage_amount: string | null
           form: string | null
           id: string
+          initial_stock: number | null
+          min_threshold: number | null
           name: string
           pathology: string | null
           updated_at: string | null
@@ -112,6 +114,8 @@ export type Database = {
           dosage_amount?: string | null
           form?: string | null
           id?: string
+          initial_stock?: number | null
+          min_threshold?: number | null
           name: string
           pathology?: string | null
           updated_at?: string | null
@@ -124,6 +128,8 @@ export type Database = {
           dosage_amount?: string | null
           form?: string | null
           id?: string
+          initial_stock?: number | null
+          min_threshold?: number | null
           name?: string
           pathology?: string | null
           updated_at?: string | null
