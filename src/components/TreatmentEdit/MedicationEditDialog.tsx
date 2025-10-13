@@ -152,7 +152,7 @@ export function MedicationEditDialog({ open, onOpenChange, medication, treatment
             <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)} className="h-8 w-8 p-0">
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <DialogTitle>{medication ? "Modifier le médicament" : "Ajouter un médicament"}</DialogTitle>
+            <DialogTitle>{medication ? "Modifier" : "Ajouter"}</DialogTitle>
           </div>
         </DialogHeader>
         

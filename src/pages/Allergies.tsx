@@ -243,7 +243,7 @@ const Allergies = () => {
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <DialogTitle>
-                  {editingItem ? "Modifier l'allergie" : "Ajouter une allergie"}
+                  {editingItem ? "Modifier" : "Ajouter"}
                 </DialogTitle>
               </div>
             </DialogHeader>

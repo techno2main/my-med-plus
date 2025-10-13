@@ -365,7 +365,7 @@ const MedicationCatalog = () => {
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <DialogTitle>
-                  {editingMed ? "Modifier le médicament" : "Ajouter un médicament"}
+                  {editingMed ? "Modifier" : "Ajouter"}
                 </DialogTitle>
               </div>
             </DialogHeader>
