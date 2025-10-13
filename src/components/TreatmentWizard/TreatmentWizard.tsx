@@ -242,7 +242,11 @@ export function TreatmentWizard() {
 
   return (
     <div className="space-y-6">
-      <WizardProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+      <WizardProgress 
+        currentStep={currentStep} 
+        totalSteps={TOTAL_STEPS}
+        onStepClick={setCurrentStep}
+      />
 
       <div className="min-h-[400px]">
         {renderStep()}

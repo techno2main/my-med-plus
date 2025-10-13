@@ -4,9 +4,10 @@ import { cn } from "@/lib/utils";
 interface WizardProgressProps {
   currentStep: number;
   totalSteps: number;
+  onStepClick: (step: number) => void;
 }
 
-export function WizardProgress({ currentStep, totalSteps }: WizardProgressProps) {
+export function WizardProgress({ currentStep, totalSteps, onStepClick }: WizardProgressProps) {
   const steps = [
     { number: 1, label: "Informations" },
     { number: 2, label: "Médicaments" },
@@ -26,13 +27,18 @@ export function WizardProgress({ currentStep, totalSteps }: WizardProgressProps)
         </div>
 
         {steps.map((step) => (
-          <div key={step.number} className="flex flex-col items-center gap-2">
+          <button
+            key={step.number}
+            type="button"
+            onClick={() => onStepClick(step.number)}
+            className="flex flex-col items-center gap-2 cursor-pointer hover:scale-105 transition-transform"
+          >
             <div
               className={cn(
                 "w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all duration-300",
                 currentStep > step.number && "bg-primary text-primary-foreground",
                 currentStep === step.number && "bg-primary text-primary-foreground ring-4 ring-primary/20",
-                currentStep < step.number && "bg-muted text-muted-foreground"
+                currentStep < step.number && "bg-muted text-muted-foreground hover:bg-muted/80"
               )}
             >
               {currentStep > step.number ? (
@@ -47,7 +53,7 @@ export function WizardProgress({ currentStep, totalSteps }: WizardProgressProps)
             )}>
               {step.label}
             </span>
-          </div>
+          </button>
         ))}
       </div>
     </div>
