@@ -95,7 +95,7 @@ export default function TreatmentEdit() {
     <AppLayout showBottomNav={false}>
       <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" onClick={() => navigate("/treatments")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
@@ -169,7 +169,9 @@ export default function TreatmentEdit() {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold">Médicaments</h3>
-            <Button size="sm">Ajouter un médicament</Button>
+            <Button size="sm" onClick={() => {
+              toast.info("Fonctionnalité d'ajout de médicament en cours de développement");
+            }}>Ajouter un médicament</Button>
           </div>
 
           <div className="space-y-3">
@@ -183,7 +185,9 @@ export default function TreatmentEdit() {
                       <p className="font-medium">{med.name}</p>
                       <p className="text-sm text-muted-foreground">{med.dosage}</p>
                     </div>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" onClick={() => {
+                      toast.info("Fonctionnalité de modification de médicament en cours de développement");
+                    }}>
                       Modifier
                     </Button>
                   </div>
