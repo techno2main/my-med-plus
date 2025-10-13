@@ -2,42 +2,36 @@ import { AppLayout } from "@/components/Layout/AppLayout"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Phone, Mail, MapPin, Stethoscope, Building2 } from "lucide-react"
+import { Plus, Phone, Mail, MapPin, Stethoscope, Building2, Star } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { supabase } from "@/integrations/supabase/client"
 
 const Pros = () => {
   const navigate = useNavigate();
+  const [professionals, setProfessionals] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data
-  const professionals = [
-    {
-      id: 1,
-      type: "doctor",
-      name: "Dr. Martin Dubois",
-      specialty: "Médecin généraliste",
-      phone: "01 23 45 67 89",
-      email: "m.dubois@cabinet.fr",
-      address: "12 rue de la Santé, 75014 Paris"
-    },
-    {
-      id: 2,
-      type: "specialist",
-      name: "Dr. Sophie Laurent",
-      specialty: "Endocrinologue",
-      phone: "01 98 76 54 32",
-      email: "s.laurent@hopital.fr",
-      address: "Hôpital Saint-Louis, 75010 Paris"
-    },
-    {
-      id: 3,
-      type: "pharmacy",
-      name: "Pharmacie du Centre",
-      specialty: "Pharmacie",
-      phone: "01 45 67 89 12",
-      email: "contact@pharmacie-centre.fr",
-      address: "5 place de la République, 75011 Paris"
-    },
-  ];
+  useEffect(() => {
+    loadProfessionals();
+  }, []);
+
+  const loadProfessionals = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("health_professionals")
+        .select("*")
+        .order("is_primary_doctor", { ascending: false })
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setProfessionals(data || []);
+    } catch (error) {
+      console.error("Error loading professionals:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -65,52 +59,67 @@ const Pros = () => {
           </Button>
         </div>
 
-        <div className="space-y-4">
-          {professionals.map((pro) => (
-            <Card key={pro.id} className="p-4 surface-elevated hover:shadow-md transition-shadow">
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  {getIcon(pro.type)}
+        {loading ? (
+          <div className="text-center py-8 text-muted-foreground">Chargement...</div>
+        ) : professionals.length === 0 ? (
+          <Card className="p-8 text-center">
+            <p className="text-muted-foreground">Aucun professionnel enregistré</p>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {professionals.map((pro) => (
+              <Card key={pro.id} className="p-4 surface-elevated hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-lg bg-primary/10">
+                    {getIcon(pro.type)}
+                  </div>
+
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold">{pro.name}</h3>
+                          {pro.is_primary_doctor && (
+                            <Badge variant="default" className="gap-1">
+                              <Star className="h-3 w-3" />
+                              Médecin traitant
+                            </Badge>
+                          )}
+                        </div>
+                        {pro.specialty && <Badge variant="muted" className="mt-1">{pro.specialty}</Badge>}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 text-sm">
+                      {pro.phone && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Phone className="h-4 w-4" />
+                          <a href={`tel:${pro.phone}`} className="hover:text-primary transition-colors">
+                            {pro.phone}
+                          </a>
+                        </div>
+                      )}
+                      {pro.email && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Mail className="h-4 w-4" />
+                          <a href={`mailto:${pro.email}`} className="hover:text-primary transition-colors">
+                            {pro.email}
+                          </a>
+                        </div>
+                      )}
+                      {pro.address && (
+                        <div className="flex items-start gap-2 text-muted-foreground">
+                          <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                          <span>{pro.address}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-
-                <div className="flex-1 space-y-3">
-                  <div>
-                    <h3 className="font-semibold">{pro.name}</h3>
-                    <Badge variant="muted" className="mt-1">{pro.specialty}</Badge>
-                  </div>
-
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Phone className="h-4 w-4" />
-                      <a href={`tel:${pro.phone}`} className="hover:text-primary transition-colors">
-                        {pro.phone}
-                      </a>
-                    </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Mail className="h-4 w-4" />
-                      <a href={`mailto:${pro.email}`} className="hover:text-primary transition-colors">
-                        {pro.email}
-                      </a>
-                    </div>
-                    <div className="flex items-start gap-2 text-muted-foreground">
-                      <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                      <span>{pro.address}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 pt-2">
-                    <Button variant="outline" size="sm" className="flex-1">
-                      Modifier
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex-1">
-                      Voir les traitements
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </AppLayout>
   )
