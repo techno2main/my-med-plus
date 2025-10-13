@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle2, XCircle, Clock, Calendar as CalendarIcon, ArrowLeft } from "lucide-react";
 import { format, parseISO, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -36,6 +36,8 @@ interface GroupedIntakes {
 
 export default function History() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get("tab") || "history";
   const [loading, setLoading] = useState(true);
   const [historyData, setHistoryData] = useState<GroupedIntakes[]>([]);
   const [stats, setStats] = useState({
@@ -163,7 +165,7 @@ export default function History() {
           </div>
         </div>
 
-        <Tabs defaultValue="history" className="space-y-6">
+        <Tabs defaultValue={defaultTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="history">Historique</TabsTrigger>
             <TabsTrigger value="stats">Statistiques</TabsTrigger>

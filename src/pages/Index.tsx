@@ -14,6 +14,7 @@ interface UpcomingIntake {
   medicationId: string
   medication: string
   time: string
+  date: Date
   treatment: string
   currentStock: number
   minThreshold: number
@@ -66,30 +67,76 @@ const Index = () => {
 
       if (medsError) throw medsError
 
-      // Process upcoming intakes for today
+      // Load today's intakes to exclude already taken medications
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const tomorrow = new Date(today)
+      tomorrow.setDate(tomorrow.getDate() + 1)
+
+      const { data: takenIntakes } = await supabase
+        .from("medication_intakes")
+        .select("medication_id, scheduled_time")
+        .eq("status", "taken")
+        .gte("scheduled_time", today.toISOString())
+        .lt("scheduled_time", tomorrow.toISOString())
+
+      const takenIntakesSet = new Set(
+        (takenIntakes || []).map((intake: any) => {
+          const time = format(new Date(intake.scheduled_time), "HH:mm")
+          return `${intake.medication_id}-${time}`
+        })
+      )
+
+      // Process upcoming intakes (today and tomorrow)
       const now = new Date()
-      const currentTime = format(now, "HH:mm")
       const intakes: UpcomingIntake[] = []
 
       medications?.forEach((med: any) => {
         med.times?.forEach((time: string) => {
-          if (time >= currentTime) {
-            intakes.push({
-              id: `${med.id}-${time}`,
-              medicationId: med.id,
-              medication: med.name,
-              time: time,
-              treatment: med.treatments.name,
-              currentStock: med.current_stock || 0,
-              minThreshold: med.min_threshold || 10
-            })
+          // Check today's times
+          const todayKey = `${med.id}-${time}`
+          if (!takenIntakesSet.has(todayKey)) {
+            const [hours, minutes] = time.split(':')
+            const scheduledDate = new Date()
+            scheduledDate.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+
+            // Only show if in the future or if it's for today and not taken
+            if (scheduledDate >= now) {
+              intakes.push({
+                id: `${med.id}-${time}-today`,
+                medicationId: med.id,
+                medication: med.name,
+                time: time,
+                date: scheduledDate,
+                treatment: med.treatments.name,
+                currentStock: med.current_stock || 0,
+                minThreshold: med.min_threshold || 10
+              })
+            }
           }
+
+          // Add tomorrow's first occurrences if we don't have enough today
+          const tomorrowDate = new Date()
+          tomorrowDate.setDate(tomorrowDate.getDate() + 1)
+          const [hours, minutes] = time.split(':')
+          tomorrowDate.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+          
+          intakes.push({
+            id: `${med.id}-${time}-tomorrow`,
+            medicationId: med.id,
+            medication: med.name,
+            time: time,
+            date: tomorrowDate,
+            treatment: med.treatments.name,
+            currentStock: med.current_stock || 0,
+            minThreshold: med.min_threshold || 10
+          })
         })
       })
 
-      // Sort by time
-      intakes.sort((a, b) => a.time.localeCompare(b.time))
-      setUpcomingIntakes(intakes.slice(0, 5))
+      // Sort by date/time and take first 10
+      intakes.sort((a, b) => a.date.getTime() - b.date.getTime())
+      setUpcomingIntakes(intakes.slice(0, 10))
 
       // Process stock alerts
       const alerts: StockAlert[] = []
@@ -118,18 +165,13 @@ const Index = () => {
 
   const handleTakeIntake = async (intake: UpcomingIntake) => {
     try {
-      const now = new Date()
-      const scheduledTime = new Date()
-      const [hours, minutes] = intake.time.split(':')
-      scheduledTime.setHours(parseInt(hours), parseInt(minutes), 0, 0)
-
       // Create intake record
       const { error: intakeError } = await supabase
         .from("medication_intakes")
         .insert({
           medication_id: intake.medicationId,
-          scheduled_time: scheduledTime.toISOString(),
-          taken_at: now.toISOString(),
+          scheduled_time: intake.date.toISOString(),
+          taken_at: new Date().toISOString(),
           status: 'taken'
         })
 
@@ -190,7 +232,7 @@ const Index = () => {
             </div>
           </Card>
           
-          <Card className="p-4 surface-elevated">
+          <Card className="p-4 surface-elevated cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/history?tab=stats")}>
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-success/10">
                 <CheckCircle2 className="h-5 w-5 text-success" />
@@ -236,9 +278,10 @@ const Index = () => {
             {upcomingIntakes.map((intake) => (
               <Card key={intake.id} className="p-4 surface-elevated hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-4">
-                  <div className="flex flex-col items-center justify-center min-w-[60px] p-2 rounded-lg bg-primary/10">
+                  <div className="flex flex-col items-center justify-center min-w-[80px] p-2 rounded-lg bg-primary/10">
                     <Clock className="h-4 w-4 text-primary mb-1" />
                     <span className="text-sm font-semibold text-primary">{intake.time}</span>
+                    <span className="text-xs text-muted-foreground">{format(intake.date, "dd/MM")}</span>
                   </div>
                   
                   <div className="flex-1">
