@@ -1,42 +1,112 @@
+import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, FileText, Download, Eye, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+interface Prescription {
+  id: string;
+  prescription_date: string;
+  duration_days: number;
+  notes: string | null;
+  document_url: string | null;
+  file_path: string | null;
+  prescribing_doctor_id: string | null;
+}
+
+interface PrescriptionWithDetails extends Prescription {
+  doctor_name: string | null;
+  expiry_date: string;
+  status: "active" | "expiring" | "expired";
+  treatments: Array<{
+    id: string;
+    name: string;
+  }>;
+}
 
 export default function Prescriptions() {
   const navigate = useNavigate();
-  // Mock data - à remplacer par des vraies données
-  const prescriptions = [
-    {
-      id: 1,
-      title: "Ordonnance Diabète",
-      doctor: "Dr. Martin Dubois",
-      date: "2025-01-15",
-      expiryDate: "2025-07-15",
-      medications: ["Metformine 850mg", "Insuline Lantus"],
-      status: "active"
-    },
-    {
-      id: 2,
-      title: "Ordonnance Cholestérol",
-      doctor: "Dr. Sophie Laurent",
-      date: "2024-11-20",
-      expiryDate: "2025-05-20",
-      medications: ["Atorvastatine 20mg"],
-      status: "active"
-    },
-    {
-      id: 3,
-      title: "Ordonnance Sommeil",
-      doctor: "Dr. Martin Dubois",
-      date: "2024-08-10",
-      expiryDate: "2025-02-10",
-      medications: ["Zolpidem 10mg"],
-      status: "expiring"
-    },
-  ];
+  const [prescriptions, setPrescriptions] = useState<PrescriptionWithDetails[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadPrescriptions();
+  }, []);
+
+  const loadPrescriptions = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Charger les prescriptions
+      const { data: prescriptionsData, error: prescError } = await supabase
+        .from("prescriptions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("prescription_date", { ascending: false });
+
+      if (prescError) throw prescError;
+
+      // Pour chaque prescription, charger les détails
+      const prescriptionsWithDetails = await Promise.all(
+        (prescriptionsData || []).map(async (presc) => {
+          // Calculer la date d'expiration
+          const prescDate = new Date(presc.prescription_date);
+          const expiryDate = new Date(prescDate);
+          expiryDate.setDate(expiryDate.getDate() + presc.duration_days);
+
+          // Déterminer le statut
+          const now = new Date();
+          const daysUntilExpiry = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          let status: "active" | "expiring" | "expired";
+          if (daysUntilExpiry < 0) {
+            status = "expired";
+          } else if (daysUntilExpiry <= 30) {
+            status = "expiring";
+          } else {
+            status = "active";
+          }
+
+          // Charger le nom du médecin
+          let doctor_name = null;
+          if (presc.prescribing_doctor_id) {
+            const { data: doctorData } = await supabase
+              .from("health_professionals")
+              .select("name")
+              .eq("id", presc.prescribing_doctor_id)
+              .single();
+            
+            doctor_name = doctorData?.name || null;
+          }
+
+          // Charger les traitements liés à cette prescription
+          const { data: treatmentsData } = await supabase
+            .from("treatments")
+            .select("id, name")
+            .eq("prescription_id", presc.id);
+
+          return {
+            ...presc,
+            doctor_name,
+            expiry_date: expiryDate.toISOString(),
+            status,
+            treatments: treatmentsData || []
+          };
+        })
+      );
+
+      setPrescriptions(prescriptionsWithDetails);
+    } catch (error) {
+      console.error("Error loading prescriptions:", error);
+      toast.error("Erreur lors du chargement des ordonnances");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -50,6 +120,66 @@ export default function Prescriptions() {
         return null;
     }
   };
+
+  const handleDownload = async (prescription: PrescriptionWithDetails) => {
+    if (!prescription.file_path) {
+      toast.error("Aucun fichier disponible");
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.storage
+        .from("prescriptions")
+        .download(prescription.file_path);
+
+      if (error) throw error;
+
+      // Créer un lien de téléchargement
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = prescription.file_path.split("/").pop() || "prescription.pdf";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading prescription:", error);
+      toast.error("Erreur lors du téléchargement");
+    }
+  };
+
+  const handleView = async (prescription: PrescriptionWithDetails) => {
+    if (!prescription.file_path) {
+      toast.error("Aucun fichier disponible");
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.storage
+        .from("prescriptions")
+        .createSignedUrl(prescription.file_path, 60);
+
+      if (error) throw error;
+
+      if (data?.signedUrl) {
+        window.open(data.signedUrl, "_blank");
+      }
+    } catch (error) {
+      console.error("Error viewing prescription:", error);
+      toast.error("Erreur lors de l'ouverture du document");
+    }
+  };
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="container max-w-2xl mx-auto px-4 py-6">
+          <p className="text-center text-muted-foreground">Chargement...</p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -72,53 +202,94 @@ export default function Prescriptions() {
 
         {/* Liste des ordonnances */}
         <div className="space-y-4">
-          {prescriptions.map((prescription) => (
-            <Card key={prescription.id} className="p-4">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-start gap-3 flex-1">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <FileText className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold mb-1">{prescription.title}</h3>
-                    <p className="text-sm text-muted-foreground">{prescription.doctor}</p>
-                  </div>
-                </div>
-                {getStatusBadge(prescription.status)}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-                <div>
-                  <p className="text-muted-foreground">Date de prescription</p>
-                  <p className="font-medium">{new Date(prescription.date).toLocaleDateString('fr-FR')}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Validité</p>
-                  <p className="font-medium">{new Date(prescription.expiryDate).toLocaleDateString('fr-FR')}</p>
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <p className="text-sm text-muted-foreground mb-2">Médicaments prescrits</p>
-                <div className="flex flex-wrap gap-2">
-                  {prescription.medications.map((med, idx) => (
-                    <Badge key={idx} variant="muted">{med}</Badge>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1">
-                  <Eye className="mr-2 h-4 w-4" />
-                  Voir
-                </Button>
-                <Button variant="outline" size="sm" className="flex-1">
-                  <Download className="mr-2 h-4 w-4" />
-                  Télécharger
-                </Button>
-              </div>
+          {prescriptions.length === 0 ? (
+            <Card className="p-12 text-center">
+              <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground">Aucune ordonnance enregistrée</p>
+              <Button className="mt-4" onClick={() => navigate("/prescriptions/new")}>
+                <Plus className="mr-2 h-4 w-4" />
+                Ajouter une ordonnance
+              </Button>
             </Card>
-          ))}
+          ) : (
+            prescriptions.map((prescription) => (
+              <Card key={prescription.id} className="p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold mb-1">
+                        {prescription.treatments.length > 0 
+                          ? prescription.treatments.map(t => t.name).join(", ")
+                          : "Ordonnance"}
+                      </h3>
+                      {prescription.doctor_name && (
+                        <p className="text-sm text-muted-foreground">{prescription.doctor_name}</p>
+                      )}
+                    </div>
+                  </div>
+                  {getStatusBadge(prescription.status)}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                  <div>
+                    <p className="text-muted-foreground">Date de prescription</p>
+                    <p className="font-medium">
+                      {new Date(prescription.prescription_date).toLocaleDateString('fr-FR')}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Validité</p>
+                    <p className="font-medium">
+                      {new Date(prescription.expiry_date).toLocaleDateString('fr-FR')}
+                    </p>
+                  </div>
+                </div>
+
+                {prescription.treatments.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-sm text-muted-foreground mb-2">Médicaments prescrits</p>
+                    <div className="flex flex-wrap gap-2">
+                      {prescription.treatments.map((treatment) => (
+                        <Badge key={treatment.id} variant="muted">{treatment.name}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {prescription.notes && (
+                  <div className="mb-4 p-3 rounded-lg bg-muted/30">
+                    <p className="text-sm text-muted-foreground">{prescription.notes}</p>
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleView(prescription)}
+                    disabled={!prescription.file_path}
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    Voir
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleDownload(prescription)}
+                    disabled={!prescription.file_path}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Télécharger
+                  </Button>
+                </div>
+              </Card>
+            ))
+          )}
         </div>
       </div>
     </AppLayout>
