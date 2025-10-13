@@ -34,18 +34,22 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
     if (data) setCatalog(data);
   };
 
-  const addMedicationFromCatalog = (med: CatalogMedication) => {
+  const addMedicationFromCatalog = (catalogMed: CatalogMedication) => {
     const newMed: MedicationItem = {
-      catalogId: med.id,
-      name: med.name,
-      pathology: med.pathology || "",
-      dosage: med.default_dosage || "",
-      takesPerDay: 1,
-      times: [""],
+      catalogId: catalogMed.id,
+      name: catalogMed.name,
+      pathology: catalogMed.pathology || "",
+      dosage: catalogMed.default_dosage || "",
+      takesPerDay: catalogMed.default_times?.length || 1,
+      times: catalogMed.default_times || ["09:00"],
       unitsPerTake: 1,
-      minThreshold: 10,
+      minThreshold: 10
     };
-    setFormData({ ...formData, medications: [...formData.medications, newMed] });
+    
+    setFormData({
+      ...formData,
+      medications: [...formData.medications, newMed]
+    });
     setShowDialog(false);
   };
 

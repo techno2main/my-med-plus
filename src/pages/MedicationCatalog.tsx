@@ -23,6 +23,7 @@ interface MedicationCatalog {
   description: string | null
   initial_stock: number
   min_threshold: number
+  default_times: string[] | null
   total_stock?: number
 }
 
@@ -42,7 +43,8 @@ const MedicationCatalog = () => {
     default_dosage: "",
     description: "",
     initial_stock: "0",
-    min_threshold: "10"
+    min_threshold: "10",
+    default_times: [] as string[]
   })
 
   useEffect(() => {
@@ -115,7 +117,8 @@ const MedicationCatalog = () => {
             default_dosage: formData.default_dosage || null,
             description: formData.description || null,
             initial_stock: parseInt(formData.initial_stock) || 0,
-            min_threshold: parseInt(formData.min_threshold) || 10
+            min_threshold: parseInt(formData.min_threshold) || 10,
+            default_times: formData.default_times.length > 0 ? formData.default_times : null
           })
           .eq("id", editingMed.id)
 
@@ -130,7 +133,8 @@ const MedicationCatalog = () => {
             default_dosage: formData.default_dosage || null,
             description: formData.description || null,
             initial_stock: parseInt(formData.initial_stock) || 0,
-            min_threshold: parseInt(formData.min_threshold) || 10
+            min_threshold: parseInt(formData.min_threshold) || 10,
+            default_times: formData.default_times.length > 0 ? formData.default_times : null
           })
 
         if (error) throw error
@@ -180,7 +184,8 @@ const MedicationCatalog = () => {
         default_dosage: med.default_dosage || "",
         description: med.description || "",
         initial_stock: String(med.initial_stock || 0),
-        min_threshold: String(med.min_threshold || 10)
+        min_threshold: String(med.min_threshold || 10),
+        default_times: med.default_times || []
       })
     } else {
       setEditingMed(null)
@@ -190,7 +195,8 @@ const MedicationCatalog = () => {
         default_dosage: "", 
         description: "",
         initial_stock: "0",
-        min_threshold: "10"
+        min_threshold: "10",
+        default_times: []
       })
     }
     setShowDialog(true)
@@ -205,7 +211,8 @@ const MedicationCatalog = () => {
       default_dosage: "", 
       description: "",
       initial_stock: "0",
-      min_threshold: "10"
+      min_threshold: "10",
+      default_times: []
     })
   }
 
@@ -422,6 +429,49 @@ const MedicationCatalog = () => {
                     disabled={!!editingMed}
                   />
                   <p className="text-xs text-muted-foreground">Seuil d'alerte par défaut</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Heures de prises par défaut</Label>
+                <div className="space-y-2">
+                  {formData.default_times.map((time, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        type="time"
+                        value={time}
+                        onChange={(e) => {
+                          const newTimes = [...formData.default_times];
+                          newTimes[index] = e.target.value;
+                          setFormData({ ...formData, default_times: newTimes });
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const newTimes = formData.default_times.filter((_, i) => i !== index);
+                          setFormData({ ...formData, default_times: newTimes });
+                        }}
+                      >
+                        Supprimer
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setFormData({ ...formData, default_times: [...formData.default_times, "09:00"] });
+                    }}
+                  >
+                    + Ajouter une heure
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Ces heures seront pré-remplies automatiquement lors de l'ajout d'un traitement
+                  </p>
                 </div>
               </div>
 

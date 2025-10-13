@@ -96,6 +96,7 @@ export type Database = {
           color: string | null
           created_at: string | null
           default_dosage: string | null
+          default_times: string[] | null
           description: string | null
           dosage_amount: string | null
           form: string | null
@@ -110,6 +111,7 @@ export type Database = {
           color?: string | null
           created_at?: string | null
           default_dosage?: string | null
+          default_times?: string[] | null
           description?: string | null
           dosage_amount?: string | null
           form?: string | null
@@ -124,6 +126,7 @@ export type Database = {
           color?: string | null
           created_at?: string | null
           default_dosage?: string | null
+          default_times?: string[] | null
           description?: string | null
           dosage_amount?: string | null
           form?: string | null

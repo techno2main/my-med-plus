@@ -35,4 +35,5 @@ export interface CatalogMedication {
   pathology: string;
   default_dosage: string;
   description: string;
+  default_times?: string[] | null;
 }
