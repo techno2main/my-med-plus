@@ -1,0 +1,290 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { format, addMonths } from "date-fns";
+import { WizardProgress } from "./WizardProgress";
+import { Step1Info } from "./Step1Info";
+import { Step2Medications } from "./Step2Medications";
+import { Step3Stocks } from "./Step3Stocks";
+import { Step4Summary } from "./Step4Summary";
+import { TreatmentFormData } from "./types";
+
+const TOTAL_STEPS = 4;
+
+export function TreatmentWizard() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [prescriptions, setPrescriptions] = useState<any[]>([]);
+  const [pharmacies, setPharmacies] = useState<any[]>([]);
+  
+  const [formData, setFormData] = useState<TreatmentFormData>({
+    name: "",
+    description: "",
+    prescriptionId: "",
+    prescriptionFile: null,
+    prescriptionFileName: "",
+    pharmacyId: "",
+    firstPharmacyVisit: "",
+    medications: [],
+    stocks: {},
+  });
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const [prescData, pharmacyData] = await Promise.all([
+        supabase
+          .from("prescriptions")
+          .select("*, health_professionals(name)")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("health_professionals")
+          .select("*")
+          .eq("type", "pharmacy"),
+      ]);
+
+      if (prescData.error) throw prescData.error;
+      if (pharmacyData.error) throw pharmacyData.error;
+
+      setPrescriptions(prescData.data || []);
+      setPharmacies(pharmacyData.data || []);
+    } catch (error) {
+      console.error("Error loading data:", error);
+    }
+  };
+
+  const canGoNext = () => {
+    switch (currentStep) {
+      case 1:
+        return formData.name.trim() !== "";
+      case 2:
+        return formData.medications.length > 0;
+      case 3:
+        return formData.medications.every((_, index) => 
+          formData.stocks[index] && formData.stocks[index] > 0
+        );
+      case 4:
+        return true;
+      default:
+        return false;
+    }
+  };
+
+  const handleNext = () => {
+    if (canGoNext() && currentStep < TOTAL_STEPS) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!canGoNext()) return;
+    
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Non authentifié");
+
+      let prescriptionId = formData.prescriptionId;
+
+      // Upload prescription file if provided
+      if (formData.prescriptionFile) {
+        const fileExt = formData.prescriptionFile.name.split('.').pop();
+        const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('prescriptions')
+          .upload(filePath, formData.prescriptionFile);
+
+        if (uploadError) throw uploadError;
+
+        // Create prescription record with file
+        const { data: prescData, error: prescError } = await supabase
+          .from("prescriptions")
+          .insert({
+            user_id: user.id,
+            prescription_date: new Date().toISOString().split('T')[0],
+            duration_days: 90,
+            file_path: filePath,
+            original_filename: formData.prescriptionFileName,
+          })
+          .select()
+          .single();
+
+        if (prescError) throw prescError;
+        prescriptionId = prescData.id;
+      }
+
+      // Create treatment
+      const { data: treatment, error: treatmentError } = await supabase
+        .from("treatments")
+        .insert({
+          user_id: user.id,
+          prescription_id: prescriptionId,
+          pharmacy_id: formData.pharmacyId || null,
+          name: formData.name,
+          description: formData.description,
+          start_date: new Date().toISOString().split('T')[0],
+          pathology: formData.medications.map(m => m.pathology).filter(Boolean).join(", "),
+        })
+        .select()
+        .single();
+
+      if (treatmentError) throw treatmentError;
+
+      // Create medications
+      const medicationsToInsert = formData.medications.map((med, index) => ({
+        treatment_id: treatment.id,
+        name: med.name,
+        dosage: med.dosage,
+        times: med.times.filter(t => t !== ""),
+        initial_stock: formData.stocks[index] || 0,
+        current_stock: formData.stocks[index] || 0,
+        min_threshold: med.minThreshold,
+      }));
+
+      const { error: medError } = await supabase
+        .from("medications")
+        .insert(medicationsToInsert);
+
+      if (medError) throw medError;
+
+      // Create pharmacy visits
+      if (formData.firstPharmacyVisit && formData.pharmacyId) {
+        const visits = [];
+        const firstVisitDate = new Date(formData.firstPharmacyVisit);
+        
+        for (let i = 0; i < 3; i++) {
+          visits.push({
+            treatment_id: treatment.id,
+            pharmacy_id: formData.pharmacyId,
+            visit_date: format(addMonths(firstVisitDate, i), "yyyy-MM-dd"),
+            visit_number: i + 1,
+            is_completed: i === 0,
+          });
+        }
+
+        const { error: visitsError } = await supabase
+          .from("pharmacy_visits")
+          .insert(visits);
+
+        if (visitsError) throw visitsError;
+      }
+
+      toast({
+        title: "Traitement créé",
+        description: "Le traitement a été créé avec succès.",
+      });
+      navigate("/");
+    } catch (error) {
+      console.error("Error:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer le traitement.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <Step1Info
+            formData={formData}
+            setFormData={setFormData}
+            prescriptions={prescriptions}
+            pharmacies={pharmacies}
+          />
+        );
+      case 2:
+        return (
+          <Step2Medications
+            formData={formData}
+            setFormData={setFormData}
+          />
+        );
+      case 3:
+        return (
+          <Step3Stocks
+            formData={formData}
+            setFormData={setFormData}
+          />
+        );
+      case 4:
+        return (
+          <Step4Summary
+            formData={formData}
+            prescriptions={prescriptions}
+            pharmacies={pharmacies}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <WizardProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+
+      <div className="min-h-[400px]">
+        {renderStep()}
+      </div>
+
+      <div className="flex gap-3 sticky bottom-0 bg-background pt-4 pb-6 border-t">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handlePrev}
+          disabled={currentStep === 1 || loading}
+          className="flex-1"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Précédent
+        </Button>
+        
+        {currentStep < TOTAL_STEPS ? (
+          <Button
+            type="button"
+            onClick={handleNext}
+            disabled={!canGoNext() || loading}
+            className="flex-1 gradient-primary"
+          >
+            Suivant
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!canGoNext() || loading}
+            className="flex-1 gradient-primary"
+          >
+            {loading ? "Enregistrement..." : (
+              <>
+                <Check className="h-4 w-4 mr-2" />
+                Créer le traitement
+              </>
+            )}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}

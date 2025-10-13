@@ -64,6 +64,36 @@ export type Database = {
           },
         ]
       }
+      medication_catalog: {
+        Row: {
+          created_at: string | null
+          default_dosage: string | null
+          description: string | null
+          id: string
+          name: string
+          pathology: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          default_dosage?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          pathology?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          default_dosage?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          pathology?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       medications: {
         Row: {
           created_at: string | null
@@ -170,8 +200,10 @@ export type Database = {
           created_at: string | null
           document_url: string | null
           duration_days: number
+          file_path: string | null
           id: string
           notes: string | null
+          original_filename: string | null
           prescribing_doctor_id: string | null
           prescription_date: string
           updated_at: string | null
@@ -181,8 +213,10 @@ export type Database = {
           created_at?: string | null
           document_url?: string | null
           duration_days?: number
+          file_path?: string | null
           id?: string
           notes?: string | null
+          original_filename?: string | null
           prescribing_doctor_id?: string | null
           prescription_date: string
           updated_at?: string | null
@@ -192,8 +226,10 @@ export type Database = {
           created_at?: string | null
           document_url?: string | null
           duration_days?: number
+          file_path?: string | null
           id?: string
           notes?: string | null
+          original_filename?: string | null
           prescribing_doctor_id?: string | null
           prescription_date?: string
           updated_at?: string | null
@@ -243,6 +279,7 @@ export type Database = {
       treatments: {
         Row: {
           created_at: string | null
+          description: string | null
           end_date: string | null
           id: string
           is_active: boolean | null
@@ -257,6 +294,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          description?: string | null
           end_date?: string | null
           id?: string
           is_active?: boolean | null
@@ -271,6 +309,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          description?: string | null
           end_date?: string | null
           id?: string
           is_active?: boolean | null
