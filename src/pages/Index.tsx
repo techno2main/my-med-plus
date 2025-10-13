@@ -63,7 +63,9 @@ const Index = () => {
           initial_stock,
           min_threshold,
           treatment_id,
-          treatments!inner(name, is_active)
+          catalog_id,
+          treatments!inner(name, is_active),
+          medication_catalog(dosage_amount)
         `)
         .eq("treatments.is_active", true)
 
@@ -108,7 +110,7 @@ const Index = () => {
                 id: `${med.id}-${time}-today`,
                 medicationId: med.id,
                 medication: med.name,
-                dosage: med.dosage,
+                dosage: med.medication_catalog?.dosage_amount || med.dosage,
                 time: time,
                 date: scheduledDate,
                 treatment: med.treatments.name,
@@ -128,7 +130,7 @@ const Index = () => {
             id: `${med.id}-${time}-tomorrow`,
             medicationId: med.id,
             medication: med.name,
-            dosage: med.dosage,
+            dosage: med.medication_catalog?.dosage_amount || med.dosage,
             time: time,
             date: tomorrowDate,
             treatment: med.treatments.name,
