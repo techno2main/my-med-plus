@@ -144,7 +144,12 @@ export default function Stock() {
                 </div>
 
                 <div className="flex gap-2 mt-4">
-                  <Button variant="outline" size="sm" className="flex-1" onClick={() => navigate("/stock/adjust")}>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1" 
+                    onClick={() => navigate(`/stock/adjust?id=${item.id}`)}
+                  >
                     Ajuster stock
                   </Button>
                   <Button variant="outline" size="sm" className="flex-1" onClick={() => navigate(`/stock/${item.id}`)}>
