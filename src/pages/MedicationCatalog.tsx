@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { AppLayout } from "@/components/Layout/AppLayout"
+import { Pill } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,6 +23,7 @@ interface MedicationCatalog {
   description: string | null
   initial_stock: number
   min_threshold: number
+  total_stock?: number
 }
 
 const MedicationCatalog = () => {
@@ -69,7 +71,25 @@ const MedicationCatalog = () => {
         .order("name")
 
       if (error) throw error
-      setMedications(data || [])
+      
+      // Pour chaque médicament du catalogue, calculer le stock total
+      const medsWithStock = await Promise.all(
+        (data || []).map(async (med) => {
+          const { data: stockData } = await supabase
+            .from("medications")
+            .select("current_stock")
+            .eq("catalog_id", med.id);
+          
+          const totalStock = stockData?.reduce((sum, item) => sum + (item.current_stock || 0), 0) || 0;
+          
+          return {
+            ...med,
+            total_stock: totalStock
+          };
+        })
+      );
+      
+      setMedications(medsWithStock)
     } catch (error) {
       console.error("Error loading medications:", error)
       toast.error("Erreur lors du chargement du référentiel")
@@ -199,7 +219,7 @@ const MedicationCatalog = () => {
     <AppLayout>
       <div className="container max-w-4xl mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="sm" onClick={() => navigate("/referentials")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <header className="flex-1 flex items-center justify-between">
@@ -238,12 +258,22 @@ const MedicationCatalog = () => {
               <Card key={med.id} className="p-4 surface-elevated hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <h3 className="font-semibold">{med.name}</h3>
-                    {med.pathology && (
-                      <Badge variant="secondary" className="mt-1">
-                        {med.pathology}
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-semibold">{med.name}</h3>
+                      {med.pathology && (
+                        <Badge variant="secondary">
+                          {med.pathology}
+                        </Badge>
+                      )}
+                      {med.total_stock !== undefined && (
+                        <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10">
+                          <Pill className="h-3 w-3 text-primary" />
+                          <span className="text-xs font-semibold text-primary">
+                            {med.total_stock}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="flex gap-1">
                     <Button
@@ -349,6 +379,7 @@ const MedicationCatalog = () => {
                     placeholder="0"
                     className="bg-surface"
                   />
+                  <p className="text-xs text-muted-foreground">Stock par défaut lors de l'ajout</p>
                 </div>
 
                 <div className="space-y-2">
@@ -362,8 +393,22 @@ const MedicationCatalog = () => {
                     placeholder="10"
                     className="bg-surface"
                   />
+                  <p className="text-xs text-muted-foreground">Seuil d'alerte par défaut</p>
                 </div>
               </div>
+
+              {editingMed && editingMed.total_stock !== undefined && (
+                <div className="p-3 rounded-lg bg-muted/30">
+                  <p className="text-sm text-muted-foreground mb-1">Stock actuel total</p>
+                  <div className="flex items-center gap-2">
+                    <Pill className="h-4 w-4 text-primary" />
+                    <p className="text-lg font-semibold">{editingMed.total_stock} unités</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Somme de tous les stocks dans vos traitements
+                  </p>
+                </div>
+              )}
 
               <Button onClick={handleSubmit} className="w-full gradient-primary">
                 {editingMed ? "Modifier" : "Ajouter"}
