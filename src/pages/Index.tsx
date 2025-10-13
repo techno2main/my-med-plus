@@ -13,6 +13,7 @@ interface UpcomingIntake {
   id: string
   medicationId: string
   medication: string
+  dosage: string
   time: string
   date: Date
   treatment: string
@@ -56,6 +57,7 @@ const Index = () => {
         .select(`
           id,
           name,
+          dosage,
           times,
           current_stock,
           initial_stock,
@@ -106,6 +108,7 @@ const Index = () => {
                 id: `${med.id}-${time}-today`,
                 medicationId: med.id,
                 medication: med.name,
+                dosage: med.dosage,
                 time: time,
                 date: scheduledDate,
                 treatment: med.treatments.name,
@@ -125,6 +128,7 @@ const Index = () => {
             id: `${med.id}-${time}-tomorrow`,
             medicationId: med.id,
             medication: med.name,
+            dosage: med.dosage,
             time: time,
             date: tomorrowDate,
             treatment: med.treatments.name,
@@ -297,7 +301,19 @@ const Index = () => {
             }) && (
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                  Aujourd'hui
+                  Aujourd'hui {upcomingIntakes.find(i => {
+                    const intakeDate = new Date(i.date);
+                    const today = new Date();
+                    intakeDate.setHours(0, 0, 0, 0);
+                    today.setHours(0, 0, 0, 0);
+                    return intakeDate.getTime() === today.getTime();
+                  })?.treatment && `(${upcomingIntakes.find(i => {
+                    const intakeDate = new Date(i.date);
+                    const today = new Date();
+                    intakeDate.setHours(0, 0, 0, 0);
+                    today.setHours(0, 0, 0, 0);
+                    return intakeDate.getTime() === today.getTime();
+                  })?.treatment})`}
                 </h3>
                 {upcomingIntakes
                   .filter(intake => {
@@ -318,7 +334,7 @@ const Index = () => {
                         
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{intake.medication}</p>
-                          <p className="text-xs text-muted-foreground truncate">{intake.treatment}</p>
+                          <p className="text-xs text-muted-foreground truncate">{intake.dosage}</p>
                         </div>
 
                         <div className="flex items-center gap-2 flex-shrink-0">
@@ -355,7 +371,21 @@ const Index = () => {
             }) && (
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                  Demain
+                  Demain {upcomingIntakes.find(i => {
+                    const intakeDate = new Date(i.date);
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    intakeDate.setHours(0, 0, 0, 0);
+                    tomorrow.setHours(0, 0, 0, 0);
+                    return intakeDate.getTime() === tomorrow.getTime();
+                  })?.treatment && `(${upcomingIntakes.find(i => {
+                    const intakeDate = new Date(i.date);
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    intakeDate.setHours(0, 0, 0, 0);
+                    tomorrow.setHours(0, 0, 0, 0);
+                    return intakeDate.getTime() === tomorrow.getTime();
+                  })?.treatment})`}
                 </h3>
                 {upcomingIntakes
                   .filter(intake => {
@@ -377,7 +407,7 @@ const Index = () => {
                         
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{intake.medication}</p>
-                          <p className="text-xs text-muted-foreground truncate">{intake.treatment}</p>
+                          <p className="text-xs text-muted-foreground truncate">{intake.dosage}</p>
                         </div>
 
                         <div className="flex items-center gap-2 flex-shrink-0">
