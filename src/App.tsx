@@ -3,7 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import Treatments from "./pages/Treatments";
 import Calendar from "./pages/Calendar";
 import Pros from "./pages/Pros";
@@ -26,19 +28,20 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/treatments" element={<Treatments />} />
-          <Route path="/treatments/new" element={<TreatmentForm />} />
-          <Route path="/stock" element={<Stock />} />
-          <Route path="/stock/new" element={<StockForm />} />
-          <Route path="/stock/adjust" element={<StockForm />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/pros" element={<Pros />} />
-          <Route path="/pros/new" element={<ProForm />} />
-          <Route path="/prescriptions" element={<Prescriptions />} />
-          <Route path="/prescriptions/new" element={<PrescriptionForm />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/history" element={<History />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+          <Route path="/treatments" element={<ProtectedRoute><Treatments /></ProtectedRoute>} />
+          <Route path="/treatments/new" element={<ProtectedRoute><TreatmentForm /></ProtectedRoute>} />
+          <Route path="/stock" element={<ProtectedRoute><Stock /></ProtectedRoute>} />
+          <Route path="/stock/new" element={<ProtectedRoute><StockForm /></ProtectedRoute>} />
+          <Route path="/stock/adjust" element={<ProtectedRoute><StockForm /></ProtectedRoute>} />
+          <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+          <Route path="/pros" element={<ProtectedRoute><Pros /></ProtectedRoute>} />
+          <Route path="/pros/new" element={<ProtectedRoute><ProForm /></ProtectedRoute>} />
+          <Route path="/prescriptions" element={<ProtectedRoute><Prescriptions /></ProtectedRoute>} />
+          <Route path="/prescriptions/new" element={<ProtectedRoute><PrescriptionForm /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
