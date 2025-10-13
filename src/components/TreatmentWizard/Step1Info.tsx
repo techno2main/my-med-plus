@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { AdvancedCalendar } from "@/components/ui/advanced-calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Upload, FileText, X, CalendarIcon } from "lucide-react";
 import { TreatmentFormData } from "./types";
@@ -213,7 +213,7 @@ export function Step1Info({ formData, setFormData, prescriptions, doctors, pharm
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
+              <AdvancedCalendar
                 mode="single"
                 selected={formData.firstPharmacyVisit ? new Date(formData.firstPharmacyVisit) : undefined}
                 onSelect={(date) => {
@@ -225,7 +225,6 @@ export function Step1Info({ formData, setFormData, prescriptions, doctors, pharm
                   }
                 }}
                 initialFocus
-                className={cn("p-3 pointer-events-auto")}
                 locale={fr}
                 disabled={(date) => date < new Date("1900-01-01")}
               />
