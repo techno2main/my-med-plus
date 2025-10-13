@@ -246,6 +246,39 @@ export type Database = {
           },
         ]
       }
+      navigation_items: {
+        Row: {
+          created_at: string | null
+          icon: string
+          id: string
+          is_active: boolean | null
+          name: string
+          path: string
+          position: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          icon: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          path: string
+          position: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          path?: string
+          position?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       pathologies: {
         Row: {
           created_at: string | null
