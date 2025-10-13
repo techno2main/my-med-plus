@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Bell, Clock, AlertTriangle, Calendar, Pill } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -170,18 +170,15 @@ export default function NotificationSettings() {
                   Rappel si non pris après
                 </Label>
                 <div className="flex items-center gap-2">
-                  <Input
+                  <NumberInput
                     id="reminder-delay"
-                    type="number"
-                    min="1"
-                    max="60"
+                    min={1}
+                    max={60}
                     value={preferences.medicationReminderDelay}
-                    onChange={(e) =>
-                      updatePreferences({
-                        medicationReminderDelay: parseInt(e.target.value) || 10,
-                      })
+                    onChange={(value) =>
+                      updatePreferences({ medicationReminderDelay: value })
                     }
-                    className="w-20 text-center"
+                    className="w-20"
                   />
                   <span className="text-sm text-muted-foreground">min</span>
                 </div>
@@ -288,18 +285,15 @@ export default function NotificationSettings() {
                   Rappel avant visite
                 </Label>
                 <div className="flex items-center gap-2">
-                  <Input
+                  <NumberInput
                     id="pharmacy-days"
-                    type="number"
-                    min="0"
-                    max="7"
+                    min={0}
+                    max={7}
                     value={preferences.pharmacyVisitReminderDays}
-                    onChange={(e) =>
-                      updatePreferences({
-                        pharmacyVisitReminderDays: parseInt(e.target.value) || 1,
-                      })
+                    onChange={(value) =>
+                      updatePreferences({ pharmacyVisitReminderDays: value })
                     }
-                    className="w-20 text-center"
+                    className="w-20"
                   />
                   <span className="text-sm text-muted-foreground">jour(s)</span>
                 </div>
