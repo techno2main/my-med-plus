@@ -221,15 +221,9 @@ export default function Prescriptions() {
           <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div className="flex-1 flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Ordonnances</h1>
-              <p className="text-muted-foreground">Vos prescriptions médicales</p>
-            </div>
-            <Button onClick={() => navigate("/prescriptions/new")}>
-              <Plus className="mr-2 h-4 w-4" />
-              Ajouter
-            </Button>
+          <div>
+            <h1 className="text-3xl font-bold">Ordonnances</h1>
+            <p className="text-muted-foreground">Vos prescriptions médicales</p>
           </div>
         </div>
 

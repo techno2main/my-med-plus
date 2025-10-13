@@ -28,6 +28,7 @@ export function TreatmentWizard() {
     description: "",
     prescribingDoctorId: "",
     prescriptionId: "",
+    prescriptionDate: "",
     prescriptionFile: null,
     prescriptionFileName: "",
     pharmacyId: "",
@@ -128,7 +129,7 @@ export function TreatmentWizard() {
           .insert({
             user_id: user.id,
             prescribing_doctor_id: formData.prescribingDoctorId || null,
-            prescription_date: new Date().toISOString().split('T')[0],
+            prescription_date: formData.prescriptionDate || new Date().toISOString().split('T')[0],
             duration_days: 90,
             file_path: filePath,
             original_filename: formData.prescriptionFileName,

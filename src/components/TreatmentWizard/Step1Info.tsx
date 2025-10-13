@@ -88,6 +88,26 @@ export function Step1Info({ formData, setFormData, prescriptions, doctors, pharm
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="prescription-date">Date de prescription *</Label>
+          <ModernDatePicker
+            value={formData.prescriptionDate ? new Date(formData.prescriptionDate) : undefined}
+            onChange={(date) => {
+              if (date) {
+                const year = date.getFullYear()
+                const month = String(date.getMonth() + 1).padStart(2, '0')
+                const day = String(date.getDate()).padStart(2, '0')
+                setFormData({ 
+                  ...formData, 
+                  prescriptionDate: `${year}-${month}-${day}`
+                })
+              }
+            }}
+            placeholder="Sélectionner la date de prescription"
+            disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+          />
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="prescription">Ordonnance de référence (optionnel)</Label>
           <Select
             value={formData.prescriptionId}

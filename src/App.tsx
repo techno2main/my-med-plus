@@ -15,7 +15,7 @@ import Settings from "./pages/Settings";
 import History from "./pages/History";
 import TreatmentForm from "./pages/TreatmentForm";
 import StockForm from "./pages/StockForm";
-import PrescriptionForm from "./pages/PrescriptionForm";
+
 import ProForm from "./pages/ProForm";
 import MedicationCatalog from "./pages/MedicationCatalog";
 import Referentials from "./pages/Referentials";
@@ -49,7 +49,6 @@ const App = () => (
           <Route path="/pros" element={<ProtectedRoute><Pros /></ProtectedRoute>} />
           <Route path="/pros/new" element={<ProtectedRoute><ProForm /></ProtectedRoute>} />
           <Route path="/prescriptions" element={<ProtectedRoute><Prescriptions /></ProtectedRoute>} />
-          <Route path="/prescriptions/new" element={<ProtectedRoute><PrescriptionForm /></ProtectedRoute>} />
           <Route path="/medications" element={<ProtectedRoute><MedicationCatalog /></ProtectedRoute>} />
           <Route path="/referentials" element={<ProtectedRoute><Referentials /></ProtectedRoute>} />
           <Route path="/referentials/health-professionals" element={<ProtectedRoute><HealthProfessionals /></ProtectedRoute>} />
