@@ -18,6 +18,7 @@ import StockForm from "./pages/StockForm";
 import PrescriptionForm from "./pages/PrescriptionForm";
 import ProForm from "./pages/ProForm";
 import MedicationCatalog from "./pages/MedicationCatalog";
+import Referentials from "./pages/Referentials";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
           <Route path="/prescriptions" element={<ProtectedRoute><Prescriptions /></ProtectedRoute>} />
           <Route path="/prescriptions/new" element={<ProtectedRoute><PrescriptionForm /></ProtectedRoute>} />
           <Route path="/medications" element={<ProtectedRoute><MedicationCatalog /></ProtectedRoute>} />
+          <Route path="/referentials" element={<ProtectedRoute><Referentials /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

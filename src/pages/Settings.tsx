@@ -14,7 +14,8 @@ import {
   LogOut,
   Users,
   FileText,
-  ClipboardList
+  ClipboardList,
+  Database
 } from "lucide-react";
 
 export default function Settings() {
@@ -31,6 +32,21 @@ export default function Settings() {
         <div className="space-y-3">
           <h3 className="text-sm font-medium text-muted-foreground">Navigation</h3>
           
+          <Card className="p-4" onClick={() => navigate("/referentials")}>
+            <div className="flex items-center justify-between cursor-pointer">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-full bg-primary/10">
+                  <Database className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Référentiels</h3>
+                  <p className="text-sm text-muted-foreground">Gérer les données de référence</p>
+                </div>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            </div>
+          </Card>
+
           <Card className="p-4" onClick={() => navigate("/pros")}>
             <div className="flex items-center justify-between cursor-pointer">
               <div className="flex items-center gap-3">
