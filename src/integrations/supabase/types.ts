@@ -14,7 +14,299 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      health_professionals: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          is_primary_doctor: boolean | null
+          name: string
+          phone: string | null
+          specialty: string | null
+          type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_primary_doctor?: boolean | null
+          name: string
+          phone?: string | null
+          specialty?: string | null
+          type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_primary_doctor?: boolean | null
+          name?: string
+          phone?: string | null
+          specialty?: string | null
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_professionals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medications: {
+        Row: {
+          created_at: string | null
+          current_stock: number | null
+          dosage: string
+          expiry_date: string | null
+          id: string
+          initial_stock: number | null
+          min_threshold: number | null
+          name: string
+          times: string[]
+          treatment_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_stock?: number | null
+          dosage: string
+          expiry_date?: string | null
+          id?: string
+          initial_stock?: number | null
+          min_threshold?: number | null
+          name: string
+          times: string[]
+          treatment_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_stock?: number | null
+          dosage?: string
+          expiry_date?: string | null
+          id?: string
+          initial_stock?: number | null
+          min_threshold?: number | null
+          name?: string
+          times?: string[]
+          treatment_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medications_treatment_id_fkey"
+            columns: ["treatment_id"]
+            isOneToOne: false
+            referencedRelation: "treatments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacy_visits: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_completed: boolean | null
+          notes: string | null
+          pharmacy_id: string | null
+          treatment_id: string
+          updated_at: string | null
+          visit_date: string
+          visit_number: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_completed?: boolean | null
+          notes?: string | null
+          pharmacy_id?: string | null
+          treatment_id: string
+          updated_at?: string | null
+          visit_date: string
+          visit_number: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_completed?: boolean | null
+          notes?: string | null
+          pharmacy_id?: string | null
+          treatment_id?: string
+          updated_at?: string | null
+          visit_date?: string
+          visit_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_visits_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "health_professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_visits_treatment_id_fkey"
+            columns: ["treatment_id"]
+            isOneToOne: false
+            referencedRelation: "treatments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prescriptions: {
+        Row: {
+          created_at: string | null
+          document_url: string | null
+          duration_days: number
+          id: string
+          notes: string | null
+          prescribing_doctor_id: string | null
+          prescription_date: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          document_url?: string | null
+          duration_days?: number
+          id?: string
+          notes?: string | null
+          prescribing_doctor_id?: string | null
+          prescription_date: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          document_url?: string | null
+          duration_days?: number
+          id?: string
+          notes?: string | null
+          prescribing_doctor_id?: string | null
+          prescription_date?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescriptions_prescribing_doctor_id_fkey"
+            columns: ["prescribing_doctor_id"]
+            isOneToOne: false
+            referencedRelation: "health_professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          date_of_birth: string | null
+          full_name: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date_of_birth?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date_of_birth?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      treatments: {
+        Row: {
+          created_at: string | null
+          end_date: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          notes: string | null
+          pathology: string | null
+          pharmacy_id: string | null
+          prescription_id: string
+          start_date: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          notes?: string | null
+          pathology?: string | null
+          pharmacy_id?: string | null
+          prescription_id: string
+          start_date: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          notes?: string | null
+          pathology?: string | null
+          pharmacy_id?: string | null
+          prescription_id?: string
+          start_date?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treatments_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "health_professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "treatments_prescription_id_fkey"
+            columns: ["prescription_id"]
+            isOneToOne: false
+            referencedRelation: "prescriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "treatments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
