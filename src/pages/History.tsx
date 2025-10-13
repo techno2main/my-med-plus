@@ -1,42 +1,118 @@
+import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle2, XCircle, Clock, Calendar as CalendarIcon, ArrowLeft } from "lucide-react";
-import { format, subDays } from "date-fns";
+import { format, parseISO, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+
+interface MedicationIntake {
+  id: string;
+  medication_id: string;
+  scheduled_time: string;
+  taken_at: string | null;
+  status: 'pending' | 'taken' | 'skipped';
+  medications: {
+    name: string;
+  };
+}
+
+interface GroupedIntakes {
+  date: Date;
+  intakes: {
+    id: string;
+    time: string;
+    medication: string;
+    status: string;
+    takenAt?: string;
+  }[];
+}
 
 export default function History() {
   const navigate = useNavigate();
-  // Mock data - à remplacer par des vraies données
-  const historyData = [
-    {
-      date: new Date(),
-      intakes: [
-        { id: 1, time: "08:00", medication: "Metformine 850mg", status: "taken", takenAt: "08:05" },
-        { id: 2, time: "13:00", medication: "Atorvastatine 20mg", status: "taken", takenAt: "13:10" },
-        { id: 3, time: "22:00", medication: "Zolpidem 10mg", status: "pending" },
-      ]
-    },
-    {
-      date: subDays(new Date(), 1),
-      intakes: [
-        { id: 4, time: "08:00", medication: "Metformine 850mg", status: "taken", takenAt: "08:15" },
-        { id: 5, time: "13:00", medication: "Atorvastatine 20mg", status: "taken", takenAt: "13:05" },
-        { id: 6, time: "22:00", medication: "Zolpidem 10mg", status: "skipped" },
-      ]
-    },
-    {
-      date: subDays(new Date(), 2),
-      intakes: [
-        { id: 7, time: "08:00", medication: "Metformine 850mg", status: "taken", takenAt: "08:00" },
-        { id: 8, time: "13:00", medication: "Atorvastatine 20mg", status: "taken", takenAt: "13:20" },
-        { id: 9, time: "22:00", medication: "Zolpidem 10mg", status: "taken", takenAt: "22:05" },
-      ]
-    },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [historyData, setHistoryData] = useState<GroupedIntakes[]>([]);
+  const [stats, setStats] = useState({
+    taken: 0,
+    skipped: 0,
+    adherence7Days: 0,
+    adherence30Days: 0
+  });
+
+  useEffect(() => {
+    loadHistory();
+  }, []);
+
+  const loadHistory = async () => {
+    try {
+      const { data: intakesData, error } = await supabase
+        .from("medication_intakes")
+        .select(`
+          id,
+          medication_id,
+          scheduled_time,
+          taken_at,
+          status,
+          medications (
+            name
+          )
+        `)
+        .order("scheduled_time", { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+
+      // Group by date
+      const grouped = (intakesData || []).reduce((acc: Record<string, GroupedIntakes>, intake: MedicationIntake) => {
+        const date = startOfDay(parseISO(intake.scheduled_time));
+        const dateKey = date.toISOString();
+        
+        if (!acc[dateKey]) {
+          acc[dateKey] = {
+            date,
+            intakes: []
+          };
+        }
+
+        acc[dateKey].intakes.push({
+          id: intake.id,
+          time: format(parseISO(intake.scheduled_time), 'HH:mm'),
+          medication: intake.medications?.name || 'Médicament inconnu',
+          status: intake.status,
+          takenAt: intake.taken_at ? format(parseISO(intake.taken_at), 'HH:mm') : undefined
+        });
+
+        return acc;
+      }, {});
+
+      setHistoryData(Object.values(grouped));
+
+      // Calculate stats
+      const taken = (intakesData || []).filter(i => i.status === 'taken').length;
+      const skipped = (intakesData || []).filter(i => i.status === 'skipped').length;
+      const total = taken + skipped;
+      
+      setStats({
+        taken,
+        skipped,
+        adherence7Days: total > 0 ? Math.round((taken / total) * 100) : 0,
+        adherence30Days: total > 0 ? Math.round((taken / total) * 100) : 0
+      });
+
+    } catch (error) {
+      console.error("Error loading history:", error);
+      toast.error("Erreur lors du chargement de l'historique");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -64,16 +140,21 @@ export default function History() {
     }
   };
 
-  const calculateAdherence = (days: number = 7) => {
-    // Mock calculation
-    return 85;
-  };
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="container max-w-2xl mx-auto px-4 py-6">
+          <p className="text-center text-muted-foreground">Chargement...</p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
       <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
@@ -89,34 +170,40 @@ export default function History() {
           </TabsList>
 
           <TabsContent value="history" className="space-y-4">
-            {historyData.map((day, dayIdx) => (
-              <Card key={dayIdx} className="p-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                  <h3 className="font-semibold">
-                    {format(day.date, "EEEE d MMMM yyyy", { locale: fr })}
-                  </h3>
-                </div>
-
-                <div className="space-y-3">
-                  {day.intakes.map((intake) => (
-                    <div key={intake.id} className="flex items-center justify-between p-3 rounded-lg bg-surface">
-                      <div className="flex items-center gap-3 flex-1">
-                        {getStatusIcon(intake.status)}
-                        <div className="flex-1">
-                          <p className="font-medium">{intake.medication}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Prévu à {intake.time}
-                            {intake.takenAt && ` • Pris à ${intake.takenAt}`}
-                          </p>
-                        </div>
-                      </div>
-                      {getStatusBadge(intake.status)}
-                    </div>
-                  ))}
-                </div>
+            {historyData.length === 0 ? (
+              <Card className="p-12 text-center">
+                <p className="text-muted-foreground">Aucun historique disponible</p>
               </Card>
-            ))}
+            ) : (
+              historyData.map((day, dayIdx) => (
+                <Card key={dayIdx} className="p-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                    <h3 className="font-semibold">
+                      {format(day.date, "EEEE d MMMM yyyy", { locale: fr })}
+                    </h3>
+                  </div>
+
+                  <div className="space-y-3">
+                    {day.intakes.map((intake) => (
+                      <div key={intake.id} className="flex items-center justify-between p-3 rounded-lg bg-surface">
+                        <div className="flex items-center gap-3 flex-1">
+                          {getStatusIcon(intake.status)}
+                          <div className="flex-1">
+                            <p className="font-medium">{intake.medication}</p>
+                            <p className="text-sm text-muted-foreground">
+                              Prévu à {intake.time}
+                              {intake.takenAt && ` • Pris à ${intake.takenAt}`}
+                            </p>
+                          </div>
+                        </div>
+                        {getStatusBadge(intake.status)}
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              ))
+            )}
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-4">
@@ -126,12 +213,12 @@ export default function History() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-sm text-muted-foreground">7 derniers jours</p>
-                    <p className="text-2xl font-bold text-primary">{calculateAdherence(7)}%</p>
+                    <p className="text-2xl font-bold text-primary">{stats.adherence7Days}%</p>
                   </div>
                   <div className="w-full bg-surface-elevated rounded-full h-3">
                     <div 
                       className="bg-gradient-primary h-3 rounded-full transition-all" 
-                      style={{ width: `${calculateAdherence(7)}%` }}
+                      style={{ width: `${stats.adherence7Days}%` }}
                     />
                   </div>
                 </div>
@@ -139,12 +226,12 @@ export default function History() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-sm text-muted-foreground">30 derniers jours</p>
-                    <p className="text-2xl font-bold text-primary">92%</p>
+                    <p className="text-2xl font-bold text-primary">{stats.adherence30Days}%</p>
                   </div>
                   <div className="w-full bg-surface-elevated rounded-full h-3">
                     <div 
                       className="bg-gradient-primary h-3 rounded-full transition-all" 
-                      style={{ width: "92%" }}
+                      style={{ width: `${stats.adherence30Days}%` }}
                     />
                   </div>
                 </div>
@@ -156,11 +243,11 @@ export default function History() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 rounded-lg bg-success/10">
                   <p className="text-sm text-muted-foreground mb-1">Prises validées</p>
-                  <p className="text-3xl font-bold text-success">42</p>
+                  <p className="text-3xl font-bold text-success">{stats.taken}</p>
                 </div>
                 <div className="p-4 rounded-lg bg-danger/10">
                   <p className="text-sm text-muted-foreground mb-1">Prises oubliées</p>
-                  <p className="text-3xl font-bold text-danger">3</p>
+                  <p className="text-3xl font-bold text-danger">{stats.skipped}</p>
                 </div>
               </div>
             </Card>

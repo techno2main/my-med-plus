@@ -130,6 +130,47 @@ export type Database = {
         }
         Relationships: []
       }
+      medication_intakes: {
+        Row: {
+          created_at: string
+          id: string
+          medication_id: string
+          notes: string | null
+          scheduled_time: string
+          status: string
+          taken_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          medication_id: string
+          notes?: string | null
+          scheduled_time: string
+          status: string
+          taken_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          medication_id?: string
+          notes?: string | null
+          scheduled_time?: string
+          status?: string
+          taken_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medication_intakes_medication_id_fkey"
+            columns: ["medication_id"]
+            isOneToOne: false
+            referencedRelation: "medications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medications: {
         Row: {
           catalog_id: string | null
