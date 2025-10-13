@@ -1,12 +1,13 @@
 import { NavLink, useLocation } from "react-router-dom"
-import { Home, Pill, Calendar, Users } from "lucide-react"
+import { Home, Pill, Package, Calendar, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
   { to: "/", icon: Home, label: "Accueil" },
   { to: "/treatments", icon: Pill, label: "Traitements" },
+  { to: "/stock", icon: Package, label: "Stock" },
   { to: "/calendar", icon: Calendar, label: "Agenda" },
-  { to: "/pros", icon: Users, label: "Contacts" },
+  { to: "/settings", icon: Settings, label: "Plus" },
 ]
 
 export function BottomNavigation() {
