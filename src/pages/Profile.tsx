@@ -83,7 +83,18 @@ export default function Profile() {
 
       const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
       
-      setAvatarUrl(data.publicUrl);
+      // Add timestamp to force refresh
+      const avatarUrlWithTimestamp = `${data.publicUrl}?t=${Date.now()}`;
+      setAvatarUrl(avatarUrlWithTimestamp);
+      
+      // Save to database immediately
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: data.publicUrl })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+      
       toast.success("Photo de profil mise à jour");
     } catch (error) {
       console.error("Error uploading avatar:", error);
