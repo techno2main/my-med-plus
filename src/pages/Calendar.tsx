@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react"
 import { AppLayout } from "@/components/Layout/AppLayout"
+import { PageHeader } from "@/components/Layout/PageHeader"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
-import { ArrowLeft, CheckCircle2, XCircle, Clock, AlertCircle, TrendingUp, Calendar as CalendarIcon } from "lucide-react"
+import { CheckCircle2, XCircle, Clock, AlertCircle, TrendingUp, Calendar as CalendarIcon } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { format, startOfMonth, endOfMonth, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
@@ -266,15 +267,10 @@ const Calendar = () => {
   return (
     <AppLayout>
       <div className="container max-w-6xl mx-auto px-4 py-6 space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold">Calendrier</h1>
-            <p className="text-sm text-muted-foreground">Suivi mensuel des prises</p>
-          </div>
-        </div>
+        <PageHeader 
+          title="Calendrier"
+          subtitle="Suivi mensuel des prises"
+        />
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

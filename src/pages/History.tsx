@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/Layout/AppLayout";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle2, XCircle, Clock, Calendar as CalendarIcon, ArrowLeft } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Calendar as CalendarIcon } from "lucide-react";
 import { format, parseISO, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -156,15 +157,10 @@ export default function History() {
   return (
     <AppLayout>
       <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold">Historique</h1>
-            <p className="text-muted-foreground">Suivez vos prises de médicaments</p>
-          </div>
-        </div>
+        <PageHeader 
+          title="Historique"
+          subtitle="Suivez vos prises de médicaments"
+        />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AppLayout } from "@/components/Layout/AppLayout";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
-  ArrowLeft, Plus, Trash2, GripVertical, Save,
+  Trash2, GripVertical, Save,
   Home, Pill, Package, Calendar, Settings,
   User, Heart, Bell, Shield, FileText,
   ClipboardList, Users, Database, Smartphone,
@@ -168,18 +169,13 @@ export default function NavigationManager() {
   return (
     <AppLayout>
       <div className="container max-w-4xl mx-auto px-4 py-6 space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/settings")}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold">Navigation</h1>
-            <p className="text-muted-foreground">Configurez la navigation</p>
-          </div>
-          <Button onClick={() => setIsDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
+        <PageHeader 
+          title="Navigation"
+          subtitle="Configurez la navigation"
+          backTo="/settings"
+          showAddButton
+          onAdd={() => setIsDialogOpen(true)}
+        />
 
         {/* Liste des items */}
         <div className="space-y-3">

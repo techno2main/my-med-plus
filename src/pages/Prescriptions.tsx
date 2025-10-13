@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/Layout/AppLayout";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Download, ArrowLeft } from "lucide-react";
+import { FileText, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -188,15 +189,10 @@ export default function Prescriptions() {
   return (
     <AppLayout>
       <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Ordonnances</h1>
-            <p className="text-muted-foreground">Vos prescriptions médicales</p>
-          </div>
-        </div>
+        <PageHeader 
+          title="Ordonnances"
+          subtitle="Vos prescriptions médicales"
+        />
 
         {/* Liste des ordonnances */}
         <div className="space-y-4">

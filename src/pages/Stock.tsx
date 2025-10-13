@@ -1,8 +1,9 @@
 import { AppLayout } from "@/components/Layout/AppLayout";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Plus, Package, ArrowLeft } from "lucide-react";
+import { AlertCircle, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -71,21 +72,12 @@ export default function Stock() {
   return (
     <AppLayout>
       <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex-1 flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Stock</h1>
-              <p className="text-muted-foreground">Gérez vos stocks de médicaments</p>
-            </div>
-            <Button onClick={() => navigate("/stock/new")}>
-              <Plus className="mr-2 h-4 w-4" />
-              Ajouter
-            </Button>
-          </div>
-        </div>
+        <PageHeader 
+          title="Stock"
+          subtitle="Gérez vos stocks de médicaments"
+          showAddButton
+          onAdd={() => navigate("/stock/new")}
+        />
 
         {/* Alertes */}
         {lowStockCount > 0 && (

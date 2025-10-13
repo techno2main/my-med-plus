@@ -1,7 +1,8 @@
 import { AppLayout } from "@/components/Layout/AppLayout";
+import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Heart, Mail, Globe, Star } from "lucide-react";
+import { Heart, Mail, Globe, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function About() {
@@ -10,15 +11,11 @@ export default function About() {
   return (
     <AppLayout showBottomNav={false}>
       <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold">À propos</h1>
-            <p className="text-muted-foreground">Informations sur l'application</p>
-          </div>
-        </div>
+        <PageHeader 
+          title="À propos"
+          subtitle="Informations sur l'application"
+          backTo="/settings"
+        />
 
         {/* Logo et version */}
         <Card className="p-8 text-center">

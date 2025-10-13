@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react"
 import { AppLayout } from "@/components/Layout/AppLayout"
+import { PageHeader } from "@/components/Layout/PageHeader"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Pill, Plus, Clock, Calendar, ArrowLeft } from "lucide-react"
+import { Pill, Clock, Calendar } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
 import { toast } from "sonner"
@@ -129,24 +130,12 @@ const Treatments = () => {
   return (
     <AppLayout>
       <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
-        {/* Header */}
-        <header className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex-1 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">Mes traitements</h1>
-              <p className="text-sm text-muted-foreground">
-                {treatments.filter(t => t.is_active).length} traitement(s) actif(s)
-              </p>
-            </div>
-            <Button className="gradient-primary" onClick={() => navigate("/treatments/new")}>
-              <Plus className="h-4 w-4 mr-2" />
-              Ajouter
-            </Button>
-          </div>
-        </header>
+        <PageHeader 
+          title="Mes traitements"
+          subtitle={`${treatments.filter(t => t.is_active).length} traitement(s) actif(s)`}
+          showAddButton
+          onAdd={() => navigate("/treatments/new")}
+        />
 
         {/* Treatments List */}
         <div className="space-y-4">
