@@ -78,20 +78,25 @@ export function BottomNavigation() {
 
   if (!filteredNavItems?.length) return null;
 
+  const shouldScroll = filteredNavItems.length > 5;
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-sm pb-safe">
       <div 
         ref={scrollContainerRef}
         className={cn(
-          "overflow-x-auto scrollbar-hide",
-          isDragging ? "cursor-grabbing" : "cursor-grab"
+          shouldScroll ? "overflow-x-auto scrollbar-hide" : "overflow-hidden",
+          isDragging && shouldScroll ? "cursor-grabbing" : shouldScroll ? "cursor-grab" : ""
         )}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
+        onMouseDown={shouldScroll ? handleMouseDown : undefined}
+        onMouseMove={shouldScroll ? handleMouseMove : undefined}
+        onMouseUp={shouldScroll ? handleMouseUp : undefined}
+        onMouseLeave={shouldScroll ? handleMouseLeave : undefined}
       >
-        <div className="flex items-center h-16 px-2 gap-2 w-max">
+        <div className={cn(
+          "flex items-center h-16 px-2 gap-2",
+          shouldScroll ? "w-max" : "justify-center max-w-2xl mx-auto"
+        )}>
           {filteredNavItems.map((item) => {
             const isActive = location.pathname === item.path
             const Icon = getIconComponent(item.icon)

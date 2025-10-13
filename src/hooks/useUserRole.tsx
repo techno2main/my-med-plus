@@ -15,10 +15,17 @@ export function useUserRole() {
         .select('role')
         .eq('user_id', user.id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching user roles:', error);
+        throw error;
+      }
+      
+      console.log('User roles loaded:', data);
       return data.map(r => r.role);
     },
     enabled: !!user?.id,
+    staleTime: 0, // Always refetch
+    gcTime: 0, // Don't cache
   });
 
   const isAdmin = roles?.includes('admin') ?? false;
