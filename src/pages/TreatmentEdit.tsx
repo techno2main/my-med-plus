@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,24 +8,88 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, Save, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+interface Medication {
+  id: string;
+  name: string;
+  dosage: string;
+  times: string[];
+}
+
+interface Treatment {
+  id: string;
+  name: string;
+  pathology: string | null;
+  start_date: string;
+  end_date: string | null;
+  is_active: boolean;
+  notes: string | null;
+  description: string | null;
+}
 
 export default function TreatmentEdit() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [treatment, setTreatment] = useState<Treatment | null>(null);
+  const [medications, setMedications] = useState<Medication[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - remplacer par vraies données
-  const treatment = {
-    id: 1,
-    name: "Traitement Diabète",
-    pathology: "Diabète Type 2",
-    startDate: "2025-01-15",
-    endDate: null,
-    isActive: true,
-    notes: "Traitement principal pour contrôle glycémique",
-    medications: [
-      { id: 1, name: "Metformine 850mg", dosage: "1 comprimé", times: ["08:00", "20:00"] },
-    ]
+  useEffect(() => {
+    if (id) {
+      loadTreatmentData();
+    }
+  }, [id]);
+
+  const loadTreatmentData = async () => {
+    try {
+      // Load treatment
+      const { data: treatmentData, error: treatmentError } = await supabase
+        .from("treatments")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (treatmentError) throw treatmentError;
+      setTreatment(treatmentData);
+
+      // Load medications for this treatment
+      const { data: medsData, error: medsError } = await supabase
+        .from("medications")
+        .select("id, name, dosage, times")
+        .eq("treatment_id", id);
+
+      if (medsError) throw medsError;
+      setMedications(medsData || []);
+
+    } catch (error) {
+      console.error("Error loading treatment:", error);
+      toast.error("Erreur lors du chargement du traitement");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <AppLayout showBottomNav={false}>
+        <div className="container max-w-2xl mx-auto px-4 py-6">
+          <p className="text-center text-muted-foreground">Chargement...</p>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!treatment) {
+    return (
+      <AppLayout showBottomNav={false}>
+        <div className="container max-w-2xl mx-auto px-4 py-6">
+          <p className="text-center text-muted-foreground">Traitement non trouvé</p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout showBottomNav={false}>
@@ -56,7 +121,7 @@ export default function TreatmentEdit() {
               <Label htmlFor="pathology">Pathologie</Label>
               <Input 
                 id="pathology" 
-                defaultValue={treatment.pathology}
+                defaultValue={treatment.pathology || ""}
                 placeholder="Ex: Diabète Type 2"
               />
             </div>
@@ -67,7 +132,7 @@ export default function TreatmentEdit() {
                 <Input 
                   id="startDate" 
                   type="date" 
-                  defaultValue={treatment.startDate}
+                  defaultValue={treatment.start_date}
                 />
               </div>
               <div className="space-y-2">
@@ -75,7 +140,7 @@ export default function TreatmentEdit() {
                 <Input 
                   id="endDate" 
                   type="date" 
-                  defaultValue={treatment.endDate || ""}
+                  defaultValue={treatment.end_date || ""}
                 />
               </div>
             </div>
@@ -85,14 +150,14 @@ export default function TreatmentEdit() {
                 <p className="font-medium">Traitement actif</p>
                 <p className="text-sm text-muted-foreground">Afficher dans les traitements en cours</p>
               </Label>
-              <Switch id="isActive" defaultChecked={treatment.isActive} />
+              <Switch id="isActive" defaultChecked={treatment.is_active} />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
               <Textarea 
                 id="notes" 
-                defaultValue={treatment.notes}
+                defaultValue={treatment.notes || treatment.description || ""}
                 placeholder="Ajoutez des notes sur ce traitement..."
                 rows={3}
               />
@@ -108,29 +173,33 @@ export default function TreatmentEdit() {
           </div>
 
           <div className="space-y-3">
-            {treatment.medications.map((med) => (
-              <Card key={med.id} className="p-4 bg-surface">
-                <div className="flex items-start justify-between mb-3">
+            {medications.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">Aucun médicament</p>
+            ) : (
+              medications.map((med) => (
+                <Card key={med.id} className="p-4 bg-surface">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <p className="font-medium">{med.name}</p>
+                      <p className="text-sm text-muted-foreground">{med.dosage}</p>
+                    </div>
+                    <Button variant="ghost" size="sm">
+                      Modifier
+                    </Button>
+                  </div>
                   <div>
-                    <p className="font-medium">{med.name}</p>
-                    <p className="text-sm text-muted-foreground">{med.dosage}</p>
+                    <p className="text-sm text-muted-foreground mb-2">Horaires de prise</p>
+                    <div className="flex flex-wrap gap-2">
+                      {med.times.map((time, idx) => (
+                        <span key={idx} className="px-3 py-1 rounded-full bg-primary/10 text-sm font-medium">
+                          {time}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                  <Button variant="ghost" size="sm">
-                    Modifier
-                  </Button>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">Horaires de prise</p>
-                  <div className="flex flex-wrap gap-2">
-                    {med.times.map((time, idx) => (
-                      <span key={idx} className="px-3 py-1 rounded-full bg-primary/10 text-sm font-medium">
-                        {time}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              ))
+            )}
           </div>
         </Card>
 
