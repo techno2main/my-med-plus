@@ -3,7 +3,7 @@ import { AppLayout } from "@/components/Layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FileText, Download, Eye, ArrowLeft } from "lucide-react";
+import { FileText, Download, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -174,31 +174,6 @@ export default function Prescriptions() {
     }
   };
 
-  const handleView = async (prescription: PrescriptionWithDetails) => {
-    if (!prescription.file_path) {
-      toast.error("Aucun fichier disponible");
-      return;
-    }
-
-    try {
-      // Télécharger le fichier et créer un blob URL pour contourner ERR_BLOCKED_BY_CLIENT
-      const { data, error } = await supabase.storage
-        .from("prescriptions")
-        .download(prescription.file_path);
-
-      if (error) throw error;
-
-      // Créer un blob URL et ouvrir dans un nouvel onglet
-      const url = URL.createObjectURL(data);
-      window.open(url, "_blank");
-      
-      // Nettoyer l'URL après un délai
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } catch (error) {
-      console.error("Error viewing prescription:", error);
-      toast.error("Erreur lors de l'ouverture du document");
-    }
-  };
 
   if (loading) {
     return (
@@ -214,7 +189,7 @@ export default function Prescriptions() {
     <AppLayout>
       <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
@@ -228,11 +203,10 @@ export default function Prescriptions() {
           {prescriptions.length === 0 ? (
             <Card className="p-12 text-center">
               <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">Aucune ordonnance enregistrée</p>
-              <Button className="mt-4" onClick={() => navigate("/prescriptions/new")}>
-                <Plus className="mr-2 h-4 w-4" />
-                Ajouter une ordonnance
-              </Button>
+              <p className="text-muted-foreground mb-2">Aucune ordonnance enregistrée</p>
+              <p className="text-sm text-muted-foreground">
+                Les ordonnances sont créées automatiquement lors de l'ajout d'un nouveau traitement
+              </p>
             </Card>
           ) : (
             prescriptions.map((prescription) => (
@@ -294,17 +268,7 @@ export default function Prescriptions() {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="flex-1"
-                    onClick={() => handleView(prescription)}
-                    disabled={!prescription.file_path}
-                  >
-                    <Eye className="mr-2 h-4 w-4" />
-                    Voir
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1"
+                    className="w-full"
                     onClick={() => handleDownload(prescription)}
                     disabled={!prescription.file_path}
                   >
