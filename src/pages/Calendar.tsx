@@ -23,6 +23,7 @@ interface DayIntake {
 interface IntakeDetail {
   id: string
   medication: string
+  dosage: string
   time: string
   status: 'taken' | 'missed' | 'upcoming'
   treatment: string
@@ -130,7 +131,9 @@ const Calendar = () => {
           name,
           times,
           treatment_id,
-          treatments!inner(name, is_active)
+          catalog_id,
+          treatments!inner(name, is_active),
+          medication_catalog(dosage_amount, default_dosage)
         `)
         .eq("treatments.is_active", true)
 
@@ -179,9 +182,12 @@ const Calendar = () => {
             status = 'upcoming'
           }
 
+          const catalogDosage = med.medication_catalog?.dosage_amount || med.medication_catalog?.default_dosage || ""
+          
           details.push({
             id: intake?.id || `${med.id}-${time}`,
             medication: med.name,
+            dosage: catalogDosage,
             time: time,
             status: status,
             treatment: med.treatments.name
@@ -388,7 +394,10 @@ const Calendar = () => {
                       </div>
                       {getStatusBadge(detail.status)}
                     </div>
-                    <p className="text-sm font-medium">{detail.medication}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium">{detail.medication}</p>
+                      {detail.dosage && <span className="text-xs text-muted-foreground">{detail.dosage}</span>}
+                    </div>
                     <p className="text-xs text-muted-foreground">{detail.treatment}</p>
                   </div>
                 ))}

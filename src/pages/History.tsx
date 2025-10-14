@@ -21,6 +21,11 @@ interface MedicationIntake {
   status: 'pending' | 'taken' | 'skipped';
   medications: {
     name: string;
+    catalog_id?: string;
+    medication_catalog?: {
+      dosage_amount?: string;
+      default_dosage?: string;
+    };
   };
 }
 
@@ -30,6 +35,7 @@ interface GroupedIntakes {
     id: string;
     time: string;
     medication: string;
+    dosage: string;
     status: string;
     takenAt?: string;
   }[];
@@ -64,7 +70,9 @@ export default function History() {
           taken_at,
           status,
           medications (
-            name
+            name,
+            catalog_id,
+            medication_catalog(dosage_amount, default_dosage)
           )
         `)
         .order("scheduled_time", { ascending: false })
@@ -73,7 +81,7 @@ export default function History() {
       if (error) throw error;
 
       // Group by date
-      const grouped = (intakesData || []).reduce((acc: Record<string, GroupedIntakes>, intake: MedicationIntake) => {
+      const grouped = (intakesData || []).reduce((acc: Record<string, GroupedIntakes>, intake: any) => {
         const date = startOfDay(parseISO(intake.scheduled_time));
         const dateKey = date.toISOString();
         
@@ -84,10 +92,15 @@ export default function History() {
           };
         }
 
+        const dosage = intake.medications?.medication_catalog?.dosage_amount || 
+                       intake.medications?.medication_catalog?.default_dosage || 
+                       "";
+        
         acc[dateKey].intakes.push({
           id: intake.id,
           time: format(parseISO(intake.scheduled_time), 'HH:mm'),
           medication: intake.medications?.name || 'Médicament inconnu',
+          dosage: dosage,
           status: intake.status,
           takenAt: intake.taken_at ? format(parseISO(intake.taken_at), 'HH:mm') : undefined
         });
@@ -210,7 +223,10 @@ export default function History() {
                         <div className="flex items-center gap-3 flex-1">
                           {getStatusIcon(intake.status)}
                           <div className="flex-1">
-                            <p className="font-medium">{intake.medication}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">{intake.medication}</p>
+                              {intake.dosage && <span className="text-xs text-muted-foreground">{intake.dosage}</span>}
+                            </div>
                             <p className="text-sm text-muted-foreground">
                               Prévu à {intake.time}
                               {intake.takenAt && ` • Pris à ${intake.takenAt}`}

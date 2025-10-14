@@ -14,6 +14,7 @@ interface CatalogMedication {
   name: string;
   pathology: string;
   default_dosage: string;
+  dosage_amount?: string;
   initial_stock?: number;
   min_threshold?: number;
 }
@@ -64,7 +65,7 @@ export function MedicationEditDialog({ open, onOpenChange, medication, treatment
   const loadCatalog = async () => {
     const { data, error } = await supabase
       .from("medication_catalog")
-      .select("id, name, pathology, default_dosage, initial_stock, min_threshold")
+      .select("id, name, pathology, default_dosage, dosage_amount, initial_stock, min_threshold")
       .order("name");
 
     if (error) {
@@ -168,7 +169,10 @@ export function MedicationEditDialog({ open, onOpenChange, medication, treatment
                   {catalog.map((med) => (
                     <SelectItem key={med.id} value={med.id}>
                       <div className="flex flex-col">
-                        <span className="font-medium">{med.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{med.name}</span>
+                          {med.dosage_amount && <span className="text-xs text-muted-foreground">{med.dosage_amount}</span>}
+                        </div>
                         {med.pathology && (
                           <span className="text-xs text-muted-foreground">{med.pathology}</span>
                         )}
