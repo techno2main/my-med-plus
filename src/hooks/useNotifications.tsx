@@ -88,14 +88,14 @@ export const useNotifications = () => {
     localStorage.setItem("notificationPreferences", JSON.stringify(updated));
   };
 
-  const showNotification = (title: string, options?: NotificationOptions) => {
+  const showNotification = (title: string, options?: NotificationOptions): boolean => {
     if (!isSupported || permission !== "granted") {
       console.log("Notifications not available:", { isSupported, permission });
       return false;
     }
 
     try {
-      const notification = new Notification(title, {
+      new Notification(title, {
         icon: "/icon-192.png",
         badge: "/icon-192.png",
         ...options,
@@ -104,33 +104,28 @@ export const useNotifications = () => {
       return true;
     } catch (error) {
       console.error("Error showing notification:", error);
-      toast.error("Erreur lors de l'envoi de la notification");
       return false;
     }
   };
 
-  const sendTestNotification = () => {
+  const sendTestNotification = (): boolean => {
     if (permission !== "granted") {
       toast.error("Permission requise pour les notifications");
       return false;
     }
     
-    try {
-      const success = showNotification("💊 Test de notification", {
-        body: "Les notifications fonctionnent correctement !",
-        requireInteraction: false,
-      });
-      
-      if (success) {
-        toast.success("Notification de test envoyée ✓");
-      }
-      
-      return success;
-    } catch (error) {
-      console.error("Test notification error:", error);
-      toast.error("Erreur lors du test de notification");
-      return false;
+    const success = showNotification("💊 Test de notification", {
+      body: "Les notifications fonctionnent correctement !",
+      requireInteraction: false,
+    });
+    
+    if (success) {
+      toast.success("Notification de test envoyée ✓");
+    } else {
+      toast.error("Erreur lors de l'envoi de la notification");
     }
+    
+    return success;
   };
 
   const scheduleBeforeMedicationReminder = (
