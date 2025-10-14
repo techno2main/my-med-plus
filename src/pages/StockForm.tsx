@@ -16,6 +16,7 @@ export default function StockForm() {
   
   const [loading, setLoading] = useState(true);
   const [medication, setMedication] = useState<any>(null);
+  const [dosage, setDosage] = useState("");
   const [adjustment, setAdjustment] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
   const [minThreshold, setMinThreshold] = useState("");
@@ -30,13 +31,17 @@ export default function StockForm() {
     try {
       const { data, error } = await supabase
         .from("medications")
-        .select("*")
+        .select(`
+          *,
+          medication_catalog(dosage_amount, default_dosage)
+        `)
         .eq("id", medicationId)
         .single();
 
       if (error) throw error;
       
       setMedication(data);
+      setDosage(data.medication_catalog?.dosage_amount || data.medication_catalog?.default_dosage || "");
       setExpiryDate(data.expiry_date || "");
       setMinThreshold(String(data.min_threshold || 10));
     } catch (error) {
@@ -120,41 +125,42 @@ export default function StockForm() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <Card className="p-4 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="medication">Médicament</Label>
-              <Input 
-                id="medication" 
-                value={medication.name}
-                className="bg-surface"
-                disabled
-              />
+              <Label>Médicament</Label>
+              <div className="flex items-center gap-2">
+                <span className="font-medium">{medication.name}</span>
+                {dosage && <span className="text-sm text-muted-foreground">{dosage}</span>}
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="current-stock">Stock actuel</Label>
-              <Input 
-                id="current-stock" 
-                type="number"
-                value={currentStock}
-                className="bg-surface"
-                disabled
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="current-stock">Stock actuel</Label>
+                <Input 
+                  id="current-stock" 
+                  type="number"
+                  value={currentStock}
+                  className="bg-surface"
+                  disabled
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="adjustment">Ajustement *</Label>
+                <Input 
+                  id="adjustment" 
+                  type="number"
+                  value={adjustment}
+                  onChange={(e) => setAdjustment(e.target.value)}
+                  placeholder="+10 ou -5"
+                  required
+                  autoFocus
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="adjustment">Ajustement *</Label>
-              <Input 
-                id="adjustment" 
-                type="number"
-                value={adjustment}
-                onChange={(e) => setAdjustment(e.target.value)}
-                placeholder="Entrez +10 ou -5"
-                required
-                autoFocus
-              />
-              <p className="text-xs text-muted-foreground">
-                Entrez un nombre positif (+10) ou négatif (-5)
-              </p>
-            </div>
+            <p className="text-xs text-muted-foreground -mt-2">
+              Entrez un nombre positif (+10) ou négatif (-5)
+            </p>
 
             <div className="space-y-2">
               <Label htmlFor="new-stock">Nouveau stock</Label>
