@@ -162,36 +162,28 @@ export default function StockForm() {
               Entrez un nombre positif (+10) ou négatif (-5)
             </p>
 
-            <div className="space-y-2">
-              <Label htmlFor="new-stock">Nouveau stock</Label>
-              <Input 
-                id="new-stock" 
-                type="number"
-                value={newStock}
-                className="bg-surface"
-                disabled
-              />
-            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-stock">Nouveau stock</Label>
+                <Input 
+                  id="new-stock" 
+                  type="number"
+                  value={newStock}
+                  className="bg-surface"
+                  disabled
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="expiry-date">Date d'expiration</Label>
-              <Input 
-                id="expiry-date" 
-                type="date"
-                value={expiryDate}
-                onChange={(e) => setExpiryDate(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="min-threshold">Seuil d'alerte minimum</Label>
-              <Input 
-                id="min-threshold" 
-                type="number"
-                value={minThreshold}
-                onChange={(e) => setMinThreshold(e.target.value)}
-                placeholder="10"
-              />
+              <div className="space-y-2">
+                <Label htmlFor="min-threshold">Seuil d'alerte minimum</Label>
+                <Input 
+                  id="min-threshold" 
+                  type="number"
+                  value={minThreshold}
+                  onChange={(e) => setMinThreshold(e.target.value)}
+                  placeholder="10"
+                />
+              </div>
             </div>
           </Card>
 
