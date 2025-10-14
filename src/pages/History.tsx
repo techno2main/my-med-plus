@@ -51,6 +51,7 @@ export default function History() {
   const [stats, setStats] = useState({
     taken: 0,
     skipped: 0,
+    lateIntakes: 0,
     adherence7Days: 0,
     adherence30Days: 0
   });
@@ -130,6 +131,18 @@ export default function History() {
       const taken = (intakesData || []).filter(i => i.status === 'taken').length;
       const skipped = (intakesData || []).filter(i => i.status === 'skipped').length;
       
+      // Count late intakes (taken but more than 1 minute late)
+      const lateIntakes = (intakesData || []).filter(i => {
+        if (i.status !== 'taken' || !i.taken_at) return false;
+        
+        const scheduledTime = new Date(i.scheduled_time);
+        const takenTime = new Date(i.taken_at);
+        const differenceMs = takenTime.getTime() - scheduledTime.getTime();
+        const differenceMinutes = differenceMs / (1000 * 60);
+        
+        return differenceMinutes > 1;
+      }).length;
+      
       const taken7 = intakes7Days.filter(i => i.status === 'taken').length;
       const total7 = intakes7Days.length;
       
@@ -139,6 +152,7 @@ export default function History() {
       setStats({
         taken,
         skipped,
+        lateIntakes,
         adherence7Days: total7 > 0 ? Math.round((taken7 / total7) * 100) : 0,
         adherence30Days: total30 > 0 ? Math.round((taken30 / total30) * 100) : 0
       });
@@ -290,6 +304,13 @@ export default function History() {
                 >
                   <p className="text-sm text-muted-foreground mb-1">Prises oubliées</p>
                   <p className="text-3xl font-bold text-danger">{stats.skipped}</p>
+                </div>
+                <div 
+                  className="p-4 rounded-lg bg-warning/10 cursor-pointer hover:bg-warning/20 transition-colors col-span-2" 
+                  onClick={() => setActiveTab("history")}
+                >
+                  <p className="text-sm text-muted-foreground mb-1">Prises en retard</p>
+                  <p className="text-3xl font-bold text-warning">{stats.lateIntakes}</p>
                 </div>
               </div>
             </Card>
