@@ -106,19 +106,21 @@ const Treatments = () => {
             `)
             .eq("treatment_id", treatment.id)
 
-          // Load pathology from catalog for each medication
+          // Load pathology and dosage from catalog for each medication
           const medsWithPathology = await Promise.all(
             (medications || []).map(async (med: any) => {
               let pathology = null;
+              let catalogDosage = null;
               
               if (med.catalog_id) {
                 const { data: catalogData } = await supabase
                   .from("medication_catalog")
-                  .select("pathology")
+                  .select("pathology, dosage_amount, default_dosage")
                   .eq("id", med.catalog_id)
                   .maybeSingle();
                 
                 pathology = catalogData?.pathology || null;
+                catalogDosage = catalogData?.dosage_amount || catalogData?.default_dosage;
               }
 
               // Sort times in ascending order
@@ -131,7 +133,7 @@ const Treatments = () => {
               return {
                 id: med.id,
                 name: med.name,
-                dosage: med.dosage,
+                dosage: catalogDosage || med.dosage,
                 times: sortedTimes,
                 pathology,
                 currentStock: med.current_stock || 0,
