@@ -38,12 +38,7 @@ export default function NotificationSettings() {
       return;
     }
     
-    const success = sendTestNotification();
-    if (success) {
-      toast.success("Notification de test envoyée ✓");
-    } else {
-      toast.error("Erreur lors de l'envoi de la notification");
-    }
+    sendTestNotification();
   };
 
   return (
