@@ -32,7 +32,6 @@ export default function Stock() {
   // Calcul du statut du stock
   const getStockStatus = (currentStock: number, minThreshold: number) => {
     if (currentStock === 0) return "critical";
-    if (currentStock <= minThreshold * 0.5) return "critical";
     if (currentStock <= minThreshold) return "low";
     return "ok";
   };

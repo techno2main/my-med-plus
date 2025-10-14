@@ -198,8 +198,12 @@ const Calendar = () => {
           
           if (intake?.status === 'taken') {
             status = 'taken'
-          } else if (scheduledTime < now) {
+          } else if (scheduledTime < now && selectedDate.setHours(0,0,0,0) < new Date().setHours(0,0,0,0)) {
+            // Only mark as missed if it's a past day, not today
             status = 'missed'
+          } else if (scheduledTime < now) {
+            // For today, if time passed but not taken, still show as upcoming
+            status = 'upcoming'
           }
 
           details.push({

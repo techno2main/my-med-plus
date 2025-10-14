@@ -97,16 +97,37 @@ export default function History() {
 
       setHistoryData(Object.values(grouped));
 
-      // Calculate stats
+      // Calculate stats - Filter by date ranges
+      const now = new Date();
+      const sevenDaysAgo = new Date(now);
+      sevenDaysAgo.setDate(now.getDate() - 7);
+      const thirtyDaysAgo = new Date(now);
+      thirtyDaysAgo.setDate(now.getDate() - 30);
+
+      const intakes7Days = (intakesData || []).filter(i => 
+        new Date(i.scheduled_time) >= sevenDaysAgo && 
+        (i.status === 'taken' || i.status === 'skipped')
+      );
+      
+      const intakes30Days = (intakesData || []).filter(i => 
+        new Date(i.scheduled_time) >= thirtyDaysAgo && 
+        (i.status === 'taken' || i.status === 'skipped')
+      );
+
       const taken = (intakesData || []).filter(i => i.status === 'taken').length;
       const skipped = (intakesData || []).filter(i => i.status === 'skipped').length;
-      const total = taken + skipped;
+      
+      const taken7 = intakes7Days.filter(i => i.status === 'taken').length;
+      const total7 = intakes7Days.length;
+      
+      const taken30 = intakes30Days.filter(i => i.status === 'taken').length;
+      const total30 = intakes30Days.length;
       
       setStats({
         taken,
         skipped,
-        adherence7Days: total > 0 ? Math.round((taken / total) * 100) : 0,
-        adherence30Days: total > 0 ? Math.round((taken / total) * 100) : 0
+        adherence7Days: total7 > 0 ? Math.round((taken7 / total7) * 100) : 0,
+        adherence30Days: total30 > 0 ? Math.round((taken30 / total30) * 100) : 0
       });
 
     } catch (error) {

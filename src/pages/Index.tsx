@@ -110,8 +110,10 @@ const Index = () => {
 
       const takenIntakesSet = new Set(
         (takenIntakes || []).map((intake: any) => {
-          const time = format(new Date(intake.scheduled_time), "HH:mm")
-          return `${intake.medication_id}-${time}`
+          const scheduledDate = new Date(intake.scheduled_time)
+          const date = format(scheduledDate, "yyyy-MM-dd")
+          const time = format(scheduledDate, "HH:mm")
+          return `${intake.medication_id}-${date}-${time}`
         })
       )
 
@@ -122,7 +124,8 @@ const Index = () => {
       medications?.forEach((med: any) => {
         med.times?.forEach((time: string) => {
           // Check today's times
-          const todayKey = `${med.id}-${time}`
+          const todayDate = format(new Date(), "yyyy-MM-dd")
+          const todayKey = `${med.id}-${todayDate}-${time}`
           if (!takenIntakesSet.has(todayKey)) {
             const [hours, minutes] = time.split(':')
             const scheduledDate = new Date()

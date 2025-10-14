@@ -161,8 +161,10 @@ export function TreatmentWizard() {
       // Create medications
       const medicationsToInsert = formData.medications.map((med, index) => ({
         treatment_id: treatment.id,
+        catalog_id: med.catalogId || null,
         name: med.name,
         dosage: med.dosage,
+        dosage_amount: med.dosage,
         times: med.times.filter(t => t !== ""),
         initial_stock: formData.stocks[index] || 0,
         current_stock: formData.stocks[index] || 0,
@@ -186,7 +188,7 @@ export function TreatmentWizard() {
             pharmacy_id: formData.pharmacyId,
             visit_date: format(addMonths(firstVisitDate, i), "yyyy-MM-dd"),
             visit_number: i + 1,
-            is_completed: i === 0,
+            is_completed: false,
           });
         }
 
