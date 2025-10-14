@@ -6,22 +6,38 @@ export interface NotificationPreferences {
   pushEnabled: boolean;
   medicationReminders: boolean;
   medicationReminderDelay: number; // minutes after scheduled time
+  medicationReminderBefore: number; // minutes before scheduled time
   stockAlerts: boolean;
   prescriptionRenewal: boolean;
   prescriptionRenewalDays: number[]; // e.g., [10, 2] for J-10 and J-2
   pharmacyVisitReminder: boolean;
   pharmacyVisitReminderDays: number; // days before visit
+  customMessages: {
+    medicationReminder: string;
+    delayedReminder: string;
+    stockAlert: string;
+    prescriptionRenewal: string;
+    pharmacyVisit: string;
+  };
 }
 
 const DEFAULT_PREFERENCES: NotificationPreferences = {
   pushEnabled: true,
   medicationReminders: true,
   medicationReminderDelay: 10,
+  medicationReminderBefore: 5,
   stockAlerts: true,
   prescriptionRenewal: true,
   prescriptionRenewalDays: [10, 2],
   pharmacyVisitReminder: true,
   pharmacyVisitReminderDays: 1,
+  customMessages: {
+    medicationReminder: "💊 Rappel de prise",
+    delayedReminder: "⏰ Rappel de prise manquée",
+    stockAlert: "⚠️ Stock faible",
+    prescriptionRenewal: "📅 Renouvellement d'ordonnance",
+    pharmacyVisit: "💊 Visite pharmacie",
+  },
 };
 
 export const useNotifications = () => {
@@ -74,14 +90,46 @@ export const useNotifications = () => {
 
   const showNotification = (title: string, options?: NotificationOptions) => {
     if (!isSupported || permission !== "granted") {
-      return;
+      console.log("Notifications not available:", { isSupported, permission });
+      return false;
     }
 
-    new Notification(title, {
-      icon: "/icon-192.png",
-      badge: "/icon-192.png",
-      ...options,
-    } as NotificationOptions);
+    try {
+      new Notification(title, {
+        icon: "/icon-192.png",
+        badge: "/icon-192.png",
+        ...options,
+      } as NotificationOptions);
+      console.log("Notification sent:", title);
+      return true;
+    } catch (error) {
+      console.error("Error showing notification:", error);
+      return false;
+    }
+  };
+
+  const sendTestNotification = () => {
+    return showNotification("💊 Test de notification", {
+      body: "Les notifications fonctionnent correctement !",
+      requireInteraction: false,
+    });
+  };
+
+  const scheduleBeforeMedicationReminder = (
+    medicationName: string,
+    time: string,
+    dosage: string
+  ) => {
+    if (!preferences.pushEnabled || !preferences.medicationReminders) return;
+
+    const title = preferences.customMessages.medicationReminder;
+    const body = `${medicationName} - ${dosage}\nDans ${preferences.medicationReminderBefore} minutes (${time})`;
+
+    showNotification(title, {
+      body,
+      tag: `before-medication-${medicationName}-${time}`,
+      requireInteraction: true,
+    });
   };
 
   const scheduleMedicationReminder = (
@@ -91,7 +139,7 @@ export const useNotifications = () => {
   ) => {
     if (!preferences.pushEnabled || !preferences.medicationReminders) return;
 
-    const title = `💊 Rappel de prise`;
+    const title = preferences.customMessages.medicationReminder;
     const body = `${medicationName} - ${dosage}\nHeure: ${time}`;
 
     showNotification(title, {
@@ -108,7 +156,7 @@ export const useNotifications = () => {
   ) => {
     if (!preferences.pushEnabled || !preferences.medicationReminders) return;
 
-    const title = `⏰ Rappel de prise manquée`;
+    const title = preferences.customMessages.delayedReminder;
     const body = `Avez-vous pris ${medicationName} (${time}) ?\n${dosage}`;
 
     showNotification(title, {
@@ -121,7 +169,7 @@ export const useNotifications = () => {
   const notifyLowStock = (medicationName: string, remaining: number, daysLeft: number) => {
     if (!preferences.pushEnabled || !preferences.stockAlerts) return;
 
-    const title = `⚠️ Stock faible`;
+    const title = preferences.customMessages.stockAlert;
     const body = `${medicationName}\n${remaining} comprimés restants (~${daysLeft} jours)`;
 
     showNotification(title, {
@@ -134,7 +182,7 @@ export const useNotifications = () => {
   const notifyPrescriptionRenewal = (treatmentName: string, daysUntilExpiry: number) => {
     if (!preferences.pushEnabled || !preferences.prescriptionRenewal) return;
 
-    const title = `📅 Renouvellement d'ordonnance`;
+    const title = preferences.customMessages.prescriptionRenewal;
     const body = `${treatmentName}\nExpire dans ${daysUntilExpiry} jour(s)`;
 
     showNotification(title, {
@@ -147,7 +195,7 @@ export const useNotifications = () => {
   const notifyPharmacyVisit = (visitDate: string, pharmacyName?: string) => {
     if (!preferences.pushEnabled || !preferences.pharmacyVisitReminder) return;
 
-    const title = `💊 Visite pharmacie`;
+    const title = preferences.customMessages.pharmacyVisit;
     const body = pharmacyName 
       ? `Rendez-vous demain (${visitDate})\n${pharmacyName}`
       : `Rendez-vous demain (${visitDate})`;
@@ -165,6 +213,8 @@ export const useNotifications = () => {
     isSupported,
     permission,
     requestPermission,
+    sendTestNotification,
+    scheduleBeforeMedicationReminder,
     scheduleMedicationReminder,
     scheduleDelayedReminder,
     notifyLowStock,

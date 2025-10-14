@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { NumberInput } from "@/components/ui/number-input";
+import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Clock, AlertTriangle, Calendar, Pill } from "lucide-react";
+import { ArrowLeft, Bell, Clock, AlertTriangle, Calendar, Pill, Settings2 } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { useState } from "react";
 
 export default function NotificationSettings() {
   const navigate = useNavigate();
@@ -17,8 +19,10 @@ export default function NotificationSettings() {
     updatePreferences, 
     isSupported, 
     permission, 
-    requestPermission 
+    requestPermission,
+    sendTestNotification 
   } = useNotifications();
+  const [showCustomize, setShowCustomize] = useState(false);
 
   const handleTogglePush = async (enabled: boolean) => {
     if (enabled && permission !== "granted") {
@@ -34,11 +38,12 @@ export default function NotificationSettings() {
       return;
     }
     
-    new Notification("💊 Test de notification", {
-      body: "Les notifications fonctionnent correctement !",
-      icon: "/icon-192.png",
-    });
-    toast.success("Notification de test envoyée");
+    const success = sendTestNotification();
+    if (success) {
+      toast.success("Notification de test envoyée ✓");
+    } else {
+      toast.error("Erreur lors de l'envoi de la notification");
+    }
   };
 
   return (
@@ -81,13 +86,27 @@ export default function NotificationSettings() {
             <div className="flex items-start gap-3">
               <Bell className="h-5 w-5 text-primary mt-0.5" />
               <div className="flex-1">
-                <p className="font-medium">Autoriser les notifications</p>
+                <p className="font-medium">Activer les notifications</p>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Activez les notifications pour recevoir vos rappels
+                  Cliquez pour autoriser les notifications et recevoir vos rappels
                 </p>
                 <Button onClick={requestPermission} className="gradient-primary">
-                  Autoriser les notifications
+                  Activer les notifications
                 </Button>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {isSupported && permission === "granted" && (
+          <Card className="p-4 border-success bg-success/5">
+            <div className="flex items-start gap-3">
+              <Bell className="h-5 w-5 text-success mt-0.5" />
+              <div className="flex-1">
+                <p className="font-medium">✓ Notifications activées</p>
+                <p className="text-sm text-muted-foreground">
+                  Vous recevrez vos rappels selon vos préférences
+                </p>
               </div>
             </div>
           </Card>
@@ -164,28 +183,54 @@ export default function NotificationSettings() {
           </div>
 
           {preferences.medicationReminders && (
-            <div className="pl-11 space-y-3">
-              <div className="flex items-center justify-between gap-4">
-                <Label htmlFor="reminder-delay" className="text-sm">
-                  Rappel si non pris après
-                </Label>
-                <div className="flex items-center gap-2">
-                  <NumberInput
-                    id="reminder-delay"
-                    min={1}
-                    max={60}
-                    value={preferences.medicationReminderDelay}
-                    onChange={(value) =>
-                      updatePreferences({ medicationReminderDelay: value })
-                    }
-                    className="w-20"
-                  />
-                  <span className="text-sm text-muted-foreground">min</span>
+            <div className="pl-11 space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-4">
+                  <Label htmlFor="reminder-before" className="text-sm">
+                    Alerte avant la prise
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <NumberInput
+                      id="reminder-before"
+                      min={1}
+                      max={60}
+                      value={preferences.medicationReminderBefore}
+                      onChange={(value) =>
+                        updatePreferences({ medicationReminderBefore: value })
+                      }
+                      className="w-20"
+                    />
+                    <span className="text-sm text-muted-foreground">min</span>
+                  </div>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Notification envoyée avant l'heure de prise prévue
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Un rappel sera envoyé si vous n'avez pas marqué la prise dans ce délai
-              </p>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-4">
+                  <Label htmlFor="reminder-delay" className="text-sm">
+                    Rappel si non pris après
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <NumberInput
+                      id="reminder-delay"
+                      min={1}
+                      max={60}
+                      value={preferences.medicationReminderDelay}
+                      onChange={(value) =>
+                        updatePreferences({ medicationReminderDelay: value })
+                      }
+                      className="w-20"
+                    />
+                    <span className="text-sm text-muted-foreground">min</span>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Rappel envoyé si vous n'avez pas marqué la prise dans ce délai
+                </p>
+              </div>
             </div>
           )}
         </Card>
@@ -301,6 +346,128 @@ export default function NotificationSettings() {
               <p className="text-xs text-muted-foreground">
                 Notification envoyée la veille de votre visite à la pharmacie
               </p>
+            </div>
+          )}
+        </Card>
+
+        {/* Customize Messages */}
+        <Card className="p-4 space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Settings2 className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold">Personnaliser les messages</h3>
+              <p className="text-sm text-muted-foreground">
+                Modifiez les titres des notifications
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowCustomize(!showCustomize)}
+            >
+              {showCustomize ? "Masquer" : "Modifier"}
+            </Button>
+          </div>
+
+          {showCustomize && (
+            <div className="pl-11 space-y-3">
+              <div>
+                <Label htmlFor="msg-medication" className="text-xs">
+                  Rappel de prise
+                </Label>
+                <Input
+                  id="msg-medication"
+                  value={preferences.customMessages.medicationReminder}
+                  onChange={(e) =>
+                    updatePreferences({
+                      customMessages: {
+                        ...preferences.customMessages,
+                        medicationReminder: e.target.value,
+                      },
+                    })
+                  }
+                  placeholder="💊 Rappel de prise"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="msg-delayed" className="text-xs">
+                  Rappel de prise manquée
+                </Label>
+                <Input
+                  id="msg-delayed"
+                  value={preferences.customMessages.delayedReminder}
+                  onChange={(e) =>
+                    updatePreferences({
+                      customMessages: {
+                        ...preferences.customMessages,
+                        delayedReminder: e.target.value,
+                      },
+                    })
+                  }
+                  placeholder="⏰ Rappel de prise manquée"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="msg-stock" className="text-xs">
+                  Alerte de stock
+                </Label>
+                <Input
+                  id="msg-stock"
+                  value={preferences.customMessages.stockAlert}
+                  onChange={(e) =>
+                    updatePreferences({
+                      customMessages: {
+                        ...preferences.customMessages,
+                        stockAlert: e.target.value,
+                      },
+                    })
+                  }
+                  placeholder="⚠️ Stock faible"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="msg-renewal" className="text-xs">
+                  Renouvellement d'ordonnance
+                </Label>
+                <Input
+                  id="msg-renewal"
+                  value={preferences.customMessages.prescriptionRenewal}
+                  onChange={(e) =>
+                    updatePreferences({
+                      customMessages: {
+                        ...preferences.customMessages,
+                        prescriptionRenewal: e.target.value,
+                      },
+                    })
+                  }
+                  placeholder="📅 Renouvellement d'ordonnance"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="msg-pharmacy" className="text-xs">
+                  Visite pharmacie
+                </Label>
+                <Input
+                  id="msg-pharmacy"
+                  value={preferences.customMessages.pharmacyVisit}
+                  onChange={(e) =>
+                    updatePreferences({
+                      customMessages: {
+                        ...preferences.customMessages,
+                        pharmacyVisit: e.target.value,
+                      },
+                    })
+                  }
+                  placeholder="💊 Visite pharmacie"
+                  className="mt-1"
+                />
+              </div>
             </div>
           )}
         </Card>
