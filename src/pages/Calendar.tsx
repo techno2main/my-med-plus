@@ -38,6 +38,7 @@ const Calendar = () => {
   const [observanceRate, setObservanceRate] = useState(0)
   const [nextPharmacyVisit, setNextPharmacyVisit] = useState<Date | null>(null)
   const [loading, setLoading] = useState(true)
+  const [treatmentStartDate, setTreatmentStartDate] = useState<Date | null>(null)
 
   useEffect(() => {
     loadMonthData()
@@ -52,6 +53,19 @@ const Calendar = () => {
       setLoading(true)
       const monthStart = startOfMonth(currentMonth)
       const monthEnd = endOfMonth(currentMonth)
+
+      // Load active treatment start date
+      const { data: activeTreatment } = await supabase
+        .from("treatments")
+        .select("start_date")
+        .eq("is_active", true)
+        .order("start_date", { ascending: true })
+        .limit(1)
+        .maybeSingle()
+
+      if (activeTreatment?.start_date) {
+        setTreatmentStartDate(new Date(activeTreatment.start_date))
+      }
 
       // Load intakes for the month
       const { data: intakes } = await supabase
@@ -123,6 +137,12 @@ const Calendar = () => {
 
   const loadDayDetails = async () => {
     try {
+      // Check if selected date is before treatment start
+      if (treatmentStartDate && selectedDate < treatmentStartDate) {
+        setDayDetails([])
+        return
+      }
+
       // Get medications from active treatments
       const { data: medications } = await supabase
         .from("medications")
@@ -379,7 +399,11 @@ const Calendar = () => {
               {format(selectedDate, "d MMMM yyyy", { locale: fr })}
             </h3>
             
-            {dayDetails.length === 0 ? (
+            {treatmentStartDate && selectedDate < treatmentStartDate ? (
+              <p className="text-sm text-muted-foreground text-center py-8">
+                Aucun traitement à cette date
+              </p>
+            ) : dayDetails.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">
                 Aucune prise planifiée
               </p>
