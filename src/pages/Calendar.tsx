@@ -137,10 +137,17 @@ const Calendar = () => {
 
   const loadDayDetails = async () => {
     try {
-      // Check if selected date is before treatment start
-      if (treatmentStartDate && selectedDate < treatmentStartDate) {
-        setDayDetails([])
-        return
+      // Check if selected date is before treatment start (compare only dates, not times)
+      if (treatmentStartDate) {
+        const selectedDateOnly = new Date(selectedDate)
+        selectedDateOnly.setHours(0, 0, 0, 0)
+        const treatmentStartDateOnly = new Date(treatmentStartDate)
+        treatmentStartDateOnly.setHours(0, 0, 0, 0)
+        
+        if (selectedDateOnly < treatmentStartDateOnly) {
+          setDayDetails([])
+          return
+        }
       }
 
       // Get medications from active treatments
@@ -399,7 +406,13 @@ const Calendar = () => {
               {format(selectedDate, "d MMMM yyyy", { locale: fr })}
             </h3>
             
-            {treatmentStartDate && selectedDate < treatmentStartDate ? (
+            {treatmentStartDate && (() => {
+              const selectedDateOnly = new Date(selectedDate)
+              selectedDateOnly.setHours(0, 0, 0, 0)
+              const treatmentStartDateOnly = new Date(treatmentStartDate)
+              treatmentStartDateOnly.setHours(0, 0, 0, 0)
+              return selectedDateOnly < treatmentStartDateOnly
+            })() ? (
               <p className="text-sm text-muted-foreground text-center py-8">
                 Aucun traitement à cette date
               </p>
