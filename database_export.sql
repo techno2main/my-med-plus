@@ -1,6 +1,6 @@
 -- =====================================================
--- MyHealthPlus - Complete Database Schema Export
--- Generated: 2025-10-13
+-- MyHealth+ - Complete Database Schema Export
+-- Generated: 2025-10-15
 -- =====================================================
 
 -- =====================================================
@@ -185,11 +185,14 @@ CREATE TABLE public.pharmacy_visits (
   visit_date date NOT NULL,
   visit_number integer NOT NULL,
   is_completed boolean DEFAULT false,
+  actual_visit_date date,
   notes text,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   PRIMARY KEY (id)
 );
+
+COMMENT ON COLUMN public.pharmacy_visits.actual_visit_date IS 'Date réelle de la visite à la pharmacie (peut différer de la date planifiée)';
 
 ALTER TABLE public.pharmacy_visits ENABLE ROW LEVEL SECURITY;
 
@@ -542,7 +545,7 @@ CREATE POLICY "Users can delete their own prescription files"
 -- =====================================================
 -- NOTES
 -- =====================================================
--- Ce fichier contient la structure complète de votre base de données MyHealthPlus.
+-- Ce fichier contient la structure complète de votre base de données MyHealth+.
 -- Il inclut :
 -- - 11 tables avec leurs colonnes et contraintes
 -- - 1 enum (app_role)
@@ -550,5 +553,9 @@ CREATE POLICY "Users can delete their own prescription files"
 -- - 1 trigger (on_auth_user_created)
 -- - Toutes les policies RLS pour chaque table
 -- - Les policies de stockage pour le bucket prescriptions
+-- 
+-- Dernière mise à jour : 15/10/2025
+-- Ajout de la colonne actual_visit_date dans pharmacy_visits pour enregistrer
+-- la date réelle des visites à la pharmacie (peut différer de la date planifiée)
 -- 
 -- Pour exporter également les données, utilisez pg_dump avec l'option --data-only
