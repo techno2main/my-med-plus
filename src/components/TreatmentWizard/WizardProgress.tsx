@@ -16,7 +16,7 @@ export function WizardProgress({ currentStep, totalSteps, onStepClick }: WizardP
   ];
 
   return (
-    <div className="sticky top-0 z-10 w-full py-6 bg-background border-b">
+    <div className="sticky top-[92px] z-10 w-full py-6 bg-background border-b">
       <div className="flex items-center justify-between relative">
         {/* Progress line */}
         <div className="absolute top-5 left-0 right-0 h-0.5 bg-muted -z-10">
