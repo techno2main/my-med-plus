@@ -330,7 +330,10 @@ const Calendar = () => {
               </div>
             </Card>
 
-            <Card className="p-4 surface-elevated">
+            <Card 
+              className="p-4 surface-elevated cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => navigate('/history?tab=history')}
+            >
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-warning/10">
                   <AlertCircle className="h-5 w-5 text-warning" />
