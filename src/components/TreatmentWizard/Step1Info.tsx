@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ModernDatePicker } from "@/components/ui/modern-date-picker";
+import { DateInput } from "@/components/ui/date-input";
 import { Upload, FileText, X } from "lucide-react";
 import { TreatmentFormData } from "./types";
 
@@ -89,21 +89,11 @@ export function Step1Info({ formData, setFormData, prescriptions, doctors, pharm
 
         <div className="space-y-2">
           <Label htmlFor="prescription-date">Date de prescription *</Label>
-          <ModernDatePicker
-            value={formData.prescriptionDate ? new Date(formData.prescriptionDate) : undefined}
-            onChange={(date) => {
-              if (date) {
-                const year = date.getFullYear()
-                const month = String(date.getMonth() + 1).padStart(2, '0')
-                const day = String(date.getDate()).padStart(2, '0')
-                setFormData({ 
-                  ...formData, 
-                  prescriptionDate: `${year}-${month}-${day}`
-                })
-              }
-            }}
+          <DateInput
+            id="prescription-date"
+            value={formData.prescriptionDate}
+            onChange={(date) => setFormData({ ...formData, prescriptionDate: date })}
             placeholder="Sélectionner la date de prescription"
-            disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
           />
         </div>
 
@@ -211,21 +201,11 @@ export function Step1Info({ formData, setFormData, prescriptions, doctors, pharm
 
         <div className="space-y-2">
           <Label htmlFor="first-visit">Première visite en pharmacie</Label>
-          <ModernDatePicker
-            value={formData.firstPharmacyVisit ? new Date(formData.firstPharmacyVisit) : undefined}
-            onChange={(date) => {
-              if (date) {
-                const year = date.getFullYear()
-                const month = String(date.getMonth() + 1).padStart(2, '0')
-                const day = String(date.getDate()).padStart(2, '0')
-                setFormData({ 
-                  ...formData, 
-                  firstPharmacyVisit: `${year}-${month}-${day}`
-                })
-              }
-            }}
+          <DateInput
+            id="first-visit"
+            value={formData.firstPharmacyVisit}
+            onChange={(date) => setFormData({ ...formData, firstPharmacyVisit: date })}
             placeholder="Sélectionner une date"
-            disabled={(date) => date < new Date("1900-01-01")}
           />
           <p className="text-xs text-muted-foreground">
             Les 2 prochaines visites seront automatiquement planifiées à 1 mois d'intervalle
