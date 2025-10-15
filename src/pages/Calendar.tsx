@@ -309,7 +309,7 @@ const Calendar = () => {
       <div className="container max-w-2xl mx-auto px-3 md:px-4 py-6 space-y-6">
         <PageHeader 
           title="Calendrier"
-          subtitle="Suivi mensuel des prises"
+          subtitle="Suivi détaillé des prises"
         />
 
         {/* Stats Overview */}
