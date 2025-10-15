@@ -302,20 +302,20 @@ export default function Prescriptions() {
                   {getStatusBadge(prescription.status)}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-                  <div>
-                    <p className="text-muted-foreground">Date Début</p>
+                <div className="flex justify-between gap-6 text-sm mb-4">
+                  <div className="flex-1">
+                    <p className="text-muted-foreground mb-1">Date Début</p>
                     <p className="font-medium">
                       {new Date(prescription.prescription_date).toLocaleDateString('fr-FR')}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-muted-foreground">Validité</p>
+                  <div className="flex-1">
+                    <p className="text-muted-foreground mb-1">Validité</p>
                     <div className="flex items-baseline gap-2">
                       <p className="font-medium">
                         {new Date(prescription.expiry_date).toLocaleDateString('fr-FR')}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground whitespace-nowrap">
                         QSP {Math.round(prescription.duration_days / 30)} mois
                       </p>
                     </div>
