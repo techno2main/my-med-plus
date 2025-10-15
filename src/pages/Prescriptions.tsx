@@ -343,25 +343,37 @@ export default function Prescriptions() {
                       {prescription.refillVisits.map((visit, index) => (
                         <div 
                           key={index} 
-                          className="flex items-center justify-between p-2 rounded-lg bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors"
+                          className="flex items-center justify-between p-3 rounded-lg bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors"
                           onClick={() => handleToggleVisit(visit.treatmentId, visit.visitNumber, visit.isCompleted)}
                         >
                           <div className="flex items-center gap-2">
                             {visit.isCompleted ? (
-                              <CheckCircle2 className="h-4 w-4 text-success" />
+                              <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
                             ) : (
-                              <Circle className="h-4 w-4 text-muted-foreground" />
+                              <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                             )}
                             <span className="text-sm">
                               {visit.visitNumber === 1 ? "Initial" : `Rechargement ${visit.visitNumber - 1}`}
                             </span>
                           </div>
-                          <span className="text-sm font-medium">
-                            {visit.isCompleted && visit.actualDate
-                              ? new Date(visit.actualDate).toLocaleDateString('fr-FR')
-                              : new Date(visit.date).toLocaleDateString('fr-FR')
-                            }
-                          </span>
+                          <div className="text-right">
+                            {visit.isCompleted && visit.actualDate ? (
+                              <>
+                                <p className="text-sm font-medium">
+                                  {new Date(visit.actualDate).toLocaleDateString('fr-FR')}
+                                </p>
+                                {visit.actualDate !== visit.date && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Prévu: {new Date(visit.date).toLocaleDateString('fr-FR')}
+                                  </p>
+                                )}
+                              </>
+                            ) : (
+                              <p className="text-sm font-medium">
+                                {new Date(visit.date).toLocaleDateString('fr-FR')}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
