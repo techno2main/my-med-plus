@@ -271,8 +271,8 @@ export default function History() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm text-muted-foreground">7 derniers jours</p>
-                    <p className="text-2xl font-bold text-primary">{stats.adherence7Days}%</p>
+                    <p className="text-sm text-muted-foreground">7 jours</p>
+                    <p className="text-xl font-bold text-primary">{stats.adherence7Days}%</p>
                   </div>
                   <div className="w-full bg-surface-elevated rounded-full h-3">
                     <div 
@@ -284,8 +284,8 @@ export default function History() {
 
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm text-muted-foreground">30 derniers jours</p>
-                    <p className="text-2xl font-bold text-primary">{stats.adherence30Days}%</p>
+                    <p className="text-sm text-muted-foreground">30 jours</p>
+                    <p className="text-xl font-bold text-primary">{stats.adherence30Days}%</p>
                   </div>
                   <div className="w-full bg-surface-elevated rounded-full h-3">
                     <div 
