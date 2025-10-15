@@ -24,7 +24,7 @@ export default function About() {
               <Heart className="h-12 w-12 text-primary" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold mb-2">MediTrack</h2>
+          <h2 className="text-2xl font-bold mb-2">MyHealth+</h2>
           <p className="text-muted-foreground mb-1">Votre assistant santé personnel</p>
           <p className="text-sm text-muted-foreground">Version 1.0.0</p>
         </Card>
@@ -33,7 +33,7 @@ export default function About() {
         <Card className="p-6">
           <h3 className="font-semibold mb-3">Notre mission</h3>
           <p className="text-muted-foreground leading-relaxed">
-            MediTrack est une application conçue pour vous aider à gérer vos traitements médicaux en toute simplicité. 
+            MyHealth+ est une application conçue pour vous aider à gérer vos traitements médicaux en toute simplicité. 
             Suivez vos prises, gérez vos stocks et consultez vos ordonnances en un seul endroit.
           </p>
         </Card>
@@ -87,11 +87,11 @@ export default function About() {
           <div className="space-y-3">
             <Button variant="outline" className="w-full justify-start">
               <Mail className="mr-2 h-4 w-4" />
-              support@meditrack.app
+              support@myhealth-plus.app
             </Button>
             <Button variant="outline" className="w-full justify-start">
               <Globe className="mr-2 h-4 w-4" />
-              www.meditrack.app
+              www.myhealth-plus.app
             </Button>
           </div>
         </Card>
@@ -102,7 +102,7 @@ export default function About() {
             Développé avec <Heart className="inline h-4 w-4 text-danger" /> pour votre santé
           </p>
           <p className="text-xs text-muted-foreground mt-2">
-            © 2025 MediTrack. Tous droits réservés.
+            © 2025 MyHealth+. Tous droits réservés.
           </p>
         </Card>
       </div>
