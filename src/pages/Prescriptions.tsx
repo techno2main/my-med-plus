@@ -290,7 +290,7 @@ export default function Prescriptions() {
 
                 {prescription.refillVisits && prescription.refillVisits.length > 0 && (
                   <div className="mb-4">
-                    <p className="text-sm font-medium mb-3">Dates de refill</p>
+                    <p className="text-sm font-medium mb-3">Dates de réassort</p>
                     <div className="space-y-2">
                       {prescription.refillVisits.map((visit, index) => (
                         <div 
@@ -304,7 +304,7 @@ export default function Prescriptions() {
                               <Circle className="h-4 w-4 text-muted-foreground" />
                             )}
                             <span className="text-sm">
-                              Refill {visit.visitNumber}
+                              {visit.visitNumber === 1 ? "Initial" : `Rechargement ${visit.visitNumber - 1}`}
                             </span>
                           </div>
                           <span className="text-sm font-medium">
