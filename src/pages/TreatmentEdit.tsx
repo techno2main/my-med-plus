@@ -104,24 +104,27 @@ export default function TreatmentEdit() {
 
       if (medsError) throw medsError;
       
-      // Load pathology from catalog for each medication
+      // Load pathology and dosage_amount from catalog for each medication
       const medsWithPathology = await Promise.all(
         (medsData || []).map(async (med: any) => {
           let pathology = null;
+          let catalogDosageAmount = null;
           
           if (med.catalog_id) {
             const { data: catalogData } = await supabase
               .from("medication_catalog")
-              .select("pathology")
+              .select("pathology, dosage_amount")
               .eq("id", med.catalog_id)
               .maybeSingle();
             
             pathology = catalogData?.pathology || null;
+            catalogDosageAmount = catalogData?.dosage_amount || null;
           }
 
           return {
             ...med,
-            pathology
+            pathology,
+            dosage_amount: catalogDosageAmount || med.dosage_amount
           };
         })
       );
