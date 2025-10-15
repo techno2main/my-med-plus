@@ -163,22 +163,6 @@ export default function StockDetails() {
           </div>
         </Card>
 
-        {/* Posologie */}
-        {medication.times && medication.times.length > 0 && (
-          <Card className="p-6">
-            <h3 className="font-semibold mb-4">Horaires de prise</h3>
-            <div className="flex flex-wrap gap-2">
-              {medication.times.map((time: string, idx: number) => (
-                <span key={idx} className="px-3 py-1 rounded-full bg-primary/10 text-sm font-medium">
-                  {time}
-                </span>
-              ))}
-            </div>
-            <p className="text-sm text-muted-foreground mt-3">
-              Posologie : {medication.dosage}
-            </p>
-          </Card>
-        )}
 
         {/* Actions */}
         <div className="flex gap-3">

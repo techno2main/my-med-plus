@@ -22,11 +22,29 @@ export default function Stock() {
           treatments!inner(is_active),
           medication_catalog(dosage_amount, default_dosage)
         `)
-        .eq("treatments.is_active", true)
-        .order("name", { ascending: true });
+        .eq("treatments.is_active", true);
       
       if (error) throw error;
-      return data;
+      
+      // Trier les médicaments par heure de prise la plus tôt, puis par ordre alphabétique
+      const sortedData = data?.map(med => {
+        // Trier les horaires de prise pour chaque médicament
+        const sortedTimes = [...(med.times || [])].sort();
+        return {
+          ...med,
+          times: sortedTimes,
+          earliestTime: sortedTimes[0] || 'ZZ:ZZ' // ZZ:ZZ pour mettre en dernier ceux sans horaire
+        };
+      }).sort((a, b) => {
+        // D'abord par heure la plus tôt
+        if (a.earliestTime !== b.earliestTime) {
+          return a.earliestTime.localeCompare(b.earliestTime);
+        }
+        // Puis par ordre alphabétique du nom
+        return a.name.localeCompare(b.name);
+      });
+      
+      return sortedData;
     },
   });
 
