@@ -243,7 +243,7 @@ export default function TreatmentEdit() {
                   placeholder="Ex: Traitement Diabète"
                 />
               </div>
-              <div className="pt-6">
+              <div className="self-center">
                 <Switch 
                   id="isActive" 
                   checked={formData.isActive}
