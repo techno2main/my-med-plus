@@ -98,6 +98,23 @@ export function Step1Info({ formData, setFormData, prescriptions, doctors, pharm
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="duration-days">QSP (Durée en jours) *</Label>
+          <Input
+            id="duration-days"
+            type="number"
+            value={formData.durationDays}
+            onChange={(e) => setFormData({ ...formData, durationDays: e.target.value })}
+            placeholder="Ex: 30, 60, 90..."
+            className="bg-surface"
+            required
+            min="1"
+          />
+          <p className="text-xs text-muted-foreground">
+            Quantité Suffisante Pour (durée du traitement en jours)
+          </p>
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="prescription">Ordonnance de référence (optionnel)</Label>
           <Select
             value={formData.prescriptionId}
@@ -208,7 +225,10 @@ export function Step1Info({ formData, setFormData, prescriptions, doctors, pharm
             placeholder="Sélectionner une date"
           />
           <p className="text-xs text-muted-foreground">
-            Les 2 prochaines visites seront automatiquement planifiées à 1 mois d'intervalle
+            {formData.durationDays ? 
+              `Les ${Math.max(0, Math.floor(parseInt(formData.durationDays) / 30) - 1)} prochaines visites seront automatiquement planifiées à 1 mois d'intervalle` :
+              "Les prochaines visites seront automatiquement planifiées à 1 mois d'intervalle"
+            }
           </p>
         </div>
       </Card>

@@ -29,6 +29,7 @@ export function TreatmentWizard() {
     prescribingDoctorId: "",
     prescriptionId: "",
     prescriptionDate: "",
+    durationDays: "",
     prescriptionFile: null,
     prescriptionFileName: "",
     pharmacyId: "",
@@ -130,7 +131,7 @@ export function TreatmentWizard() {
             user_id: user.id,
             prescribing_doctor_id: formData.prescribingDoctorId || null,
             prescription_date: formData.prescriptionDate || new Date().toISOString().split('T')[0],
-            duration_days: 90,
+            duration_days: parseInt(formData.durationDays) || 90,
             file_path: filePath,
             original_filename: formData.prescriptionFileName,
           })
@@ -142,6 +143,15 @@ export function TreatmentWizard() {
       }
 
       // Create treatment
+      const startDate = formData.prescriptionDate || new Date().toISOString().split('T')[0];
+      let endDate = null;
+      if (formData.durationDays) {
+        const start = new Date(startDate);
+        const end = new Date(start);
+        end.setDate(end.getDate() + parseInt(formData.durationDays));
+        endDate = end.toISOString().split('T')[0];
+      }
+
       const { data: treatment, error: treatmentError } = await supabase
         .from("treatments")
         .insert({
@@ -150,7 +160,8 @@ export function TreatmentWizard() {
           pharmacy_id: formData.pharmacyId || null,
           name: formData.name,
           description: formData.description,
-          start_date: new Date().toISOString().split('T')[0],
+          start_date: startDate,
+          end_date: endDate,
           pathology: formData.medications.map(m => m.pathology).filter(Boolean).join(", "),
         })
         .select()
@@ -178,11 +189,12 @@ export function TreatmentWizard() {
       if (medError) throw medError;
 
       // Create pharmacy visits
-      if (formData.firstPharmacyVisit && formData.pharmacyId) {
+      if (formData.firstPharmacyVisit && formData.pharmacyId && formData.durationDays) {
         const visits = [];
         const firstVisitDate = new Date(formData.firstPharmacyVisit);
+        const numberOfVisits = Math.floor(parseInt(formData.durationDays) / 30);
         
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < numberOfVisits; i++) {
           visits.push({
             treatment_id: treatment.id,
             pharmacy_id: formData.pharmacyId,
@@ -192,11 +204,13 @@ export function TreatmentWizard() {
           });
         }
 
-        const { error: visitsError } = await supabase
-          .from("pharmacy_visits")
-          .insert(visits);
+        if (visits.length > 0) {
+          const { error: visitsError } = await supabase
+            .from("pharmacy_visits")
+            .insert(visits);
 
-        if (visitsError) throw visitsError;
+          if (visitsError) throw visitsError;
+        }
       }
 
       toast({

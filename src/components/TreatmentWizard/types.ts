@@ -5,6 +5,7 @@ export interface TreatmentFormData {
   prescribingDoctorId: string;
   prescriptionId: string;
   prescriptionDate: string;
+  durationDays: string;
   prescriptionFile: File | null;
   prescriptionFileName: string;
   pharmacyId: string;
