@@ -113,7 +113,7 @@ export default function StockForm() {
     <AppLayout>
       <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
+          <Button variant="ghost" size="sm" onClick={() => navigate("/stock")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
@@ -192,7 +192,7 @@ export default function StockForm() {
               type="button" 
               variant="outline" 
               className="flex-1"
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/stock")}
             >
               Annuler
             </Button>

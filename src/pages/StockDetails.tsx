@@ -88,7 +88,7 @@ export default function StockDetails() {
     <AppLayout showBottomNav={false}>
       <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
+          <Button variant="ghost" size="sm" onClick={() => navigate("/stock")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
