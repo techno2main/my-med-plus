@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { DateInput } from "@/components/ui/date-input";
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, Save, Trash2, Pencil } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -265,20 +265,18 @@ export default function TreatmentEdit() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="startDate">Date de début</Label>
-                <Input 
-                  id="startDate" 
-                  type="date" 
+                <DateInput
+                  id="startDate"
                   value={formData.startDate}
-                  onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                  onChange={(date) => setFormData({...formData, startDate: date})}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="endDate">Date de fin</Label>
-                <Input 
-                  id="endDate" 
-                  type="date" 
+                <DateInput
+                  id="endDate"
                   value={formData.endDate}
-                  onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                  onChange={(date) => setFormData({...formData, endDate: date})}
                 />
               </div>
             </div>
