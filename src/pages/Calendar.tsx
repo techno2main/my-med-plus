@@ -306,7 +306,7 @@ const Calendar = () => {
 
   return (
     <AppLayout>
-      <div className="container max-w-6xl mx-auto px-3 md:px-4 py-6 space-y-6">
+      <div className="container max-w-2xl mx-auto px-3 md:px-4 py-6 space-y-6">
         <PageHeader 
           title="Calendrier"
           subtitle="Suivi mensuel des prises"
