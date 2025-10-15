@@ -57,7 +57,7 @@ export function Step1Info({ formData, setFormData, prescriptions, doctors, pharm
             id="description"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            placeholder="Informations complémentaires sur le traitement..."
+            placeholder="Informations complémentaires"
             className="bg-surface"
           />
         </div>
@@ -69,7 +69,7 @@ export function Step1Info({ formData, setFormData, prescriptions, doctors, pharm
             onValueChange={(value) => setFormData({ ...formData, prescribingDoctorId: value })}
           >
             <SelectTrigger className="bg-surface">
-              <SelectValue placeholder="Sélectionnez un médecin" />
+              <SelectValue placeholder="Choisir" />
             </SelectTrigger>
             <SelectContent className="bg-popover z-50">
               {doctors.length === 0 ? (
@@ -124,7 +124,7 @@ export function Step1Info({ formData, setFormData, prescriptions, doctors, pharm
             onValueChange={(value) => setFormData({ ...formData, prescriptionId: value })}
           >
             <SelectTrigger className="bg-surface">
-              <SelectValue placeholder="Sélectionnez une ordonnance existante" />
+              <SelectValue placeholder="Choisir" />
             </SelectTrigger>
             <SelectContent className="bg-popover z-50">
               {prescriptions.length === 0 ? (
@@ -225,7 +225,7 @@ export function Step1Info({ formData, setFormData, prescriptions, doctors, pharm
             id="first-visit"
             value={formData.firstPharmacyVisit}
             onChange={(date) => setFormData({ ...formData, firstPharmacyVisit: date })}
-            placeholder="Sélectionner une date"
+            placeholder="Date"
           />
           <p className="text-xs text-muted-foreground">
             {formData.durationDays ? 
