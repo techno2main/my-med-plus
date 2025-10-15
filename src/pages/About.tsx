@@ -85,13 +85,17 @@ export default function About() {
         <Card className="p-6">
           <h3 className="font-semibold mb-4">Contactez-nous</h3>
           <div className="space-y-3">
-            <Button variant="outline" className="w-full justify-start">
-              <Mail className="mr-2 h-4 w-4" />
-              support@techno2main.fr
+            <Button variant="outline" className="w-full justify-start" asChild>
+              <a href="mailto:support@techno2main.fr">
+                <Mail className="mr-2 h-4 w-4" />
+                support@techno2main.fr
+              </a>
             </Button>
-            <Button variant="outline" className="w-full justify-start">
-              <Globe className="mr-2 h-4 w-4" />
-              myhealth+.techno2main.fr
+            <Button variant="outline" className="w-full justify-start" asChild>
+              <a href="https://myhealth+.techno2main.fr" target="_blank" rel="noopener noreferrer">
+                <Globe className="mr-2 h-4 w-4" />
+                myhealth+.techno2main.fr
+              </a>
             </Button>
           </div>
         </Card>
