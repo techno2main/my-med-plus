@@ -323,7 +323,7 @@ export default function Prescriptions() {
                 {prescription.medications && prescription.medications.length > 0 && (
                   <div className="mb-4">
                     <p className="text-sm text-muted-foreground mb-2">Médicaments prescrits</p>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-nowrap gap-1 overflow-x-auto md:flex-wrap md:gap-2">
                       {prescription.medications.map((medication) => (
                         <Badge key={medication.id} variant="muted">
                           {medication.name}
