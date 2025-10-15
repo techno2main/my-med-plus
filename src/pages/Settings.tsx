@@ -2,24 +2,28 @@ import { AppLayout } from "@/components/Layout/AppLayout";
 import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/components/theme-provider";
 import { 
   Bell, 
   Moon, 
+  Sun,
+  Monitor,
   Shield, 
   Smartphone,
   ChevronRight,
-  LogOut
+  LogOut,
+  Check
 } from "lucide-react";
 
 export default function Settings() {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -33,6 +37,12 @@ export default function Settings() {
       navigate("/auth");
     }
   };
+
+  const themeOptions = [
+    { value: "light" as const, label: "Clair", icon: Sun },
+    { value: "dark" as const, label: "Sombre", icon: Moon },
+    { value: "system" as const, label: "Système", icon: Monitor },
+  ];
 
   return (
     <AppLayout>
@@ -58,14 +68,31 @@ export default function Settings() {
               </div>
             </div>
 
-            <div className="space-y-4 pl-15">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="dark-mode" className="flex-1">
-                  <p className="font-medium">Mode sombre</p>
-                  <p className="text-sm text-muted-foreground">Thème sombre activé</p>
-                </Label>
-                <Switch id="dark-mode" defaultChecked />
-              </div>
+            <div className="space-y-2 pl-15">
+              {themeOptions.map((option) => {
+                const Icon = option.icon;
+                const isSelected = theme === option.value;
+                
+                return (
+                  <button
+                    key={option.value}
+                    onClick={() => setTheme(option.value)}
+                    className={`w-full flex items-center justify-between p-3 rounded-lg border transition-colors ${
+                      isSelected 
+                        ? 'border-primary bg-primary/5' 
+                        : 'border-border hover:bg-muted/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className={`h-5 w-5 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <span className={`font-medium ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}>
+                        {option.label}
+                      </span>
+                    </div>
+                    {isSelected && <Check className="h-5 w-5 text-primary" />}
+                  </button>
+                );
+              })}
             </div>
           </Card>
 
