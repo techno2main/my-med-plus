@@ -240,13 +240,19 @@ const Calendar = () => {
     const dayData = getDayIntake(date)
     if (!dayData) return null
 
-    if (dayData.taken === dayData.total) {
+    // Only show green if ALL intakes are taken
+    if (dayData.taken === dayData.total && dayData.total > 0) {
       return <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-success" />
-    } else if (dayData.missed > 0) {
+    } 
+    // Show red if there are missed intakes
+    else if (dayData.missed > 0) {
       return <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-danger" />
-    } else if (dayData.upcoming > 0) {
+    } 
+    // Show blue only if there are upcoming intakes and no missed/pending ones
+    else if (dayData.upcoming > 0 && dayData.taken === 0 && dayData.missed === 0) {
       return <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary" />
     }
+    // Default: white/no indicator if partially completed
     return null
   }
 
