@@ -38,7 +38,7 @@ const Referentials = () => {
     <AppLayout>
       <div className="container max-w-4xl mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
+          <Button variant="ghost" size="sm" onClick={() => navigate("/admin")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <header>
