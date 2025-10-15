@@ -39,33 +39,35 @@ export function AppHeader() {
   }
 
   return (
-    <header className="space-y-2 bg-background border-b border-border px-4 py-4 sticky top-0 z-50">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold gradient-primary bg-clip-text text-transparent">
-          MyHealth+
-        </h1>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5">
-            <Sun className="h-3.5 w-3.5 text-muted-foreground" />
-            <Switch
-              checked={theme === "dark"}
-              onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-              className="data-[state=checked]:bg-primary scale-75"
-            />
-            <Moon className="h-3.5 w-3.5 text-muted-foreground" />
+    <header className="bg-background border-b border-border px-4 py-4 sticky top-0 z-50">
+      <div className="container max-w-3xl mx-auto space-y-2">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold gradient-primary bg-clip-text text-transparent">
+            MyHealth+
+          </h1>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5">
+              <Sun className="h-3.5 w-3.5 text-muted-foreground" />
+              <Switch
+                checked={theme === "dark"}
+                onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+                className="data-[state=checked]:bg-primary scale-75"
+              />
+              <Moon className="h-3.5 w-3.5 text-muted-foreground" />
+            </div>
+            <Avatar className="h-10 w-10 cursor-pointer" onClick={() => navigate("/profile")}>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+              ) : (
+                <AvatarFallback>
+                  <User className="h-5 w-5" />
+                </AvatarFallback>
+              )}
+            </Avatar>
           </div>
-          <Avatar className="h-10 w-10 cursor-pointer" onClick={() => navigate("/profile")}>
-            {avatarUrl ? (
-              <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
-            ) : (
-              <AvatarFallback>
-                <User className="h-5 w-5" />
-              </AvatarFallback>
-            )}
-          </Avatar>
         </div>
+        <p className="text-sm text-muted-foreground capitalize">{currentDate} • {currentTime}</p>
       </div>
-      <p className="text-sm text-muted-foreground capitalize">{currentDate} • {currentTime}</p>
     </header>
   )
 }
