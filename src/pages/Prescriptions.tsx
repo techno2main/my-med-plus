@@ -357,7 +357,7 @@ export default function Prescriptions() {
                                 <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                               )}
                               <span className="text-sm">
-                                {visit.visitNumber === 1 ? "Initial" : `Rechargement ${visit.visitNumber - 1}`}
+                                {visit.visitNumber === 1 ? "Initial" : `Rechargement ${visit.visitNumber - 1}`} {visit.visitNumber}/{prescription.refillVisits.length}
                               </span>
                             </div>
                             <div className="text-right space-y-0.5">
