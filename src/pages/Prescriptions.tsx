@@ -314,6 +314,9 @@ export default function Prescriptions() {
                     <p className="font-medium">
                       {new Date(prescription.expiry_date).toLocaleDateString('fr-FR')}
                     </p>
+                    <p className="text-xs text-muted-foreground">
+                      QSP {Math.round(prescription.duration_days / 30)} mois
+                    </p>
                   </div>
                 </div>
 
