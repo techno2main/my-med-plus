@@ -29,7 +29,7 @@ export function TreatmentWizard() {
     prescribingDoctorId: "",
     prescriptionId: "",
     prescriptionDate: "",
-    durationDays: "",
+    durationDays: "90",
     prescriptionFile: null,
     prescriptionFileName: "",
     pharmacyId: "",
