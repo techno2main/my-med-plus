@@ -77,7 +77,7 @@ const Auth = () => {
       <Card className="w-full max-w-md p-8 space-y-6 surface-elevated">
         <div className="space-y-2 text-center">
           <h1 className="text-3xl font-bold gradient-primary bg-clip-text text-transparent">
-            MyHealthPlus
+            MyHealth+
           </h1>
           <p className="text-muted-foreground">
             Connectez-vous pour accéder à votre espace santé
