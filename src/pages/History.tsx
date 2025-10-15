@@ -38,6 +38,8 @@ interface GroupedIntakes {
     dosage: string;
     status: string;
     takenAt?: string;
+    treatment: string;
+    treatmentId: string;
   }[];
 }
 
@@ -79,7 +81,9 @@ export default function History() {
           medications (
             name,
             catalog_id,
-            medication_catalog(dosage_amount, default_dosage)
+            treatment_id,
+            medication_catalog(dosage_amount, default_dosage),
+            treatments(name)
           )
         `)
         .order("scheduled_time", { ascending: false })
@@ -109,7 +113,9 @@ export default function History() {
           medication: intake.medications?.name || 'Médicament inconnu',
           dosage: dosage,
           status: intake.status,
-          takenAt: intake.taken_at ? format(parseISO(intake.taken_at), 'HH:mm') : undefined
+          takenAt: intake.taken_at ? format(parseISO(intake.taken_at), 'HH:mm') : undefined,
+          treatment: intake.medications?.treatments?.name || 'Traitement inconnu',
+          treatmentId: intake.medications?.treatment_id || ''
         });
 
         return acc;
@@ -231,37 +237,60 @@ export default function History() {
                 <p className="text-muted-foreground">Aucun historique disponible</p>
               </Card>
             ) : (
-              historyData.map((day, dayIdx) => (
-                <Card key={dayIdx} className="p-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                    <h3 className="font-semibold">
-                      {format(day.date, "EEEE d MMMM yyyy", { locale: fr })}
-                    </h3>
-                  </div>
+              historyData.map((day, dayIdx) => {
+                // Group intakes by treatment
+                const groupedByTreatment = day.intakes.reduce((acc, intake) => {
+                  if (!acc[intake.treatmentId]) {
+                    acc[intake.treatmentId] = {
+                      treatment: intake.treatment,
+                      intakes: []
+                    };
+                  }
+                  acc[intake.treatmentId].intakes.push(intake);
+                  return acc;
+                }, {} as Record<string, { treatment: string; intakes: typeof day.intakes }>);
 
-                  <div className="space-y-3">
-                    {day.intakes.map((intake) => (
-                      <div key={intake.id} className="flex items-center justify-between p-3 rounded-lg bg-surface">
-                        <div className="flex items-center gap-3 flex-1">
-                          {getStatusIcon(intake.status)}
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <p className="font-medium">{intake.medication}</p>
-                              {intake.dosage && <span className="text-xs text-muted-foreground">{intake.dosage}</span>}
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              Prévu à {intake.time}
-                              {intake.takenAt && ` • Pris à ${intake.takenAt}`}
-                            </p>
+                return (
+                  <Card key={dayIdx} className="p-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                      <h3 className="font-semibold">
+                        {format(day.date, "EEEE d MMMM yyyy", { locale: fr })}
+                      </h3>
+                    </div>
+
+                    <div className="space-y-4">
+                      {Object.entries(groupedByTreatment).map(([treatmentId, group]) => (
+                        <div key={treatmentId} className="space-y-2">
+                          <p className="text-xs font-medium text-primary px-1">
+                            {group.treatment}
+                          </p>
+                          <div className="space-y-2">
+                            {group.intakes.map((intake) => (
+                              <div key={intake.id} className="flex items-center justify-between p-3 rounded-lg bg-surface">
+                                <div className="flex items-center gap-3 flex-1">
+                                  {getStatusIcon(intake.status)}
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <p className="font-medium">{intake.medication}</p>
+                                      {intake.dosage && <span className="text-xs text-muted-foreground">{intake.dosage}</span>}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">
+                                      Prévu à {intake.time}
+                                      {intake.takenAt && ` • Pris à ${intake.takenAt}`}
+                                    </p>
+                                  </div>
+                                </div>
+                                {getStatusBadge(intake.status)}
+                              </div>
+                            ))}
                           </div>
                         </div>
-                        {getStatusBadge(intake.status)}
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              ))
+                      ))}
+                    </div>
+                  </Card>
+                );
+              })
             )}
           </TabsContent>
 
