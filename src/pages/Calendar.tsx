@@ -357,7 +357,7 @@ const Calendar = () => {
                 <CalendarIcon className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm font-medium">Prochain Rechargement</p>
+                <p className="text-sm font-medium">Prochain Rechargement Pharmacie</p>
                 <p className="text-xs text-muted-foreground">
                   {nextPharmacyVisit ? format(nextPharmacyVisit, "d MMMM yyyy", { locale: fr }) : "Aucun planifié"}
                 </p>
