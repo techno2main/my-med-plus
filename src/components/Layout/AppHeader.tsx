@@ -42,7 +42,7 @@ export function AppHeader() {
     <header className="space-y-2 bg-background border-b border-border px-4 py-4 sticky top-0 z-10">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold gradient-primary bg-clip-text text-transparent">
-          MyHealthPlus
+          MyHealth+
         </h1>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">

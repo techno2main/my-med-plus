@@ -1,6 +1,6 @@
 {
-  "name": "MyHealthPlus",
-  "short_name": "MyHealthPlus",
+  "name": "MyHealth+",
+  "short_name": "MyHealth+",
   "description": "Gérez vos traitements médicaux en toute confidentialité",
   "start_url": "/",
   "display": "standalone",
