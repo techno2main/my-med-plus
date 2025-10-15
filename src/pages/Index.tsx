@@ -265,18 +265,18 @@ const Index = () => {
         {/* Header */}
         <header className="space-y-2">
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold gradient-primary bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold gradient-primary bg-clip-text text-transparent">
               MyHealthPlus
             </h1>
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Sun className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-1.5">
+                <Sun className="h-3.5 w-3.5 text-muted-foreground" />
                 <Switch
                   checked={theme === "dark"}
                   onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-                  className="data-[state=checked]:bg-primary"
+                  className="data-[state=checked]:bg-primary scale-75"
                 />
-                <Moon className="h-4 w-4 text-muted-foreground" />
+                <Moon className="h-3.5 w-3.5 text-muted-foreground" />
               </div>
               <Avatar className="h-10 w-10 cursor-pointer" onClick={() => navigate("/profile")}>
                 {avatarUrl ? (
