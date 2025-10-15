@@ -16,6 +16,9 @@ export default function TreatmentForm() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold">Nouveau traitement</h1>
+            <p className="text-sm text-muted-foreground">
+              Créez votre traitement en 4 étapes
+            </p>
           </div>
         </div>
 
