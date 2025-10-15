@@ -366,7 +366,7 @@ const Calendar = () => {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-6">
           {/* Calendar */}
           <Card className="p-6 surface-elevated">
             <div className="space-y-4">
