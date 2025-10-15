@@ -302,14 +302,15 @@ export default function Prescriptions() {
                   {getStatusBadge(prescription.status)}
                 </div>
 
-                <div className="flex justify-between gap-6 text-sm mb-4">
-                  <div className="flex-1">
+                <div className="flex gap-6 text-sm mb-4">
+                  <div>
                     <p className="text-muted-foreground mb-1">Date Début</p>
                     <p className="font-medium">
                       {new Date(prescription.prescription_date).toLocaleDateString('fr-FR')}
                     </p>
                   </div>
-                  <div className="flex-1">
+                  <div className="h-auto w-px bg-border"></div>
+                  <div>
                     <p className="text-muted-foreground mb-1">Validité</p>
                     <div className="flex items-baseline gap-2">
                       <p className="font-medium">
