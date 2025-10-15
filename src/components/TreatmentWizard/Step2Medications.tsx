@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Search } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { TreatmentFormData, MedicationItem, CatalogMedication } from "./types";
 import { supabase } from "@/integrations/supabase/client";
@@ -227,13 +228,13 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
         </div>
       )}
 
-      {/* Catalog Dialog */}
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle>Référentiel de médicaments</DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 flex flex-col gap-4 min-h-0">
+      {/* Catalog Sheet */}
+      <Sheet open={showDialog} onOpenChange={setShowDialog}>
+        <SheetContent side="bottom" className="h-[90vh] flex flex-col p-0">
+          <SheetHeader className="px-6 pt-6 pb-4 border-b">
+            <SheetTitle>Référentiel de médicaments</SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 flex flex-col gap-4 px-6 pt-4 min-h-0">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -243,12 +244,12 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
                 className="pl-9"
               />
             </div>
-            <ScrollArea className="flex-1 -mx-6 px-6">
-              <div className="space-y-2 pr-4">
+            <div className="flex-1 -mx-6 px-6 overflow-y-auto">
+              <div className="space-y-3 pb-6">
                 {filteredCatalog.map((med) => (
                   <Card
                     key={med.id}
-                    className="p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+                    className="p-4 cursor-pointer hover:bg-accent/50 transition-colors active:scale-[0.98]"
                     onClick={() => addMedicationFromCatalog(med)}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -275,10 +276,10 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
                   </Card>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
       {/* Custom Medication Dialog */}
       <Dialog open={showCustomDialog} onOpenChange={setShowCustomDialog}>
