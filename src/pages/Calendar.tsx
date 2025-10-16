@@ -267,7 +267,7 @@ const Calendar = () => {
       const pharmacyDate = new Date(nextPharmacyVisit);
       pharmacyDate.setHours(0, 0, 0, 0);
       if (dateOnly.getTime() === pharmacyDate.getTime()) {
-        return <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px]">⚕️</div>;
+        return <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 text-base">⚕️</div>;
       }
     }
     
@@ -276,7 +276,7 @@ const Calendar = () => {
       const doctorDate = new Date(nextDoctorVisit);
       doctorDate.setHours(0, 0, 0, 0);
       if (dateOnly.getTime() === doctorDate.getTime()) {
-        return <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px]">🩺</div>;
+        return <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 text-base">🩺</div>;
       }
     }
     
