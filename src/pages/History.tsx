@@ -268,11 +268,12 @@ export default function History() {
           <TabsContent value="history" className="space-y-4">
             {/* Filtres */}
             <Card className="p-4">
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-2 overflow-x-auto no-scrollbar">
                 <Button 
                   variant={filterStatus === "all" ? "default" : "outline"} 
                   size="sm"
                   onClick={() => setFilterStatus("all")}
+                  className="whitespace-nowrap"
                 >
                   Tous
                 </Button>
@@ -280,7 +281,7 @@ export default function History() {
                   variant={filterStatus === "ontime" ? "default" : "outline"} 
                   size="sm"
                   onClick={() => setFilterStatus("ontime")}
-                  className={filterStatus === "ontime" ? "" : "border-success/50 text-success hover:bg-success/10"}
+                  className={`whitespace-nowrap ${filterStatus === "ontime" ? "" : "border-success/50 text-success hover:bg-success/10"}`}
                 >
                   À l'heure
                 </Button>
@@ -288,7 +289,7 @@ export default function History() {
                   variant={filterStatus === "late" ? "default" : "outline"} 
                   size="sm"
                   onClick={() => setFilterStatus("late")}
-                  className={filterStatus === "late" ? "" : "border-warning/50 text-warning hover:bg-warning/10"}
+                  className={`whitespace-nowrap ${filterStatus === "late" ? "" : "border-warning/50 text-warning hover:bg-warning/10"}`}
                 >
                   En retard
                 </Button>
@@ -296,7 +297,7 @@ export default function History() {
                   variant={filterStatus === "missed" ? "default" : "outline"} 
                   size="sm"
                   onClick={() => setFilterStatus("missed")}
-                  className={filterStatus === "missed" ? "" : "border-danger/50 text-danger hover:bg-danger/10"}
+                  className={`whitespace-nowrap ${filterStatus === "missed" ? "" : "border-danger/50 text-danger hover:bg-danger/10"}`}
                 >
                   Manquées
                 </Button>
