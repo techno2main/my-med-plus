@@ -349,8 +349,17 @@ export default function Prescriptions() {
                       {prescription.refillVisits.map((visit, index) => (
                         <div 
                           key={index} 
-                          className="p-3 rounded-lg bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => handleToggleVisit(visit.treatmentId, visit.visitNumber, visit.isCompleted)}
+                          className={`p-3 rounded-lg bg-muted/30 transition-colors ${
+                            visit.visitNumber === 1 
+                              ? 'cursor-not-allowed opacity-75' 
+                              : 'cursor-pointer hover:bg-muted/50'
+                          }`}
+                          onClick={() => {
+                            // Le premier rechargement (Initial) n'est pas modifiable
+                            if (visit.visitNumber !== 1) {
+                              handleToggleVisit(visit.treatmentId, visit.visitNumber, visit.isCompleted);
+                            }
+                          }}
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
