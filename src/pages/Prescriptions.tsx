@@ -346,55 +346,61 @@ export default function Prescriptions() {
                   <div className="mb-4">
                     <p className="text-sm font-medium mb-3">Dates de rechargements</p>
                     <div className="space-y-2">
-                      {prescription.refillVisits.map((visit, index) => (
-                        <div 
-                          key={index} 
-                          className={`p-3 rounded-lg bg-muted/30 transition-colors ${
-                            visit.visitNumber === 1 
-                              ? 'pointer-events-none opacity-75' 
-                              : 'cursor-pointer hover:bg-muted/50'
-                          }`}
-                          {...(visit.visitNumber !== 1 && {
-                            onClick: () => handleToggleVisit(visit.treatmentId, visit.visitNumber, visit.isCompleted)
-                          })}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              {visit.isCompleted ? (
-                                <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
-                              ) : (
-                                <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                              )}
-                              <span className="text-sm">
-                                {visit.visitNumber === 1 ? `Initial ${visit.visitNumber}/${prescription.refillVisits.length}` : `Rechargement ${visit.visitNumber}/${prescription.refillVisits.length}`}
-                              </span>
-                            </div>
-                            <div className="text-right space-y-0.5">
-                              {visit.visitNumber === 1 ? (
-                                // Pour le rechargement initial, afficher uniquement la date (sans "Prévu:")
-                                <p className="text-sm font-medium">
-                                  {new Date(visit.actualDate || visit.date).toLocaleDateString('fr-FR')}
-                                </p>
-                              ) : visit.isCompleted && visit.actualDate ? (
-                                <>
+                      {prescription.refillVisits.map((visit, index) => {
+                        // Déterminer si ce rechargement est cliquable
+                        const isPreviousCompleted = index === 0 || prescription.refillVisits[index - 1]?.isCompleted;
+                        const isClickable = visit.visitNumber !== 1 && isPreviousCompleted;
+                        
+                        return (
+                          <div 
+                            key={index} 
+                            className={`p-3 rounded-lg bg-muted/30 transition-colors ${
+                              isClickable
+                                ? 'cursor-pointer hover:bg-muted/50' 
+                                : 'pointer-events-none opacity-75'
+                            }`}
+                            {...(isClickable && {
+                              onClick: () => handleToggleVisit(visit.treatmentId, visit.visitNumber, visit.isCompleted)
+                            })}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                {visit.isCompleted ? (
+                                  <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
+                                ) : (
+                                  <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                )}
+                                <span className="text-sm">
+                                  {visit.visitNumber === 1 ? `Initial ${visit.visitNumber}/${prescription.refillVisits.length}` : `Rechargement ${visit.visitNumber}/${prescription.refillVisits.length}`}
+                                </span>
+                              </div>
+                              <div className="text-right space-y-0.5">
+                                {visit.visitNumber === 1 ? (
+                                  // Pour le rechargement initial, afficher uniquement la date (sans "Prévu:")
                                   <p className="text-sm font-medium">
-                                    {new Date(visit.actualDate).toLocaleDateString('fr-FR')}
+                                    {new Date(visit.actualDate || visit.date).toLocaleDateString('fr-FR')}
                                   </p>
-                                  {visit.actualDate !== visit.date && (
-                                    <p className="text-xs text-muted-foreground">
-                                      Prévu: {new Date(visit.date).toLocaleDateString('fr-FR')}
+                                ) : visit.isCompleted && visit.actualDate ? (
+                                  <>
+                                    <p className="text-sm font-medium">
+                                      {new Date(visit.actualDate).toLocaleDateString('fr-FR')}
                                     </p>
-                                  )}
-                                </>
-                              ) : (
-                                <p className="text-sm font-medium">
-                                  {new Date(visit.date).toLocaleDateString('fr-FR')}
-                                </p>
-                              )}
+                                    {visit.actualDate !== visit.date && (
+                                      <p className="text-xs text-muted-foreground">
+                                        Prévu: {new Date(visit.date).toLocaleDateString('fr-FR')}
+                                      </p>
+                                    )}
+                                  </>
+                                ) : (
+                                  <p className="text-sm font-medium">
+                                    {new Date(visit.date).toLocaleDateString('fr-FR')}
+                                  </p>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
