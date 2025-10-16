@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { CheckCircle2, XCircle, Clock, AlertCircle, TrendingUp, Calendar as CalendarIcon, Stethoscope } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, AlertCircle, TrendingUp, Calendar as CalendarIcon, Stethoscope, Pill } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format, startOfMonth, endOfMonth, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -379,7 +379,7 @@ const Calendar = () => {
           <Card className="p-4 surface-elevated cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/prescriptions')}>
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10">
-                <span className="text-2xl">⚕️</span>
+                <Pill className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <p className="text-sm font-medium">

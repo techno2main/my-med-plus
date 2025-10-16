@@ -307,7 +307,7 @@ const Treatments = () => {
                     )}
                     {treatment.next_pharmacy_visit && (
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span className="text-base">⚕️</span>
+                        <Pill className="h-3 w-3" />
                         <span>Prochain rechargement : {new Date(treatment.next_pharmacy_visit.visit_date).toLocaleDateString("fr-FR")}</span>
                       </div>
                     )}
