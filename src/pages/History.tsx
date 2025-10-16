@@ -396,7 +396,6 @@ export default function History() {
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {group.qspDays && `QSP : ${Math.round(group.qspDays / 30)} mois`}
-                              {group.endDate && ` • Fin : ${new Date(group.endDate).toLocaleDateString("fr-FR")}`}
                             </p>
                           </div>
                           <div className="space-y-2">

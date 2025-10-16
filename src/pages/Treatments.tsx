@@ -313,8 +313,13 @@ const Treatments = () => {
                         {treatment.qsp_days && (
                           <span className="text-[10px]"> (QSP {Math.round(treatment.qsp_days / 30)} mois)</span>
                         )}
-                        {treatment.end_date && (
-                          <> • Fin : {new Date(treatment.end_date).toLocaleDateString("fr-FR")}</>
+                        {treatment.qsp_days && treatment.start_date && (
+                          <> • Fin : {(() => {
+                            const start = new Date(treatment.start_date);
+                            const end = new Date(start);
+                            end.setDate(end.getDate() + treatment.qsp_days);
+                            return end.toLocaleDateString("fr-FR");
+                          })()}</>
                         )}
                       </span>
                     </div>
