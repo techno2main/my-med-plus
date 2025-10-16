@@ -202,13 +202,22 @@ export default function TreatmentEdit() {
     if (!treatment) return;
 
     try {
+      // Recalculate end_date to ensure it's always up-to-date in DB
+      let calculatedEndDate = formData.endDate || null;
+      if (qspDays && formData.startDate) {
+        const start = new Date(formData.startDate);
+        const end = new Date(start);
+        end.setDate(end.getDate() + qspDays);
+        calculatedEndDate = end.toISOString().split('T')[0];
+      }
+      
       const { error } = await supabase
         .from("treatments")
         .update({
           name: formData.name,
           description: formData.description || null,
           start_date: formData.startDate,
-          end_date: formData.endDate || null,
+          end_date: calculatedEndDate,
           is_active: formData.isActive,
           updated_at: new Date().toISOString()
         })
