@@ -376,41 +376,43 @@ const Calendar = () => {
             </Card>
           </div>
 
-          <Card className="p-4 surface-elevated cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/prescriptions')}>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Pill className="h-5 w-5 text-primary" />
+          <div className="grid grid-cols-2 gap-3">
+            <Card className="p-4 surface-elevated cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/prescriptions')}>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Pill className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">
+                    Prochain rechargement
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {nextPharmacyVisit 
+                      ? format(nextPharmacyVisit, "d MMMM yyyy", { locale: fr }) 
+                      : "Aucun planifié"}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium">
-                  Prochain rechargement
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {nextPharmacyVisit 
-                    ? format(nextPharmacyVisit, "d MMMM yyyy", { locale: fr }) 
-                    : "Aucun planifié"}
-                </p>
-              </div>
-            </div>
-          </Card>
+            </Card>
 
-          <Card className="p-4 surface-elevated cursor-pointer hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-success/10">
-                <Stethoscope className="h-5 w-5 text-success" />
+            <Card className="p-4 surface-elevated cursor-pointer hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-success/10">
+                  <Stethoscope className="h-5 w-5 text-success" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">
+                    Prochaine visite
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {nextDoctorVisit 
+                      ? format(nextDoctorVisit, "d MMMM yyyy", { locale: fr }) 
+                      : "Aucune planifiée"}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium">
-                  Prochaine visite
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {nextDoctorVisit 
-                    ? format(nextDoctorVisit, "d MMMM yyyy", { locale: fr }) 
-                    : "Aucune planifiée"}
-                </p>
-              </div>
-            </div>
-          </Card>
+            </Card>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr] gap-6">
