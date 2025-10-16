@@ -362,16 +362,18 @@ export default function Profile() {
             <>
               {/* Mode consultation */}
               <div className="space-y-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
                     <Label className="text-muted-foreground">Date de naissance</Label>
+                    <p className="font-medium mt-1">{dateOfBirth ? format(dateOfBirth, "dd/MM/yyyy") : "-"}</p>
+                  </div>
+                  <div className="flex items-end justify-end">
                     {age !== null && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-sm px-3 py-1">
                         {age} ans
                       </Badge>
                     )}
                   </div>
-                  <p className="font-medium">{dateOfBirth ? format(dateOfBirth, "dd/MM/yyyy") : "-"}</p>
                 </div>
               </div>
 
