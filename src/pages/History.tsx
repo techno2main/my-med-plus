@@ -217,33 +217,45 @@ export default function History() {
                   variant={filterStatus === "all" ? "default" : "outline"} 
                   size="sm"
                   onClick={() => setFilterStatus("all")}
-                  className="h-8 text-xs px-2"
+                  className="h-8 text-xs px-2 relative"
                 >
                   Tous
+                  <span className="ml-1.5 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold rounded-full bg-primary text-primary-foreground">
+                    {stats.takenOnTime + stats.lateIntakes + stats.skipped}
+                  </span>
                 </Button>
                 <Button 
                   variant={filterStatus === "ontime" ? "default" : "outline"} 
                   size="sm"
                   onClick={() => setFilterStatus("ontime")}
-                  className={`h-8 text-xs px-2 ${filterStatus === "ontime" ? "" : "border-success/50 text-success hover:bg-success/10"}`}
+                  className={`h-8 text-xs px-2 relative ${filterStatus === "ontime" ? "" : "border-success/50 text-success hover:bg-success/10"}`}
                 >
                   À l'heure
+                  <span className={`ml-1.5 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold rounded-full ${filterStatus === "ontime" ? "bg-primary-foreground text-primary" : "bg-success text-white"}`}>
+                    {stats.takenOnTime}
+                  </span>
                 </Button>
                 <Button 
                   variant={filterStatus === "late" ? "default" : "outline"} 
                   size="sm"
                   onClick={() => setFilterStatus("late")}
-                  className={`h-8 text-xs px-2 ${filterStatus === "late" ? "" : "border-warning/50 text-warning hover:bg-warning/10"}`}
+                  className={`h-8 text-xs px-2 relative ${filterStatus === "late" ? "" : "border-warning/50 text-warning hover:bg-warning/10"}`}
                 >
                   Retard
+                  <span className={`ml-1.5 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold rounded-full ${filterStatus === "late" ? "bg-primary-foreground text-primary" : "bg-warning text-white"}`}>
+                    {stats.lateIntakes}
+                  </span>
                 </Button>
                 <Button 
                   variant={filterStatus === "missed" ? "default" : "outline"} 
                   size="sm"
                   onClick={() => setFilterStatus("missed")}
-                  className={`h-8 text-xs px-2 ${filterStatus === "missed" ? "" : "border-danger/50 text-danger hover:bg-danger/10"}`}
+                  className={`h-8 text-xs px-2 relative ${filterStatus === "missed" ? "" : "border-danger/50 text-danger hover:bg-danger/10"}`}
                 >
                   Manquées
+                  <span className={`ml-1.5 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold rounded-full ${filterStatus === "missed" ? "bg-primary-foreground text-primary" : "bg-danger text-white"}`}>
+                    {stats.skipped}
+                  </span>
                 </Button>
               </div>
             </Card>
