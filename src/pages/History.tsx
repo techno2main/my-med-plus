@@ -38,6 +38,7 @@ interface GroupedIntakes {
     dosage: string;
     status: string;
     takenAt?: string;
+    scheduledTime?: string;
     treatment: string;
     treatmentId: string;
   }[];
@@ -114,6 +115,7 @@ export default function History() {
           dosage: dosage,
           status: intake.status,
           takenAt: intake.taken_at ? format(parseISO(intake.taken_at), 'HH:mm') : undefined,
+          scheduledTime: intake.scheduled_time,
           treatment: intake.medications?.treatments?.name || 'Traitement inconnu',
           treatmentId: intake.medications?.treatment_id || ''
         });
@@ -191,7 +193,22 @@ export default function History() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, scheduledTime?: string, takenAt?: string) => {
+    if (status === "taken" && scheduledTime && takenAt) {
+      const scheduled = new Date(scheduledTime);
+      const taken = new Date(takenAt);
+      const differenceMs = taken.getTime() - scheduled.getTime();
+      const differenceMinutes = differenceMs / (1000 * 60);
+      
+      if (differenceMinutes <= 1) {
+        return <Badge variant="success">Pris</Badge>;
+      } else if (differenceMinutes <= 30) {
+        return <Badge variant="warning">Pris</Badge>;
+      } else {
+        return <Badge variant="danger">Pris</Badge>;
+      }
+    }
+    
     switch (status) {
       case "taken":
         return <Badge variant="success">Pris</Badge>;
@@ -284,7 +301,7 @@ export default function History() {
                                     </p>
                                   </div>
                                 </div>
-                                {getStatusBadge(intake.status)}
+                                {getStatusBadge(intake.status, intake.scheduledTime, intake.takenAt)}
                               </div>
                             ))}
                           </div>
@@ -336,7 +353,7 @@ export default function History() {
                   className="p-4 rounded-lg bg-success/10 cursor-pointer hover:bg-success/20 transition-colors" 
                   onClick={() => setActiveTab("history")}
                 >
-                  <p className="text-sm text-muted-foreground mb-1">Prises validées</p>
+                  <p className="text-sm text-muted-foreground mb-1">Prises à l'heure</p>
                   <p className="text-3xl font-bold text-success">{stats.taken}</p>
                 </div>
                 <div 
