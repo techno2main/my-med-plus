@@ -379,11 +379,11 @@ const Calendar = () => {
           <Card className="p-4 surface-elevated cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/prescriptions')}>
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10">
-                <CalendarIcon className="h-5 w-5 text-primary" />
+                <span className="text-2xl">⚕️</span>
               </div>
               <div>
-                <p className="text-sm font-medium flex items-center gap-1.5">
-                  Prochain rechargement <span className="text-white">⚕️</span>
+                <p className="text-sm font-medium">
+                  Prochain rechargement
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {nextPharmacyVisit 
@@ -400,8 +400,8 @@ const Calendar = () => {
                 <Stethoscope className="h-5 w-5 text-success" />
               </div>
               <div>
-                <p className="text-sm font-medium flex items-center gap-1.5">
-                  Prochaine visite <span className="text-white">🩺</span>
+                <p className="text-sm font-medium">
+                  Prochaine visite
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {nextDoctorVisit 
