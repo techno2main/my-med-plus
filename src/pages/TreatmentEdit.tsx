@@ -53,6 +53,7 @@ export default function TreatmentEdit() {
   const [editingMedication, setEditingMedication] = useState<Medication | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [qspDays, setQspDays] = useState<number | null>(null); // QSP en jours
   
   // Form state
   const [formData, setFormData] = useState({
@@ -81,9 +82,12 @@ export default function TreatmentEdit() {
       if (treatmentError) throw treatmentError;
       setTreatment(treatmentData);
       
-      // Calculate end date if prescription exists
+      // Calculate QSP and end date
       let calculatedEndDate = treatmentData.end_date || "";
-      if (treatmentData.prescription_id && treatmentData.start_date && !treatmentData.end_date) {
+      let durationDays: number | null = null;
+      
+      // Get QSP from prescription if it exists
+      if (treatmentData.prescription_id) {
         const { data: prescriptionData } = await supabase
           .from("prescriptions")
           .select("duration_days")
@@ -91,12 +95,26 @@ export default function TreatmentEdit() {
           .maybeSingle();
         
         if (prescriptionData?.duration_days) {
-          const startDate = new Date(treatmentData.start_date);
-          const endDate = new Date(startDate);
-          endDate.setDate(endDate.getDate() + prescriptionData.duration_days);
-          calculatedEndDate = endDate.toISOString().split('T')[0];
+          durationDays = prescriptionData.duration_days;
         }
       }
+      
+      // If no prescription QSP, calculate from existing dates
+      if (!durationDays && treatmentData.start_date && treatmentData.end_date) {
+        const startDate = new Date(treatmentData.start_date);
+        const endDate = new Date(treatmentData.end_date);
+        durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      }
+      
+      // Calculate end date from QSP if we have it
+      if (durationDays && treatmentData.start_date) {
+        const startDate = new Date(treatmentData.start_date);
+        const endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + durationDays);
+        calculatedEndDate = endDate.toISOString().split('T')[0];
+      }
+      
+      setQspDays(durationDays);
       
       // Set form data
       setFormData({
@@ -148,6 +166,22 @@ export default function TreatmentEdit() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleStartDateChange = (newStartDate: string) => {
+    setFormData(prev => {
+      const updated = { ...prev, startDate: newStartDate };
+      
+      // Recalculate end date based on QSP if we have it
+      if (qspDays && newStartDate) {
+        const startDate = new Date(newStartDate);
+        const endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + qspDays);
+        updated.endDate = endDate.toISOString().split('T')[0];
+      }
+      
+      return updated;
+    });
   };
 
   const handleEditMedication = (med: Medication) => {
@@ -279,7 +313,7 @@ export default function TreatmentEdit() {
                 <DateInput
                   id="startDate"
                   value={formData.startDate}
-                  onChange={(date) => setFormData({...formData, startDate: date})}
+                  onChange={handleStartDateChange}
                 />
               </div>
               <div className="space-y-2">
