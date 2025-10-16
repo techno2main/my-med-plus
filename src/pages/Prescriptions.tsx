@@ -351,15 +351,12 @@ export default function Prescriptions() {
                           key={index} 
                           className={`p-3 rounded-lg bg-muted/30 transition-colors ${
                             visit.visitNumber === 1 
-                              ? 'cursor-not-allowed opacity-75' 
+                              ? 'pointer-events-none opacity-75' 
                               : 'cursor-pointer hover:bg-muted/50'
                           }`}
-                          onClick={() => {
-                            // Le premier rechargement (Initial) n'est pas modifiable
-                            if (visit.visitNumber !== 1) {
-                              handleToggleVisit(visit.treatmentId, visit.visitNumber, visit.isCompleted);
-                            }
-                          }}
+                          {...(visit.visitNumber !== 1 && {
+                            onClick: () => handleToggleVisit(visit.treatmentId, visit.visitNumber, visit.isCompleted)
+                          })}
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
