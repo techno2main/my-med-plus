@@ -49,6 +49,7 @@ export default function History() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "history");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [historyData, setHistoryData] = useState<GroupedIntakes[]>([]);
   const [stats, setStats] = useState({
@@ -144,7 +145,7 @@ export default function History() {
         (i.status === 'taken' || i.status === 'skipped')
       );
 
-      // Calculer les prises à l'heure (≤30min de retard)
+      // Calculer les prises à l'heure (≤30min)
       const takenOnTime = (intakesData || []).filter(i => {
         if (i.status !== 'taken' || !i.taken_at) return false;
         const scheduledTime = new Date(i.scheduled_time);
@@ -155,13 +156,13 @@ export default function History() {
 
       const skipped = (intakesData || []).filter(i => i.status === 'skipped').length;
       
-      // Count late intakes (taken between 30min and 1h late)
+      // Count ALL late intakes (taken more than 30min late = yellow + orange)
       const lateIntakes = (intakesData || []).filter(i => {
         if (i.status !== 'taken' || !i.taken_at) return false;
         const scheduledTime = new Date(i.scheduled_time);
         const takenTime = new Date(i.taken_at);
         const differenceMinutes = (takenTime.getTime() - scheduledTime.getTime()) / (1000 * 60);
-        return differenceMinutes > 30 && differenceMinutes <= 60;
+        return differenceMinutes > 30;
       }).length;
       
       const taken7 = intakes7Days.filter(i => i.status === 'taken').length;
@@ -260,6 +261,43 @@ export default function History() {
           </TabsList>
 
           <TabsContent value="history" className="space-y-4">
+            {/* Filtres */}
+            <Card className="p-4">
+              <div className="flex gap-2 flex-wrap">
+                <Button 
+                  variant={filterStatus === "all" ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => setFilterStatus("all")}
+                >
+                  Tous
+                </Button>
+                <Button 
+                  variant={filterStatus === "ontime" ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => setFilterStatus("ontime")}
+                  className={filterStatus === "ontime" ? "" : "border-success/50 text-success hover:bg-success/10"}
+                >
+                  À l'heure
+                </Button>
+                <Button 
+                  variant={filterStatus === "late" ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => setFilterStatus("late")}
+                  className={filterStatus === "late" ? "" : "border-warning/50 text-warning hover:bg-warning/10"}
+                >
+                  En retard
+                </Button>
+                <Button 
+                  variant={filterStatus === "missed" ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => setFilterStatus("missed")}
+                  className={filterStatus === "missed" ? "" : "border-danger/50 text-danger hover:bg-danger/10"}
+                >
+                  Manquées
+                </Button>
+              </div>
+            </Card>
+
             {historyData.length === 0 ? (
               <Card className="p-12 text-center">
                 <p className="text-muted-foreground">Aucun historique disponible</p>
@@ -278,6 +316,50 @@ export default function History() {
                   return acc;
                 }, {} as Record<string, { treatment: string; intakes: typeof day.intakes }>);
 
+                // Filter intakes based on selected filter
+                const shouldShowIntake = (intake: any) => {
+                  if (filterStatus === "all") return true;
+                  
+                  if (filterStatus === "missed") {
+                    return intake.status === "skipped";
+                  }
+                  
+                  if (intake.status !== "taken" || !intake.scheduledTimestamp || !intake.takenAtTimestamp) {
+                    return false;
+                  }
+                  
+                  const scheduled = new Date(intake.scheduledTimestamp);
+                  const taken = new Date(intake.takenAtTimestamp);
+                  const differenceMinutes = (taken.getTime() - scheduled.getTime()) / (1000 * 60);
+                  
+                  if (filterStatus === "ontime") {
+                    return differenceMinutes <= 30;
+                  }
+                  
+                  if (filterStatus === "late") {
+                    return differenceMinutes > 30;
+                  }
+                  
+                  return true;
+                };
+
+                // Filter treatments to only show those with matching intakes
+                const filteredTreatments = Object.entries(groupedByTreatment).reduce((acc, [treatmentId, group]) => {
+                  const filteredIntakes = group.intakes.filter(shouldShowIntake);
+                  if (filteredIntakes.length > 0) {
+                    acc[treatmentId] = {
+                      treatment: group.treatment,
+                      intakes: filteredIntakes
+                    };
+                  }
+                  return acc;
+                }, {} as Record<string, { treatment: string; intakes: typeof day.intakes }>);
+
+                // Skip this day if no intakes match the filter
+                if (Object.keys(filteredTreatments).length === 0) {
+                  return null;
+                }
+
                 return (
                   <Card key={dayIdx} className="p-4">
                     <div className="flex items-center gap-2 mb-4">
@@ -291,7 +373,7 @@ export default function History() {
                     </div>
 
                     <div className="space-y-4">
-                      {Object.entries(groupedByTreatment).map(([treatmentId, group]) => (
+                      {Object.entries(filteredTreatments).map(([treatmentId, group]) => (
                         <div key={treatmentId} className="space-y-2">
                           <p className="text-xs font-medium text-primary px-1">
                             {group.treatment}
