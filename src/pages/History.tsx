@@ -447,27 +447,27 @@ export default function History() {
 
             <Card className="p-6">
               <h3 className="font-semibold mb-4">Résumé</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-3">
                 <div 
-                  className="p-4 rounded-lg bg-success/10 cursor-pointer hover:bg-success/20 transition-colors" 
+                  className="p-3 rounded-lg bg-success/10 cursor-pointer hover:bg-success/20 transition-colors" 
                   onClick={() => handleFilterClick("ontime")}
                 >
-                  <p className="text-sm text-muted-foreground mb-1">Prises à l'heure</p>
-                  <p className="text-3xl font-bold text-success">{stats.takenOnTime}</p>
+                  <p className="text-xs text-muted-foreground mb-1">À l'heure</p>
+                  <p className="text-2xl font-bold text-success">{stats.takenOnTime}</p>
                 </div>
                 <div 
-                  className="p-4 rounded-lg bg-danger/10 cursor-pointer hover:bg-danger/20 transition-colors" 
-                  onClick={() => handleFilterClick("missed")}
-                >
-                  <p className="text-sm text-muted-foreground mb-1">Prises manquées</p>
-                  <p className="text-3xl font-bold text-danger">{stats.skipped}</p>
-                </div>
-                <div 
-                  className="p-4 rounded-lg bg-warning/10 cursor-pointer hover:bg-warning/20 transition-colors col-span-2" 
+                  className="p-3 rounded-lg bg-warning/10 cursor-pointer hover:bg-warning/20 transition-colors" 
                   onClick={() => handleFilterClick("late")}
                 >
-                  <p className="text-sm text-muted-foreground mb-1">Prises en retard</p>
-                  <p className="text-3xl font-bold text-warning">{stats.lateIntakes}</p>
+                  <p className="text-xs text-muted-foreground mb-1">En retard</p>
+                  <p className="text-2xl font-bold text-warning">{stats.lateIntakes}</p>
+                </div>
+                <div 
+                  className="p-3 rounded-lg bg-danger/10 cursor-pointer hover:bg-danger/20 transition-colors" 
+                  onClick={() => handleFilterClick("missed")}
+                >
+                  <p className="text-xs text-muted-foreground mb-1">Manquées</p>
+                  <p className="text-2xl font-bold text-danger">{stats.skipped}</p>
                 </div>
               </div>
             </Card>
