@@ -355,7 +355,7 @@ const Calendar = () => {
                   <TrendingUp className="h-5 w-5 text-success" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{observanceRate}%</p>
+                  <p className="text-xl font-bold">{observanceRate}%</p>
                   <p className="text-xs text-muted-foreground">Observance</p>
                 </div>
               </div>
@@ -367,7 +367,7 @@ const Calendar = () => {
                   <AlertCircle className="h-5 w-5 text-warning" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">
+                  <p className="text-xl font-bold">
                     {dayDetails.filter(d => d.status === 'taken').length}/{dayDetails.length}
                   </p>
                   <p className="text-xs text-muted-foreground">Prises du jour</p>
@@ -384,11 +384,11 @@ const Calendar = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium">
-                    Prochain rechargement
+                    Recharge
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground whitespace-nowrap">
                     {nextPharmacyVisit 
-                      ? format(nextPharmacyVisit, "d MMMM yyyy", { locale: fr }) 
+                      ? format(nextPharmacyVisit, "d MMM yyyy", { locale: fr }) 
                       : "Aucun planifié"}
                   </p>
                 </div>
@@ -402,11 +402,11 @@ const Calendar = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium">
-                    Prochaine visite
+                    RDV
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground whitespace-nowrap">
                     {nextDoctorVisit 
-                      ? format(nextDoctorVisit, "d MMMM yyyy", { locale: fr }) 
+                      ? format(nextDoctorVisit, "d MMM yyyy", { locale: fr }) 
                       : "Aucune planifiée"}
                   </p>
                 </div>
