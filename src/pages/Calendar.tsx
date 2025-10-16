@@ -56,25 +56,28 @@ const Calendar = () => {
       const monthStart = startOfMonth(currentMonth);
       const monthEnd = endOfMonth(currentMonth);
 
-      // Load active treatment start date and end date
-      const { data: activeTreatment } = await supabase
+      // Load active treatment start date and end date - get all active treatments and take the first one
+      const { data: activeTreatments, error: treatmentError } = await supabase
         .from("treatments")
         .select("start_date, end_date")
         .eq("is_active", true)
-        .order("start_date", { ascending: true })
-        .limit(1)
-        .maybeSingle();
+        .order("start_date", { ascending: false });
 
-      console.log("Active treatment data:", activeTreatment);
-
-      if (activeTreatment?.start_date) {
-        setTreatmentStartDate(new Date(activeTreatment.start_date));
+      if (treatmentError) {
+        console.error("Error loading active treatment:", treatmentError);
       }
-      
-      if (activeTreatment?.end_date) {
-        const endDate = new Date(activeTreatment.end_date);
-        console.log("Setting doctor visit date:", endDate);
-        setNextDoctorVisit(endDate);
+
+      const activeTreatment = activeTreatments && activeTreatments.length > 0 ? activeTreatments[0] : null;
+
+      if (activeTreatment) {
+        if (activeTreatment.start_date) {
+          setTreatmentStartDate(new Date(activeTreatment.start_date));
+        }
+        
+        if (activeTreatment.end_date) {
+          const endDate = new Date(activeTreatment.end_date);
+          setNextDoctorVisit(endDate);
+        }
       }
 
       // Load intakes for the month
