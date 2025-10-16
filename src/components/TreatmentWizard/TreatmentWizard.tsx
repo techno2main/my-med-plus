@@ -148,7 +148,7 @@ export function TreatmentWizard() {
       if (formData.durationDays) {
         const start = new Date(startDate);
         const end = new Date(start);
-        end.setDate(end.getDate() + parseInt(formData.durationDays));
+        end.setDate(end.getDate() + parseInt(formData.durationDays) - 1);
         endDate = end.toISOString().split('T')[0];
       }
 
