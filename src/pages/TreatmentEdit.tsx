@@ -284,11 +284,9 @@ export default function TreatmentEdit() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="endDate">Date de fin</Label>
-                <DateInput
-                  id="endDate"
-                  value={formData.endDate}
-                  onChange={(date) => setFormData({...formData, endDate: date})}
-                />
+                <div className="flex items-center h-10 px-3 py-2 rounded-md border border-input bg-muted/50 text-sm">
+                  {formData.endDate ? new Date(formData.endDate).toLocaleDateString('fr-FR') : "Non définie"}
+                </div>
               </div>
             </div>
           </div>
