@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/Layout/PageHeader"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Pill, Clock, Calendar, User, Download, Calendar as CalendarIcon } from "lucide-react"
+import { Pill, Clock, Calendar, User, Download, Stethoscope, Calendar as CalendarIcon } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
 import { toast } from "sonner"
@@ -307,14 +307,14 @@ const Treatments = () => {
                     )}
                     {treatment.next_pharmacy_visit && (
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <CalendarIcon className="h-3 w-3" />
-                        <span>Prochain rechargement 🧪 : {new Date(treatment.next_pharmacy_visit.visit_date).toLocaleDateString("fr-FR")}</span>
+                        <span className="text-base">⚕️</span>
+                        <span>Prochain rechargement : {new Date(treatment.next_pharmacy_visit.visit_date).toLocaleDateString("fr-FR")}</span>
                       </div>
                     )}
                     {treatment.end_date && (
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <User className="h-3 w-3" />
-                        <span>Prochaine visite 🩺 : {new Date(treatment.end_date).toLocaleDateString("fr-FR")}</span>
+                        <Stethoscope className="h-3 w-3" />
+                        <span>Prochaine visite : {new Date(treatment.end_date).toLocaleDateString("fr-FR")}</span>
                       </div>
                     )}
                   </div>
