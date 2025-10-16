@@ -11,6 +11,7 @@ import { format, parseISO, startOfDay, isToday } from "date-fns";
 import { fr } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAdherenceStats } from "@/hooks/useAdherenceStats";
 
 
 interface MedicationIntake {
@@ -52,13 +53,7 @@ export default function History() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [historyData, setHistoryData] = useState<GroupedIntakes[]>([]);
-  const [stats, setStats] = useState({
-    takenOnTime: 0,
-    skipped: 0,
-    lateIntakes: 0,
-    adherence7Days: 0,
-    adherence30Days: 0
-  });
+  const { stats, loading: statsLoading } = useAdherenceStats();
 
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -127,57 +122,6 @@ export default function History() {
       }, {});
 
       setHistoryData(Object.values(grouped));
-
-      // Calculate stats - Filter by date ranges
-      const now = new Date();
-      const sevenDaysAgo = new Date(now);
-      sevenDaysAgo.setDate(now.getDate() - 7);
-      const thirtyDaysAgo = new Date(now);
-      thirtyDaysAgo.setDate(now.getDate() - 30);
-
-      const intakes7Days = (intakesData || []).filter(i => 
-        new Date(i.scheduled_time) >= sevenDaysAgo && 
-        (i.status === 'taken' || i.status === 'skipped')
-      );
-      
-      const intakes30Days = (intakesData || []).filter(i => 
-        new Date(i.scheduled_time) >= thirtyDaysAgo && 
-        (i.status === 'taken' || i.status === 'skipped')
-      );
-
-      // Calculer les prises à l'heure (≤30min)
-      const takenOnTime = (intakesData || []).filter(i => {
-        if (i.status !== 'taken' || !i.taken_at) return false;
-        const scheduledTime = new Date(i.scheduled_time);
-        const takenTime = new Date(i.taken_at);
-        const differenceMinutes = (takenTime.getTime() - scheduledTime.getTime()) / (1000 * 60);
-        return differenceMinutes <= 30;
-      }).length;
-
-      const skipped = (intakesData || []).filter(i => i.status === 'skipped').length;
-      
-      // Count ALL late intakes (taken more than 30min late = yellow + orange)
-      const lateIntakes = (intakesData || []).filter(i => {
-        if (i.status !== 'taken' || !i.taken_at) return false;
-        const scheduledTime = new Date(i.scheduled_time);
-        const takenTime = new Date(i.taken_at);
-        const differenceMinutes = (takenTime.getTime() - scheduledTime.getTime()) / (1000 * 60);
-        return differenceMinutes > 30;
-      }).length;
-      
-      const taken7 = intakes7Days.filter(i => i.status === 'taken').length;
-      const total7 = intakes7Days.length;
-      
-      const taken30 = intakes30Days.filter(i => i.status === 'taken').length;
-      const total30 = intakes30Days.length;
-      
-      setStats({
-        takenOnTime,
-        skipped,
-        lateIntakes,
-        adherence7Days: total7 > 0 ? Math.round((taken7 / total7) * 100) : 0,
-        adherence30Days: total30 > 0 ? Math.round((taken30 / total30) * 100) : 0
-      });
 
     } catch (error) {
       console.error("Error loading history:", error);

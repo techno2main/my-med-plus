@@ -8,6 +8,7 @@ import { fr } from "date-fns/locale"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
 import { toast } from "sonner"
+import { useAdherenceStats } from "@/hooks/useAdherenceStats"
 
 interface UpcomingIntake {
   id: string
@@ -37,6 +38,7 @@ const Index = () => {
   const [activeTreatmentsCount, setActiveTreatmentsCount] = useState(0)
   const [activeTreatmentName, setActiveTreatmentName] = useState("")
   const [loading, setLoading] = useState(true)
+  const { stats: adherenceStats } = useAdherenceStats()
 
   useEffect(() => {
     loadDashboardData()
@@ -261,7 +263,7 @@ const Index = () => {
                 <CheckCircle2 className="h-5 w-5 text-success" />
               </div>
               <div>
-                <p className="text-2xl font-bold">95%</p>
+                <p className="text-2xl font-bold">{adherenceStats.adherence7Days}%</p>
                 <p className="text-xs text-muted-foreground">Observance 7j</p>
               </div>
             </div>
