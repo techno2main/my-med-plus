@@ -144,24 +144,24 @@ export default function History() {
         (i.status === 'taken' || i.status === 'skipped')
       );
 
-      // Calculer les prises à l'heure (≤1min de retard)
+      // Calculer les prises à l'heure (≤30min de retard)
       const takenOnTime = (intakesData || []).filter(i => {
         if (i.status !== 'taken' || !i.taken_at) return false;
         const scheduledTime = new Date(i.scheduled_time);
         const takenTime = new Date(i.taken_at);
         const differenceMinutes = (takenTime.getTime() - scheduledTime.getTime()) / (1000 * 60);
-        return differenceMinutes <= 1;
+        return differenceMinutes <= 30;
       }).length;
 
       const skipped = (intakesData || []).filter(i => i.status === 'skipped').length;
       
-      // Count late intakes (taken but more than 1 minute late)
+      // Count late intakes (taken between 30min and 1h late)
       const lateIntakes = (intakesData || []).filter(i => {
         if (i.status !== 'taken' || !i.taken_at) return false;
         const scheduledTime = new Date(i.scheduled_time);
         const takenTime = new Date(i.taken_at);
         const differenceMinutes = (takenTime.getTime() - scheduledTime.getTime()) / (1000 * 60);
-        return differenceMinutes > 1;
+        return differenceMinutes > 30 && differenceMinutes <= 60;
       }).length;
       
       const taken7 = intakes7Days.filter(i => i.status === 'taken').length;
@@ -206,25 +206,17 @@ export default function History() {
       const taken = new Date(takenAtTimestamp);
       const differenceMinutes = (taken.getTime() - scheduled.getTime()) / (1000 * 60);
       
-      // À l'heure (≤1min)
-      if (differenceMinutes <= 1) {
+      // Vert : avant l'heure ou jusqu'à 30min après
+      if (differenceMinutes <= 30) {
         return <Badge variant="success">Pris</Badge>;
       }
-      // Léger retard (1-15min)
-      else if (differenceMinutes <= 15) {
-        return <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30">Pris</Badge>;
-      }
-      // Retard modéré (15-30min)
-      else if (differenceMinutes <= 30) {
-        return <Badge className="bg-yellow-600/20 text-yellow-700 border-yellow-600/30">Pris</Badge>;
-      }
-      // Retard important (30-60min)
+      // Jaune : entre 30min et 1h après
       else if (differenceMinutes <= 60) {
-        return <Badge className="bg-orange-500/20 text-orange-600 border-orange-500/30">Pris</Badge>;
+        return <Badge variant="warning">Pris</Badge>;
       }
-      // Très grand retard (>60min)
+      // Orange : plus d'1h après
       else {
-        return <Badge className="bg-orange-600/20 text-orange-700 border-orange-600/30">Pris</Badge>;
+        return <Badge className="bg-orange-500/20 text-orange-600 border-orange-500/30">Pris</Badge>;
       }
     }
     
