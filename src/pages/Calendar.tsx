@@ -65,12 +65,16 @@ const Calendar = () => {
         .limit(1)
         .maybeSingle();
 
+      console.log("Active treatment data:", activeTreatment);
+
       if (activeTreatment?.start_date) {
         setTreatmentStartDate(new Date(activeTreatment.start_date));
       }
       
       if (activeTreatment?.end_date) {
-        setNextDoctorVisit(new Date(activeTreatment.end_date));
+        const endDate = new Date(activeTreatment.end_date);
+        console.log("Setting doctor visit date:", endDate);
+        setNextDoctorVisit(endDate);
       }
 
       // Load intakes for the month
