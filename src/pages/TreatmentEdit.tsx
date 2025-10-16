@@ -339,7 +339,9 @@ export default function TreatmentEdit() {
                   
                   {/* Ligne 3: Horaires de prise + Pastilles */}
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-muted-foreground">Horaires de prise</p>
+                    <p className="text-sm text-muted-foreground">
+                      {med.times.length === 1 ? "Horaire de prise" : "Horaires de prise"}
+                    </p>
                     <div className="flex flex-wrap gap-2 justify-end">
                       {med.times.map((time, idx) => (
                         <span key={idx} className="px-3 py-1 rounded-full bg-primary/10 text-sm font-medium">
