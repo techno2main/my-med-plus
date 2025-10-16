@@ -22,6 +22,8 @@ interface UpcomingIntake {
   pathology: string
   currentStock: number
   minThreshold: number
+  treatmentQspDays?: number | null
+  treatmentEndDate?: string | null
 }
 
 interface StockAlert {
@@ -46,14 +48,46 @@ const Index = () => {
 
   const loadDashboardData = async () => {
     try {
-      // Load active treatments count
+      // Load active treatments with QSP and end date info
       const { data: treatments, error: treatmentsError } = await supabase
         .from("treatments")
-        .select("*")
+        .select("id, name, start_date, end_date, prescription_id")
         .eq("is_active", true)
 
       if (treatmentsError) throw treatmentsError
       setActiveTreatmentsCount(treatments?.length || 0)
+
+      // Calculate QSP for each treatment
+      const treatmentsWithQsp = await Promise.all(
+        (treatments || []).map(async (treatment: any) => {
+          let qspDays: number | null = null
+          
+          if (treatment.prescription_id) {
+            const { data: prescriptionData } = await supabase
+              .from("prescriptions")
+              .select("duration_days")
+              .eq("id", treatment.prescription_id)
+              .maybeSingle()
+            
+            if (prescriptionData?.duration_days) {
+              qspDays = prescriptionData.duration_days
+            }
+          }
+          
+          if (!qspDays && treatment.start_date && treatment.end_date) {
+            const startDate = new Date(treatment.start_date)
+            const endDate = new Date(treatment.end_date)
+            qspDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+          }
+          
+          return {
+            ...treatment,
+            qsp_days: qspDays
+          }
+        })
+      )
+      
+      const treatmentsMap = new Map(treatmentsWithQsp.map(t => [t.id, t]))
 
       // Load medications with their times and pathology from catalog
       const { data: medications, error: medsError } = await supabase
@@ -106,6 +140,8 @@ const Index = () => {
       const intakes: UpcomingIntake[] = []
 
       medications?.forEach((med: any) => {
+        const treatmentInfo = treatmentsMap.get(med.treatment_id)
+        
         med.times?.forEach((time: string) => {
           // Check today's times
           const todayDate = format(new Date(), "yyyy-MM-dd")
@@ -128,7 +164,9 @@ const Index = () => {
               treatmentId: med.treatment_id,
               pathology: med.medication_catalog?.pathology || "",
               currentStock: med.current_stock || 0,
-              minThreshold: med.min_threshold || 10
+              minThreshold: med.min_threshold || 10,
+              treatmentQspDays: treatmentInfo?.qsp_days || null,
+              treatmentEndDate: treatmentInfo?.end_date || null
             })
           }
 
@@ -150,7 +188,9 @@ const Index = () => {
             treatmentId: med.treatment_id,
             pathology: med.medication_catalog?.pathology || "",
             currentStock: med.current_stock || 0,
-            minThreshold: med.min_threshold || 10
+            minThreshold: med.min_threshold || 10,
+            treatmentQspDays: treatmentInfo?.qsp_days || null,
+            treatmentEndDate: treatmentInfo?.end_date || null
           })
         })
       })
@@ -326,18 +366,26 @@ const Index = () => {
                     if (!acc[intake.treatmentId]) {
                       acc[intake.treatmentId] = {
                         treatment: intake.treatment,
+                        qspDays: intake.treatmentQspDays,
+                        endDate: intake.treatmentEndDate,
                         intakes: []
                       };
                     }
                     acc[intake.treatmentId].intakes.push(intake);
                     return acc;
-                  }, {} as Record<string, { treatment: string; intakes: UpcomingIntake[] }>);
+                  }, {} as Record<string, { treatment: string; qspDays?: number | null; endDate?: string | null; intakes: UpcomingIntake[] }>);
 
                   return Object.entries(groupedByTreatment).map(([treatmentId, group]) => (
                     <div key={treatmentId} className="space-y-2">
-                      <p className="text-xs font-medium text-primary px-1">
-                        {group.treatment}
-                      </p>
+                      <div className="flex items-baseline gap-2 px-1">
+                        <p className="text-xs font-medium text-primary">
+                          {group.treatment}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {group.qspDays && `QSP : ${Math.round(group.qspDays / 30)} mois`}
+                          {group.endDate && ` • Fin : ${new Date(group.endDate).toLocaleDateString("fr-FR")}`}
+                        </p>
+                      </div>
                       {group.intakes.map((intake) => (
                         <Card key={intake.id} className="p-3 surface-elevated hover:shadow-md transition-shadow">
                           <div className="flex items-center gap-3">
@@ -411,18 +459,26 @@ const Index = () => {
                     if (!acc[intake.treatmentId]) {
                       acc[intake.treatmentId] = {
                         treatment: intake.treatment,
+                        qspDays: intake.treatmentQspDays,
+                        endDate: intake.treatmentEndDate,
                         intakes: []
                       };
                     }
                     acc[intake.treatmentId].intakes.push(intake);
                     return acc;
-                  }, {} as Record<string, { treatment: string; intakes: UpcomingIntake[] }>);
+                  }, {} as Record<string, { treatment: string; qspDays?: number | null; endDate?: string | null; intakes: UpcomingIntake[] }>);
 
                   return Object.entries(groupedByTreatment).map(([treatmentId, group]) => (
                     <div key={treatmentId} className="space-y-2">
-                      <p className="text-xs font-medium text-primary px-1">
-                        {group.treatment}
-                      </p>
+                      <div className="flex items-baseline gap-2 px-1">
+                        <p className="text-xs font-medium text-primary">
+                          {group.treatment}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {group.qspDays && `QSP : ${Math.round(group.qspDays / 30)} mois`}
+                          {group.endDate && ` • Fin : ${new Date(group.endDate).toLocaleDateString("fr-FR")}`}
+                        </p>
+                      </div>
                       {group.intakes.map((intake) => (
                         <Card key={intake.id} className="p-3 surface-elevated hover:shadow-md transition-shadow">
                           <div className="flex items-center gap-3">
