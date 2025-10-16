@@ -313,6 +313,9 @@ const Treatments = () => {
                         {treatment.qsp_days && (
                           <> • QSP : {Math.round(treatment.qsp_days / 30)} mois</>
                         )}
+                        {treatment.end_date && (
+                          <> • Fin : {new Date(treatment.end_date).toLocaleDateString("fr-FR")}</>
+                        )}
                       </span>
                     </div>
                     {treatment.prescribing_doctor && (
