@@ -1,0 +1,2 @@
+id;user_id;prescribing_doctor_id;prescription_date;duration_days;notes;document_url;created_at;updated_at;file_path;original_filename
+9de5ad44-925e-40bf-8916-f0935b190356;634b0b48-e193-4827-983b-a0f7d2f1b068;297348e4-e97b-4f52-a9a9-295947c1f0ad;2025-10-07;90;;;2025-10-13 16:34:33.111555+00;2025-10-16 18:00:30.899187+00;634b0b48-e193-4827-983b-a0f7d2f1b068/1760373269587.pdf;O-2025-09-08-AD.pdf
