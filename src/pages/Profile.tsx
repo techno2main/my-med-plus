@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { AvatarWithBadge } from "@/components/ui/avatar-with-badge";
 import { ModernDatePicker } from "@/components/ui/modern-date-picker";
 import { Badge } from "@/components/ui/badge";
 import { Save, Camera, Edit } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
@@ -18,6 +20,7 @@ import { differenceInYears, format } from "date-fns";
 export default function Profile() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isAdmin } = useUserRole();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [loading, setLoading] = useState(true);
@@ -203,12 +206,17 @@ export default function Profile() {
           {/* Avatar et nom - en ligne */}
           <div className="flex items-center gap-3 mb-6">
             <div className="relative group shrink-0">
-              <Avatar className="h-14 w-14 sm:h-16 sm:w-16">
-                <AvatarImage src={avatarUrl} alt="Avatar" />
-                <AvatarFallback className="bg-primary/10 text-base sm:text-lg font-medium">
-                  {firstName?.[0]}{lastName?.[0]}
-                </AvatarFallback>
-              </Avatar>
+              <AvatarWithBadge
+                src={avatarUrl || undefined}
+                alt="Avatar"
+                fallback={
+                  <span className="bg-primary/10 text-base sm:text-lg font-medium h-full w-full flex items-center justify-center">
+                    {firstName?.[0]}{lastName?.[0]}
+                  </span>
+                }
+                isAdmin={isAdmin}
+                className="h-14 w-14 sm:h-16 sm:w-16"
+              />
               {isEditing && (
                 <>
                   <button
