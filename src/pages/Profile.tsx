@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ModernDatePicker } from "@/components/ui/modern-date-picker";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Save, Camera, Edit } from "lucide-react";
+import { Save, Camera, Edit } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -196,7 +196,7 @@ export default function Profile() {
         <PageHeader 
           title="Profil utilisateur"
           subtitle="Gérez vos informations personnelles"
-          backTo="/settings"
+          backTo="/"
         />
 
         <Card className="p-4 sm:p-6">
@@ -260,20 +260,6 @@ export default function Profile() {
                       placeholder="Nom" 
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      className="pl-10 bg-muted"
-                      value={user?.email || ""}
-                      disabled
                     />
                   </div>
                 </div>
