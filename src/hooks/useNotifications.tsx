@@ -89,17 +89,31 @@ export const useNotifications = () => {
   };
 
   const showNotification = (title: string, options?: NotificationOptions): boolean => {
+    console.log("showNotification called with:", { title, options });
+    console.log("Current state:", { isSupported, permission });
+    
     if (!isSupported || permission !== "granted") {
+      console.error("Cannot show notification - isSupported:", isSupported, "permission:", permission);
       return false;
     }
 
     try {
-      new Notification(title, {
-        icon: "/icon-192.png",
-        badge: "/icon-192.png",
+      console.log("Creating new Notification...");
+      const notification = new Notification(title, {
+        // Retirer icône pour test mobile
+        // icon: "/icon-192.png",
+        // badge: "/icon-192.png",
         requireInteraction: true,
         ...options,
       });
+      
+      console.log("Notification created successfully:", notification);
+      
+      // Ajouter des event listeners pour debug
+      notification.onshow = () => console.log("Notification shown");
+      notification.onerror = (e) => console.error("Notification error:", e);
+      notification.onclose = () => console.log("Notification closed");
+      
       return true;
     } catch (error) {
       console.error("Error showing notification:", error);
@@ -108,20 +122,28 @@ export const useNotifications = () => {
   };
 
   const sendTestNotification = (): boolean => {
+    console.log("PWA Test notification - permission:", permission);
+    console.log("PWA Test notification - isSupported:", isSupported);
+    console.log("🔄 VERSION TEST: 20-10-2025-01:00 - SANS ICONE");
+    
     if (permission !== "granted") {
+      console.error("Permission not granted:", permission);
       toast.error("Permission requise pour les notifications");
       return false;
     }
     
+    console.log("Attempting to show PWA notification...");
     const success = showNotification("💊 Test de notification", {
-      body: "Les notifications fonctionnent correctement !",
+      body: "Si vous voyez ceci, les notifications PWA fonctionnent parfaitement !",
       requireInteraction: true,
     });
     
+    console.log("PWA notification result:", success);
+    
     if (success) {
-      toast.success("Notification envoyée ! Vérifiez vos notifications");
+      toast.success("Notification PWA programmée ! Vérifiez vos notifications");
     } else {
-      toast.error("Erreur lors de l'envoi");
+      toast.error("Erreur lors de l'envoi PWA");
     }
     
     return success;
