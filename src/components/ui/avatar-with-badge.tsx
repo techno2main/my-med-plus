@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
+import { Shield } from "lucide-react"
 
 interface AvatarWithBadgeProps {
   src?: string
@@ -29,11 +30,10 @@ export function AvatarWithBadge({
         )}
       </Avatar>
       
-      {/* Pastille verte pour les admins */}
+      {/* Icône shield pour les admins */}
       {isAdmin && (
-        <div className="absolute -top-0.5 -right-0.5 h-3 w-3 bg-emerald-500 border-2 border-background rounded-full shadow-sm">
-          <div className="h-full w-full bg-emerald-400 rounded-full animate-ping opacity-75 absolute" />
-          <div className="h-full w-full bg-emerald-500 rounded-full relative" />
+        <div className="absolute -top-1 -right-1 h-4 w-4 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-sm border border-background">
+          <Shield className="h-2.5 w-2.5" />
         </div>
       )}
     </div>
