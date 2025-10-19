@@ -11,6 +11,7 @@ import { format, startOfMonth, endOfMonth, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useIntakeOverdue } from "@/hooks/useIntakeOverdue";
 
 interface DayIntake {
   date: Date;
@@ -34,6 +35,7 @@ interface IntakeDetail {
 
 const Calendar = () => {
   const navigate = useNavigate();
+  const { isIntakeOverdue } = useIntakeOverdue();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [monthIntakes, setMonthIntakes] = useState<DayIntake[]>([]);
@@ -347,6 +349,13 @@ const Calendar = () => {
       case 'missed':
         return <XCircle className="h-6 w-6 text-danger" />;
       case 'upcoming':
+        // Vérifier si la prise est en retard pour changer l'icône
+        if (scheduledTimestamp) {
+          const scheduledDate = new Date(scheduledTimestamp);
+          if (isIntakeOverdue(scheduledDate)) {
+            return <ClockAlert className="h-6 w-6 text-orange-600" />;
+          }
+        }
         return <Clock className="h-6 w-6 text-warning" />;
       default:
         return null;
@@ -550,7 +559,11 @@ const Calendar = () => {
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2">
                         {getStatusIcon(detail.status)}
-                        <span className="text-sm font-medium">
+                        <span className={`text-sm font-medium ${
+                          detail.status === 'upcoming' && detail.scheduledTimestamp && isIntakeOverdue(new Date(detail.scheduledTimestamp)) 
+                            ? 'text-orange-600' 
+                            : ''
+                        }`}>
                           {detail.time}
                           {detail.takenAt && detail.status === 'taken' && (
                             <span className="text-xs text-muted-foreground ml-1">
