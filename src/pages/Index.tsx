@@ -10,7 +10,9 @@ import { useNavigate } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
 import { toast } from "sonner"
 import { useAdherenceStats } from "@/hooks/useAdherenceStats"
+import { useMissedIntakesDetection } from "@/hooks/useMissedIntakesDetection"
 import { formatToFrenchTime, convertFrenchToUTC } from "../lib/dateUtils"
+import { useIntakeOverdue } from "@/hooks/useIntakeOverdue"
 
 interface UpcomingIntake {
   id: string
@@ -35,8 +37,10 @@ interface StockAlert {
   daysLeft: number
 }
 
+// Règles de tolérance identiques à celles du hook de détection
 const Index = () => {
   const navigate = useNavigate()
+  const { isIntakeOverdue } = useIntakeOverdue()
   const [upcomingIntakes, setUpcomingIntakes] = useState<UpcomingIntake[]>([])
   const [stockAlerts, setStockAlerts] = useState<StockAlert[]>([])
   const [activeTreatmentsCount, setActiveTreatmentsCount] = useState(0)
@@ -46,6 +50,10 @@ const Index = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [selectedIntake, setSelectedIntake] = useState<UpcomingIntake | null>(null)
   const { stats: adherenceStats } = useAdherenceStats()
+  const { missedIntakes, totalMissed, loading: missedLoading } = useMissedIntakesDetection()
+
+  // Fonction pour détecter si une prise est en retard
+
 
   useEffect(() => {
     loadDashboardData()
@@ -349,6 +357,100 @@ const Index = () => {
           </Card>
         )}
 
+        {/* Missed Intakes Alert */}
+        {!missedLoading && totalMissed > 0 && (
+          <Card className="p-4 border-orange-200 bg-orange-50">
+            <div className="flex items-start gap-3">
+              <Clock className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <div className="space-y-2">
+                  {(() => {
+                    // Grouper par jour
+                    const groupedByDay = missedIntakes.reduce((acc, intake) => {
+                      const dayKey = intake.status === 'missed_yesterday' ? 'yesterday' : 'today';
+                      if (!acc[dayKey]) acc[dayKey] = [];
+                      acc[dayKey].push(intake);
+                      return acc;
+                    }, {} as Record<string, typeof missedIntakes>);
+
+                    // Calculer le retard pour aujourd'hui
+                    const calculateDelay = (scheduledTime: string) => {
+                      const now = new Date();
+                      const scheduled = new Date(scheduledTime);
+                      const diffMs = now.getTime() - scheduled.getTime();
+                      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                      const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                      
+                      if (diffHours > 0) {
+                        return `${diffHours}h${diffMinutes > 0 ? diffMinutes.toString().padStart(2, '0') : ''}`;
+                      } else {
+                        return `${diffMinutes}min`;
+                      }
+                    };
+
+                    return (
+                      <>
+                        {groupedByDay.yesterday && (
+                          <div>
+                            <h3 className="font-semibold text-sm text-orange-800">
+                              {groupedByDay.yesterday.length === 1 
+                                ? `1 prise à rattraper hier (18/10/25) :` 
+                                : `${groupedByDay.yesterday.length} prises à rattraper hier (18/10/25) :`
+                              }
+                            </h3>
+                            <div className="ml-2 space-y-1">
+                              {groupedByDay.yesterday.slice(0, 3).map((intake) => (
+                                <p key={intake.id} className="text-xs text-orange-700">
+                                  • {intake.medication} à {intake.displayTime}
+                                </p>
+                              ))}
+                              {groupedByDay.yesterday.length > 3 && (
+                                <p className="text-xs text-orange-700">
+                                  • et {groupedByDay.yesterday.length - 3} autre{groupedByDay.yesterday.length - 3 > 1 ? 's' : ''}...
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {groupedByDay.today && (
+                          <div>
+                            <h3 className="font-semibold text-sm text-orange-800">
+                              {groupedByDay.today.length === 1 
+                                ? `1 prise à rattraper aujourd'hui (19/10/25) :` 
+                                : `${groupedByDay.today.length} prises à rattraper aujourd'hui (19/10/25) :`
+                              }
+                            </h3>
+                            <div className="ml-2 space-y-1">
+                              {groupedByDay.today.slice(0, 3).map((intake) => (
+                                <p key={intake.id} className="text-xs text-orange-700">
+                                  • {intake.medication} à {intake.displayTime} (retard de {calculateDelay(intake.scheduledTime)})
+                                </p>
+                              ))}
+                              {groupedByDay.today.length > 3 && (
+                                <p className="text-xs text-orange-700">
+                                  • et {groupedByDay.today.length - 3} autre{groupedByDay.today.length - 3 > 1 ? 's' : ''}...
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+                <Button 
+                  size="sm" 
+                  className="mt-3 bg-gray-800 text-white hover:bg-gray-900 border-0"
+                  onClick={() => navigate("/rattrapage")}
+                >
+                  Gérer les rattrapages
+                </Button>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* Upcoming Intakes */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
@@ -405,45 +507,54 @@ const Index = () => {
                           {group.endDate && ` • Fin : ${new Date(group.endDate).toLocaleDateString("fr-FR")}`}
                         </p>
                       </div>
-                      {group.intakes.map((intake) => (
-                        <Card key={intake.id} className="p-3 surface-elevated hover:shadow-md transition-shadow">
-                          <div className="flex items-center gap-3">
-                            <div className="flex flex-col items-center justify-center min-w-[60px] p-1.5 rounded-lg bg-primary/10">
-                              <Clock className="h-3.5 w-3.5 text-primary mb-0.5" />
-                              <span className="text-xs font-semibold text-primary">{intake.time}</span>
-                              <span className="text-[10px] text-muted-foreground">{format(intake.date, "dd/MM")}</span>
-                            </div>
-                            
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm font-medium truncate">{intake.medication}</p>
-                                <span className="text-xs text-muted-foreground flex-shrink-0">{intake.dosage}</span>
-                              </div>
-                              {intake.pathology && (
-                                <p className="text-xs text-muted-foreground truncate">{intake.pathology}</p>
-                              )}
-                            </div>
-
-                            <div className="flex items-center gap-2 flex-shrink-0">
-                              <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${getStockBgColor(intake.currentStock, intake.minThreshold)}`}>
-                                <Pill className={`h-3 w-3 ${getStockColor(intake.currentStock, intake.minThreshold)}`} />
-                                <span className={`text-xs font-semibold ${getStockColor(intake.currentStock, intake.minThreshold)}`}>
-                                  {intake.currentStock}
-                                </span>
+                      {group.intakes.map((intake) => {
+                        const isOverdue = isIntakeOverdue(intake.date);
+                        return (
+                          <Card key={intake.id} className="p-3 surface-elevated hover:shadow-md transition-shadow">
+                            <div className="flex items-center gap-3">
+                              <div className={`flex flex-col items-center justify-center min-w-[60px] p-1.5 rounded-lg ${isOverdue ? 'bg-orange-100' : 'bg-primary/10'}`}>
+                                <Clock className={`h-3.5 w-3.5 mb-0.5 ${isOverdue ? 'text-orange-600' : 'text-primary'}`} />
+                                <span className={`text-xs font-semibold ${isOverdue ? 'text-orange-700' : 'text-primary'}`}>{intake.time}</span>
+                                <span className="text-[10px] text-muted-foreground">{format(intake.date, "dd/MM")}</span>
                               </div>
                               
-                              <Button 
-                                size="sm" 
-                                className="gradient-primary h-8 w-8 p-0"
-                                onClick={() => handleTakeIntake(intake)}
-                                disabled={intake.currentStock === 0}
-                              >
-                                <CheckCircle2 className="h-3.5 w-3.5" />
-                              </Button>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-medium truncate">{intake.medication}</p>
+                                  <span className="text-xs text-muted-foreground flex-shrink-0">{intake.dosage}</span>
+                                </div>
+                                {intake.pathology && (
+                                  <p className="text-xs text-muted-foreground truncate">{intake.pathology}</p>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${getStockBgColor(intake.currentStock, intake.minThreshold)}`}>
+                                  <Pill className={`h-3 w-3 ${getStockColor(intake.currentStock, intake.minThreshold)}`} />
+                                  <span className={`text-xs font-semibold ${getStockColor(intake.currentStock, intake.minThreshold)}`}>
+                                    {intake.currentStock}
+                                  </span>
+                                </div>
+                                
+                                <Button 
+                                  size="sm" 
+                                  className={
+                                    intake.currentStock === 0 
+                                      ? "gradient-primary h-8 w-8 p-0" 
+                                      : isOverdue
+                                        ? "bg-orange-500 hover:bg-orange-600 text-white h-8 w-8 p-0"
+                                        : "gradient-primary h-8 w-8 p-0"
+                                  }
+                                  onClick={() => handleTakeIntake(intake)}
+                                  disabled={intake.currentStock === 0 || isOverdue}
+                                >
+                                  <CheckCircle2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
                             </div>
-                          </div>
-                        </Card>
-                      ))}
+                          </Card>
+                        );
+                      })}
                     </div>
                   ));
                 })()}
