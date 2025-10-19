@@ -7,7 +7,7 @@ import { NumberInput } from "@/components/ui/number-input";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Bell, Clock, AlertTriangle, Calendar, Pill, Settings2 } from "lucide-react";
-import { useNotifications } from "@/hooks/useNotifications";
+import { useNotificationSystem } from "@/hooks/useNotificationSystem";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -19,26 +19,30 @@ export default function NotificationSettings() {
     updatePreferences, 
     isSupported, 
     permission, 
+    hasPermission,
     requestPermission,
-    sendTestNotification 
-  } = useNotifications();
+    sendTestNotification,
+    mode
+  } = useNotificationSystem();
   const [showCustomize, setShowCustomize] = useState(false);
 
   const handleTogglePush = async (enabled: boolean) => {
-    if (enabled && permission !== "granted") {
+    const permissionGranted = mode === 'native' ? hasPermission : permission === "granted";
+    if (enabled && !permissionGranted) {
       const granted = await requestPermission();
       if (!granted) return;
     }
     updatePreferences({ pushEnabled: enabled });
   };
 
-  const handleTestNotification = () => {
-    if (permission !== "granted") {
+  const handleTestNotification = async () => {
+    const permissionGranted = mode === 'native' ? hasPermission : permission === "granted";
+    if (!permissionGranted) {
       toast.error("Veuillez d'abord autoriser les notifications");
       return;
     }
     
-    sendTestNotification();
+    await sendTestNotification();
   };
 
   return (
@@ -54,7 +58,7 @@ export default function NotificationSettings() {
               Configurez vos rappels et alertes
             </p>
           </div>
-          {isSupported && permission === "granted" && (
+          {isSupported && (mode === 'native' ? hasPermission : permission === "granted") && (
             <Button variant="outline" size="sm" onClick={handleTestNotification}>
               Tester
             </Button>
@@ -76,14 +80,14 @@ export default function NotificationSettings() {
           </Card>
         )}
 
-        {isSupported && permission === "default" && (
+        {isSupported && !(mode === 'native' ? hasPermission : permission === "granted") && (
           <Card className="p-4 border-primary bg-primary/5">
             <div className="flex items-start gap-3">
               <Bell className="h-5 w-5 text-primary mt-0.5" />
               <div className="flex-1">
                 <p className="font-medium">Activer les notifications</p>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Cliquez pour autoriser les notifications et recevoir vos rappels
+                  Cliquez pour autoriser les notifications et recevoir vos rappels ({mode === 'native' ? 'Mode Natif' : 'Mode Web'})
                 </p>
                 <Button onClick={requestPermission} className="gradient-primary">
                   Activer les notifications
@@ -93,14 +97,14 @@ export default function NotificationSettings() {
           </Card>
         )}
 
-        {isSupported && permission === "granted" && (
+        {isSupported && (mode === 'native' ? hasPermission : permission === "granted") && (
           <Card className="p-4 border-success bg-success/5">
             <div className="flex items-start gap-3">
               <Bell className="h-5 w-5 text-success mt-0.5" />
               <div className="flex-1">
                 <p className="font-medium">✓ Notifications activées</p>
                 <p className="text-sm text-muted-foreground">
-                  Vous recevrez vos rappels selon vos préférences
+                  Vous recevrez vos rappels selon vos préférences ({mode === 'native' ? 'Mode Natif' : 'Mode Web'})
                 </p>
               </div>
             </div>
@@ -108,7 +112,7 @@ export default function NotificationSettings() {
         )}
 
 
-        {isSupported && permission === "denied" && (
+        {isSupported && mode === 'pwa' && permission === "denied" && (
           <Card className="p-4 border-warning bg-warning/5">
             <div className="flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-warning mt-0.5" />

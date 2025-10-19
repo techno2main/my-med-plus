@@ -127,20 +127,27 @@ export const useNativeNotifications = () => {
   };
 
   const sendTestNotification = async (): Promise<boolean> => {
+    console.log("Test notification - hasPermission:", hasPermission);
+    
     if (!hasPermission) {
+      console.log("No permission, requesting...");
       const granted = await requestPermission();
+      console.log("Permission granted:", granted);
       if (!granted) return false;
     }
     
+    toast.success("Notification programmée dans 5 secondes...");
+    
     const success = await showNotification(
       "💊 Test de notification",
-      "Les notifications fonctionnent correctement !"
+      "Si vous voyez ceci, les notifications fonctionnent parfaitement !"
     );
     
     if (success) {
-      toast.success("Notification de test envoyée ✓");
+      console.log("Test notification sent successfully");
     } else {
-      toast.error("Erreur lors de l'envoi de la notification");
+      console.error("Failed to send test notification");
+      toast.error("Échec de l'envoi");
     }
     
     return success;
