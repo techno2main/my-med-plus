@@ -190,3 +190,13 @@
     transition: all var(--transition-slow);
   }
 }
+
+/* Android-specific safe areas - applied to #root not body */
+#root {
+  padding-top: 24px; /* Status bar height on Android */
+}
+
+/* Bottom navigation safe area for all platforms */
+.bottom-nav-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 16px);
+}

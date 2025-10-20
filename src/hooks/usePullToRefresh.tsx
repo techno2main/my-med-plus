@@ -24,18 +24,21 @@ export function usePullToRefresh() {
 
     const handleTouchStart = (e: TouchEvent) => {
       startY = e.touches[0].clientY;
-      isAtTop = window.scrollY === 0;
+      // Check if we're at the top of any scrollable element
+      isAtTop = window.scrollY <= 10; // More tolerant threshold
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!isAtTop) return;
+      if (!isAtTop || window.scrollY > 10) return;
       
       const currentY = e.touches[0].clientY;
       const pullDistance = currentY - startY;
       
-      if (pullDistance > 60 && !isPulling) {
+      // Trigger refresh at 80px pull distance
+      if (pullDistance > 80 && !isPulling) {
         isPulling = true;
-        checkForUpdates();
+        // Force reload immediately on pull
+        window.location.reload();
       }
     };
 
