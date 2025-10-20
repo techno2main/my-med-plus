@@ -102,21 +102,17 @@ const Index = () => {
       
       const treatmentsMap = new Map(treatmentsWithQsp.map(t => [t.id, t]))
 
-      // Load medications with their times and pathology from catalog
+      // Load medications info for stock alerts
       const { data: medications, error: medsError } = await supabase
         .from("medications")
         .select(`
           id,
           name,
-          dosage_amount,
-          dosage,
           times,
           current_stock,
-          initial_stock,
           min_threshold,
           treatment_id,
-          treatments!inner(name, is_active, pathology),
-          medication_catalog(pathology, dosage_amount, default_dosage)
+          treatments!inner(name, is_active)
         `)
         .eq("treatments.is_active", true)
       
@@ -126,102 +122,69 @@ const Index = () => {
 
       if (medsError) throw medsError
 
-      // Load today's intakes to exclude already taken medications
+      // SYSTÈME UNIFIÉ : Lire les prises depuis medication_intakes uniquement
       const today = new Date()
       today.setHours(0, 0, 0, 0)
       const tomorrow = new Date(today)
       tomorrow.setDate(tomorrow.getDate() + 1)
+      const dayAfterTomorrow = new Date(today)
+      dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2)
 
-      const { data: takenIntakes } = await supabase
+      const { data: upcomingIntakesData, error: intakesError } = await supabase
         .from("medication_intakes")
-        .select("medication_id, scheduled_time")
-        .eq("status", "taken")
+        .select(`
+          id,
+          medication_id,
+          scheduled_time,
+          status,
+          medications (
+            id,
+            name,
+            current_stock,
+            min_threshold,
+            treatment_id,
+            treatments (name),
+            medication_catalog (pathology, strength, default_posology)
+          )
+        `)
         .gte("scheduled_time", today.toISOString())
-        .lt("scheduled_time", tomorrow.toISOString())
+        .lt("scheduled_time", dayAfterTomorrow.toISOString())
+        .eq("status", "pending")
+        .order("scheduled_time", { ascending: true })
 
-      const takenIntakesSet = new Set(
-        (takenIntakes || []).map((intake: any) => {
-          const scheduledDate = new Date(intake.scheduled_time)
-          const date = format(scheduledDate, "yyyy-MM-dd")
-          const time = formatToFrenchTime(intake.scheduled_time, "HH:mm")
-          return `${intake.medication_id}-${date}-${time}`
-        })
-      )
+      if (intakesError) throw intakesError
 
-      // Process upcoming intakes (today and tomorrow)
-      const now = new Date()
-      const intakes: UpcomingIntake[] = []
+      const intakes: UpcomingIntake[] = [];
+      const now = new Date();
 
-      medications?.forEach((med: any) => {
-        const treatmentInfo = treatmentsMap.get(med.treatment_id)
+      (upcomingIntakesData || []).forEach((intake: any) => {
+        const scheduledDate = new Date(intake.scheduled_time)
         
-        med.times?.forEach((time: string) => {
-          // Check today's times
-          const todayDate = format(new Date(), "yyyy-MM-dd")
-          const todayKey = `${med.id}-${todayDate}-${time}`
-          if (!takenIntakesSet.has(todayKey)) {
-            const [hours, minutes] = time.split(':')
-            const scheduledDate = new Date()
-            scheduledDate.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+        // Afficher toutes les prises pending (aujourd'hui + demain)
+        const treatmentInfo = treatmentsMap.get(intake.medications.treatment_id)
+        const catalogDosage = intake.medications?.medication_catalog?.strength || 
+                             intake.medications?.medication_catalog?.default_posology || ""
 
-            // Show all of today's intakes that haven't been taken
-            const catalogDosage = med.medication_catalog?.dosage_amount || med.medication_catalog?.default_dosage
-            intakes.push({
-              id: `${med.id}-${time}-today`,
-              medicationId: med.id,
-              medication: med.name,
-              dosage: catalogDosage || med.dosage_amount || med.dosage,
-              time: time,
-              date: scheduledDate,
-              treatment: med.treatments.name,
-              treatmentId: med.treatment_id,
-              pathology: med.medication_catalog?.pathology || "",
-              currentStock: med.current_stock || 0,
-              minThreshold: med.min_threshold || 10,
-              treatmentQspDays: treatmentInfo?.qsp_days || null,
-              treatmentEndDate: treatmentInfo?.end_date || null
-            })
-          }
+        // Convertir en heure locale française
+        const localTime = formatToFrenchTime(intake.scheduled_time, 'HH:mm')
 
-          // Add tomorrow's first occurrences if we don't have enough today
-          const tomorrowDate = new Date()
-          tomorrowDate.setDate(tomorrowDate.getDate() + 1)
-          const [hours, minutes] = time.split(':')
-          tomorrowDate.setHours(parseInt(hours), parseInt(minutes), 0, 0)
-          
-          const catalogDosage = med.medication_catalog?.dosage_amount || med.medication_catalog?.default_dosage
-          intakes.push({
-            id: `${med.id}-${time}-tomorrow`,
-            medicationId: med.id,
-            medication: med.name,
-            dosage: catalogDosage || med.dosage_amount || med.dosage,
-            time: time,
-            date: tomorrowDate,
-            treatment: med.treatments.name,
-            treatmentId: med.treatment_id,
-            pathology: med.medication_catalog?.pathology || "",
-            currentStock: med.current_stock || 0,
-            minThreshold: med.min_threshold || 10,
-            treatmentQspDays: treatmentInfo?.qsp_days || null,
-            treatmentEndDate: treatmentInfo?.end_date || null
-          })
+        intakes.push({
+          id: intake.id,
+          medicationId: intake.medication_id,
+          medication: intake.medications.name,
+          dosage: catalogDosage,
+          time: localTime,
+          date: scheduledDate,
+          treatment: intake.medications.treatments.name,
+          treatmentId: intake.medications.treatment_id,
+          pathology: intake.medications?.medication_catalog?.pathology || "",
+          currentStock: intake.medications.current_stock || 0,
+          minThreshold: intake.medications.min_threshold || 10,
+          treatmentQspDays: treatmentInfo?.qsp_days || null,
+          treatmentEndDate: treatmentInfo?.end_date || null
         })
       })
 
-      // Sort by date first, then by time
-      intakes.sort((a, b) => {
-        const dateA = new Date(a.date)
-        const dateB = new Date(b.date)
-        dateA.setHours(0, 0, 0, 0)
-        dateB.setHours(0, 0, 0, 0)
-        
-        // Compare dates first
-        const dateDiff = dateA.getTime() - dateB.getTime()
-        if (dateDiff !== 0) return dateDiff
-        
-        // If same date, compare times
-        return a.date.getTime() - b.date.getTime()
-      })
       setUpcomingIntakes(intakes.slice(0, 10))
 
       // Process stock alerts
@@ -258,15 +221,14 @@ const Index = () => {
     if (!selectedIntake) return
 
     try {
-      // Create intake record
+      // Update existing intake record
       const { error: intakeError } = await supabase
         .from("medication_intakes")
-        .insert({
-          medication_id: selectedIntake.medicationId,
-          scheduled_time: selectedIntake.date.toISOString(),
+        .update({
           taken_at: convertFrenchToUTC(new Date()).toISOString(),
           status: 'taken'
         })
+        .eq("id", selectedIntake.id)
 
       if (intakeError) throw intakeError
 

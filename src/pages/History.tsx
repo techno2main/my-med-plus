@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { PageHeader } from "@/components/Layout/PageHeader";
@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle2, XCircle, Clock, Calendar as CalendarIcon, List, ClockAlert, Pill } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Calendar as CalendarIcon, List, ClockAlert, Pill, ChevronDown, ChevronUp } from "lucide-react";
 import { format, parseISO, startOfDay, isToday } from "date-fns";
 import { fr } from 'date-fns/locale';
 import { formatToFrenchTime } from '../lib/dateUtils';
@@ -25,8 +25,8 @@ interface MedicationIntake {
     name: string;
     catalog_id?: string;
     medication_catalog?: {
-      dosage_amount?: string;
-      default_dosage?: string;
+      strength?: string;
+      default_posology?: string;
     };
   };
 }
@@ -56,6 +56,8 @@ export default function History() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [historyData, setHistoryData] = useState<GroupedIntakes[]>([]);
+  const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
+  const todayRef = useRef<HTMLDivElement>(null);
   const { stats, loading: statsLoading } = useAdherenceStats();
 
   useEffect(() => {
@@ -68,6 +70,100 @@ export default function History() {
   useEffect(() => {
     loadHistory();
   }, []);
+
+  // Auto-expand today's section and scroll to it
+  useEffect(() => {
+    if (historyData.length > 0 && activeTab === "history") {
+      // Find today's date in the data
+      const todayData = historyData.find(day => isToday(day.date));
+      if (todayData) {
+        const todayKey = todayData.date.toISOString();
+        setExpandedDays(new Set([todayKey])); // Only expand today
+        
+        // Scroll to today's section after a short delay to ensure rendering
+        setTimeout(() => {
+          todayRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      }
+    }
+  }, [historyData, activeTab]);
+
+  // Auto-expand first matching day when filter changes
+  useEffect(() => {
+    if (historyData.length > 0 && filterStatus !== "all") {
+      // Helper function to check if intake matches filter
+      const matchesFilter = (intake: any) => {
+        if (filterStatus === "missed") {
+          return intake.status === "skipped";
+        }
+        
+        if (intake.status !== "taken" || !intake.scheduledTimestamp || !intake.takenAtTimestamp) {
+          return false;
+        }
+        
+        const scheduled = new Date(intake.scheduledTimestamp);
+        const taken = new Date(intake.takenAtTimestamp);
+        const differenceMinutes = (taken.getTime() - scheduled.getTime()) / (1000 * 60);
+        
+        if (filterStatus === "ontime") {
+          return differenceMinutes <= 30;
+        }
+        
+        if (filterStatus === "late") {
+          return differenceMinutes > 30;
+        }
+        
+        return false;
+      };
+
+      // Find first day with matching intakes
+      const filteredData = historyData
+        .filter(day => {
+          const today = startOfDay(new Date());
+          const dayDate = startOfDay(day.date);
+          return dayDate <= today;
+        });
+
+      for (const day of filteredData) {
+        const hasMatchingIntake = day.intakes.some(matchesFilter);
+        if (hasMatchingIntake) {
+          const dayKey = day.date.toISOString();
+          const newSet = new Set<string>();
+          
+          // Keep today if it exists
+          const todayData = historyData.find(d => isToday(d.date));
+          if (todayData) {
+            newSet.add(todayData.date.toISOString());
+          }
+          
+          // Add the first matching day
+          newSet.add(dayKey);
+          setExpandedDays(newSet);
+          break;
+        }
+      }
+    }
+  }, [filterStatus, historyData]);
+
+  const toggleDay = (dateKey: string, isTodaySection: boolean) => {
+    setExpandedDays(prev => {
+      const newSet = new Set<string>();
+      
+      // Keep today always in the set if it exists
+      const todayData = historyData.find(day => isToday(day.date));
+      if (todayData) {
+        newSet.add(todayData.date.toISOString());
+      }
+      
+      // Toggle the clicked day (only one non-today day can be open)
+      if (!prev.has(dateKey)) {
+        newSet.add(dateKey);
+      }
+      // If clicking the same day that's already open, close it (remove it from set)
+      
+      return newSet;
+    });
+  };
 
   const loadHistory = async () => {
     try {
@@ -83,7 +179,7 @@ export default function History() {
             name,
             catalog_id,
             treatment_id,
-            medication_catalog(dosage_amount, default_dosage),
+            medication_catalog(strength, default_posology),
             treatments(name, start_date, end_date, prescription_id)
           )
         `)
@@ -138,8 +234,8 @@ export default function History() {
           };
         }
 
-        const dosage = intake.medications?.medication_catalog?.dosage_amount || 
-                       intake.medications?.medication_catalog?.default_dosage || 
+        const dosage = intake.medications?.medication_catalog?.strength || 
+                       intake.medications?.medication_catalog?.default_posology || 
                        "";
         
         const treatmentId = intake.medications?.treatment_id || '';
@@ -307,7 +403,14 @@ export default function History() {
                 <p className="text-muted-foreground">Aucun historique disponible</p>
               </Card>
             ) : (
-              historyData.map((day, dayIdx) => {
+              historyData
+                .filter(day => {
+                  // Ne garder que aujourd'hui et les jours passés
+                  const today = startOfDay(new Date());
+                  const dayDate = startOfDay(day.date);
+                  return dayDate <= today;
+                })
+                .map((day, dayIdx) => {
                 // Group intakes by treatment
                 const groupedByTreatment = day.intakes.reduce((acc, intake) => {
                   if (!acc[intake.treatmentId]) {
@@ -368,52 +471,78 @@ export default function History() {
                   return null;
                 }
 
+                const isTodaySection = isToday(day.date);
+                const dateKey = day.date.toISOString();
+                const isExpanded = isTodaySection || expandedDays.has(dateKey);
+
                 return (
-                  <Card key={dayIdx} className="p-4">
-                    <div className="flex items-center gap-2 mb-4">
-                      <CalendarIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                      <h3 className="font-semibold text-sm">
-                        {format(day.date, "EEEE d MMMM yyyy", { locale: fr })}
-                      </h3>
-                      {isToday(day.date) && (
-                        <span className="text-xs text-muted-foreground flex-shrink-0">Aujourd'hui</span>
+                  <Card 
+                    key={dayIdx} 
+                    className="p-4"
+                    ref={isTodaySection ? todayRef : null}
+                  >
+                    <div 
+                      className={`flex items-center justify-between gap-2 mb-4 ${!isTodaySection ? 'cursor-pointer hover:opacity-70 transition-opacity' : ''}`}
+                      onClick={() => !isTodaySection && toggleDay(dateKey, isTodaySection)}
+                    >
+                      <div className="flex items-center gap-2 flex-1">
+                        <CalendarIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <h3 className="font-semibold text-sm">
+                          {isTodaySection ? "Aujourd'hui" : format(day.date, "EEEE d MMMM yyyy", { locale: fr })}
+                        </h3>
+                        {isTodaySection && (
+                          <span className="text-xs text-muted-foreground flex-shrink-0">
+                            {format(day.date, "d MMMM yyyy", { locale: fr })}
+                          </span>
+                        )}
+                      </div>
+                      {!isTodaySection && (
+                        <div className="flex-shrink-0">
+                          {isExpanded ? (
+                            <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                          ) : (
+                            <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                          )}
+                        </div>
                       )}
                     </div>
 
-                    <div className="space-y-4">
-                      {Object.entries(filteredTreatments).map(([treatmentId, group]) => (
-                        <div key={treatmentId} className="space-y-2">
-                          <div className="flex items-baseline gap-2 px-1">
-                            <p className="text-xs font-medium text-primary">
-                              {group.treatment}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {group.qspDays && `QSP : ${Math.round(group.qspDays / 30)} mois`}
-                            </p>
-                          </div>
-                          <div className="space-y-2">
-                            {group.intakes.map((intake) => (
-                              <div key={intake.id} className="flex items-center justify-between p-3 rounded-lg bg-surface">
-                                <div className="flex items-center gap-3 flex-1">
-                                  {getStatusIcon(intake.status)}
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2">
-                                      <p className="font-medium">{intake.medication}</p>
-                                      {intake.dosage && <span className="text-xs text-muted-foreground">{intake.dosage}</span>}
+                    {isExpanded && (
+                      <div className="space-y-4">
+                        {Object.entries(filteredTreatments).map(([treatmentId, group]) => (
+                          <div key={treatmentId} className="space-y-2">
+                            <div className="flex items-baseline gap-2 px-1">
+                              <p className="text-xs font-medium text-primary">
+                                {group.treatment}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {group.qspDays && `QSP : ${Math.round(group.qspDays / 30)} mois`}
+                              </p>
+                            </div>
+                            <div className="space-y-2">
+                              {group.intakes.map((intake) => (
+                                <div key={intake.id} className="flex items-center justify-between p-3 rounded-lg bg-surface">
+                                  <div className="flex items-center gap-3 flex-1">
+                                    {getStatusIcon(intake.status)}
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2">
+                                        <p className="font-medium">{intake.medication}</p>
+                                        {intake.dosage && <span className="text-xs text-muted-foreground">{intake.dosage}</span>}
+                                      </div>
+                                      <p className="text-xs text-muted-foreground">
+                                        Prévu à {intake.time}
+                                        {intake.takenAt && ` • Pris à ${intake.takenAt}`}
+                                      </p>
                                     </div>
-                                    <p className="text-xs text-muted-foreground">
-                                      Prévu à {intake.time}
-                                      {intake.takenAt && ` • Pris à ${intake.takenAt}`}
-                                    </p>
                                   </div>
+                                  {getStatusBadge(intake.status, intake.scheduledTimestamp, intake.takenAtTimestamp)}
                                 </div>
-                                {getStatusBadge(intake.status, intake.scheduledTimestamp, intake.takenAtTimestamp)}
-                              </div>
-                            ))}
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </Card>
                 );
               })

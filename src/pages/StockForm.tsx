@@ -33,7 +33,7 @@ export default function StockForm() {
         .from("medications")
         .select(`
           *,
-          medication_catalog(dosage_amount, default_dosage)
+          medication_catalog(strength, default_posology)
         `)
         .eq("id", medicationId)
         .single();
@@ -41,7 +41,7 @@ export default function StockForm() {
       if (error) throw error;
       
       setMedication(data);
-      setDosage(data.medication_catalog?.dosage_amount || data.medication_catalog?.default_dosage || "");
+      setDosage(data.medication_catalog?.strength || data.medication_catalog?.default_posology || "");
       setExpiryDate(data.expiry_date || "");
       setMinThreshold(String(data.min_threshold || 10));
     } catch (error) {

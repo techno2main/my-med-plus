@@ -20,7 +20,7 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
   const [catalog, setCatalog] = useState<CatalogMedication[]>([]);
   const [showDialog, setShowDialog] = useState(false);
   const [showCustomDialog, setShowCustomDialog] = useState(false);
-  const [newCustomMed, setNewCustomMed] = useState({ name: "", pathology: "", dosage: "", dosage_amount: "" });
+  const [newCustomMed, setNewCustomMed] = useState({ name: "", pathology: "", posology: "", strength: "" });
 
   useEffect(() => {
     loadCatalog();
@@ -29,7 +29,7 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
   const loadCatalog = async () => {
     const { data } = await supabase
       .from("medication_catalog")
-      .select("id, name, pathology, description, default_dosage, dosage_amount, default_times")
+      .select("id, name, pathology, description, default_posology, strength, default_times")
       .order("name");
     if (data) setCatalog(data);
   };
@@ -39,7 +39,7 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
       catalogId: catalogMed.id,
       name: catalogMed.name,
       pathology: catalogMed.pathology || "",
-      dosage: catalogMed.default_dosage || "",
+      posology: catalogMed.default_posology || "",
       takesPerDay: catalogMed.default_times?.length || 1,
       times: catalogMed.default_times || ["09:00"],
       unitsPerTake: 1,
@@ -62,7 +62,7 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
       .insert({
         name: newCustomMed.name,
         pathology: newCustomMed.pathology,
-        default_dosage: newCustomMed.dosage,
+        default_posology: newCustomMed.posology,
       })
       .select()
       .single();
@@ -72,7 +72,7 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
         catalogId: data.id,
         name: data.name,
         pathology: data.pathology || "",
-        dosage: data.default_dosage || "",
+        posology: data.default_posology || "",
         takesPerDay: 1,
         times: [""],
         unitsPerTake: 1,
@@ -81,7 +81,7 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
       };
       setFormData({ ...formData, medications: [...formData.medications, newMed] });
       setShowCustomDialog(false);
-      setNewCustomMed({ name: "", pathology: "", dosage: "", dosage_amount: "" });
+      setNewCustomMed({ name: "", pathology: "", posology: "", strength: "" });
       loadCatalog();
     }
   };
@@ -215,8 +215,8 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
                 <Label>Posologie détaillée</Label>
                 <Input
                   id={`dosage-${index}`}
-                  value={med.dosage}
-                  onChange={(e) => updateMedication(index, { dosage: e.target.value })}
+                  value={med.posology}
+                  onChange={(e) => updateMedication(index, { posology: e.target.value })}
                   placeholder="Ex: 1 comprimé matin et soir"
                   className="bg-surface"
                 />
@@ -247,19 +247,19 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-semibold">{med.name}</h4>
-                        {med.dosage_amount && (
-                          <span className="text-sm text-muted-foreground">{med.dosage_amount}</span>
+                        {med.strength && (
+                          <span className="text-sm text-muted-foreground">{med.strength}</span>
                         )}
                       </div>
-                      {(med.pathology || med.default_dosage) && (
+                      {(med.pathology || med.default_posology) && (
                         <div className="flex items-center gap-2 mb-2">
                           {med.pathology && (
                             <Badge variant="secondary">
                               {med.pathology}
                             </Badge>
                           )}
-                          {med.default_dosage && (
-                            <span className="text-sm text-muted-foreground">{med.default_dosage}</span>
+                          {med.default_posology && (
+                            <span className="text-sm text-muted-foreground">{med.default_posology}</span>
                           )}
                         </div>
                       )}
@@ -303,8 +303,8 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
                 <Label>Dosage</Label>
                 <Input
                   id="custom-med-dosage-amount"
-                  value={newCustomMed.dosage_amount || ""}
-                  onChange={(e) => setNewCustomMed({ ...newCustomMed, dosage_amount: e.target.value })}
+                  value={newCustomMed.strength || ""}
+                  onChange={(e) => setNewCustomMed({ ...newCustomMed, strength: e.target.value })}
                   placeholder="Ex: 850mg"
                 />
               </div>
@@ -325,8 +325,8 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
                 <Label>Posologie</Label>
                 <Input
                   id="custom-med-dosage"
-                  value={newCustomMed.dosage}
-                  onChange={(e) => setNewCustomMed({ ...newCustomMed, dosage: e.target.value })}
+                  value={newCustomMed.posology}
+                  onChange={(e) => setNewCustomMed({ ...newCustomMed, posology: e.target.value })}
                   placeholder="Ex: 1 comprimé matin et soir"
                 />
               </div>

@@ -11,8 +11,8 @@ import { X, ArrowLeft } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 // Fonctions utilitaires pour la détection automatique des prises
-const detectTakesFromDosage = (dosage: string): { count: number; moments: string[] } => {
-  const text = dosage.toLowerCase().trim();
+const detectTakesFromDosage = (posology: string): { count: number; moments: string[] } => {
+  const text = posology.toLowerCase().trim();
   
   // 1. Priorité aux indications numériques explicites
   const numericMatch = text.match(/(\d+)\s*(fois|x)\s*(par\s*jour|\/jour)/i);
@@ -70,8 +70,8 @@ interface CatalogMedication {
   id: string;
   name: string;
   pathology: string;
-  default_dosage: string;
-  dosage_amount?: string;
+  default_posology: string;
+  strength?: string;
   initial_stock?: number;
   min_threshold?: number;
 }
@@ -79,7 +79,7 @@ interface CatalogMedication {
 interface Medication {
   id: string;
   name: string;
-  dosage: string;
+  posology: string;
   times: string[];
   catalog_id?: string;
 }
@@ -95,7 +95,7 @@ interface MedicationEditDialogProps {
 export function MedicationEditDialog({ open, onOpenChange, medication, treatmentId, onSave }: MedicationEditDialogProps) {
   const [catalog, setCatalog] = useState<CatalogMedication[]>([]);
   const [selectedCatalogId, setSelectedCatalogId] = useState<string>("");
-  const [dosage, setDosage] = useState("");
+  const [posology, setPosology] = useState("");
   const [times, setTimes] = useState<string[]>([]);
 
   useEffect(() => {
@@ -107,12 +107,12 @@ export function MedicationEditDialog({ open, onOpenChange, medication, treatment
       if (medication) {
         // Mode édition
         setSelectedCatalogId(medication.catalog_id || "");
-        setDosage(medication.dosage);
+        setPosology(medication.posology);
         setTimes(medication.times || []);
       } else {
         // Mode ajout
         setSelectedCatalogId("");
-        setDosage("");
+        setPosology("");
         setTimes([]);
       }
     }
@@ -121,7 +121,7 @@ export function MedicationEditDialog({ open, onOpenChange, medication, treatment
   const loadCatalog = async () => {
     const { data, error } = await supabase
       .from("medication_catalog")
-      .select("id, name, pathology, default_dosage, dosage_amount, initial_stock, min_threshold")
+      .select("id, name, pathology, default_posology, strength, initial_stock, min_threshold")
       .order("name");
 
     if (error) {
@@ -135,16 +135,16 @@ export function MedicationEditDialog({ open, onOpenChange, medication, treatment
   const handleCatalogChange = (catalogId: string) => {
     setSelectedCatalogId(catalogId);
     const selected = catalog.find(c => c.id === catalogId);
-    if (selected && selected.default_dosage) {
-      const detectedTakes = detectTakesFromDosage(selected.default_dosage);
+    if (selected && selected.default_posology) {
+      const detectedTakes = detectTakesFromDosage(selected.default_posology);
       const newTimes = getDefaultTimes(detectedTakes.count, detectedTakes.moments);
-      setDosage(selected.default_dosage);
+      setPosology(selected.default_posology);
       setTimes(newTimes);
     }
   };
 
   const handleSave = async () => {
-    if (!selectedCatalogId || !dosage || times.length === 0) {
+    if (!selectedCatalogId || !posology || times.length === 0) {
       toast.error("Veuillez remplir tous les champs");
       return;
     }
@@ -160,7 +160,7 @@ export function MedicationEditDialog({ open, onOpenChange, medication, treatment
           .update({
             catalog_id: selectedCatalogId,
             name: selectedMed.name,
-            dosage,
+            posology,
             times
           })
           .eq("id", medication.id);
@@ -175,7 +175,7 @@ export function MedicationEditDialog({ open, onOpenChange, medication, treatment
             treatment_id: treatmentId,
             catalog_id: selectedCatalogId,
             name: selectedMed.name,
-            dosage,
+            posology,
             times,
             current_stock: selectedMed.initial_stock || 0,
             min_threshold: selectedMed.min_threshold || 10
@@ -222,11 +222,11 @@ export function MedicationEditDialog({ open, onOpenChange, medication, treatment
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{med.name}</span>
-                          {med.dosage_amount && <span className="text-xs text-muted-foreground">{med.dosage_amount}</span>}
+                          {med.strength && <span className="text-xs text-muted-foreground">{med.strength}</span>}
                         </div>
                         <div className="flex items-center gap-2">
                           {med.pathology && <span className="text-xs text-muted-foreground">{med.pathology}</span>}
-                          {med.default_dosage && <span className="text-xs text-muted-foreground">{med.default_dosage}</span>}
+                          {med.default_posology && <span className="text-xs text-muted-foreground">{med.default_posology}</span>}
                         </div>
                       </div>
                     </SelectItem>
@@ -238,12 +238,12 @@ export function MedicationEditDialog({ open, onOpenChange, medication, treatment
             <div className="space-y-2">
               <Label>Posologie</Label>
               <Input 
-                value={dosage}
+                value={posology}
                 onChange={(e) => {
                   const newDosage = e.target.value;
                   const detectedTakes = detectTakesFromDosage(newDosage);
                   const newTimes = getDefaultTimes(detectedTakes.count, detectedTakes.moments);
-                  setDosage(newDosage);
+                  setPosology(newDosage);
                   setTimes(newTimes);
                 }}
                 placeholder="Ex: 1 comprimé matin et soir"

@@ -122,10 +122,11 @@ export default function Rattrapage() {
         return;
       }
 
-      // Créer les entrées en base de données
-      const intakesToInsert = processedActions.map(action => {
+      // CORRECTION : UPDATE au lieu d'INSERT pour éviter les doublons
+      // Les entrées existent déjà dans medication_intakes avec status='pending'
+      for (const action of processedActions) {
         const intake = missedIntakes.find(i => i.id === action.id);
-        if (!intake) return null;
+        if (!intake) continue;
 
         let taken_at = null;
         let status = action.action;
@@ -133,8 +134,8 @@ export default function Rattrapage() {
 
         switch (action.action) {
           case 'taken':
-            // Pris à l'heure prévue initialement (utilise la date/heure originale de scheduled_time)
-            taken_at = intake.scheduledTime; // Déjà au bon format ISO
+            // Pris à l'heure prévue initialement
+            taken_at = intake.scheduledTime;
             status = 'taken';
             notes = 'Rattrapage - Marqué comme pris à l\'heure prévue';
             break;
@@ -152,21 +153,21 @@ export default function Rattrapage() {
             break;
         }
 
-        return {
-          medication_id: intake.medicationId,
-          scheduled_time: intake.scheduledTime,
-          taken_at: taken_at,
-          status: status,
-          notes: notes
-        };
-      }).filter(Boolean);
-
-      if (intakesToInsert.length > 0) {
+        // UPDATE de l'entrée existante au lieu d'INSERT
         const { error } = await supabase
           .from('medication_intakes')
-          .insert(intakesToInsert);
+          .update({
+            taken_at: taken_at,
+            status: status,
+            notes: notes,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', intake.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error(`Erreur UPDATE intake ${intake.id}:`, error);
+          throw error;
+        }
       }
 
       // Mettre à jour le stock pour les prises marquées comme prises

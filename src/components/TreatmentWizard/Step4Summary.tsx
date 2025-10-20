@@ -99,10 +99,10 @@ export function Step4Summary({ formData, prescriptions, pharmacies }: Step4Summa
                       <p className="font-medium">{med.times.filter(t => t).join(", ")}</p>
                     </div>
                   )}
-                  {med.dosage && (
+                  {med.posology && (
                     <div className="text-sm">
                       <p className="text-muted-foreground">Posologie</p>
-                      <p className="font-medium">{med.dosage}</p>
+                      <p className="font-medium">{med.posology}</p>
                     </div>
                   )}
                 </div>

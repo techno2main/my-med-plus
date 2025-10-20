@@ -174,8 +174,8 @@ export function TreatmentWizard() {
         treatment_id: treatment.id,
         catalog_id: med.catalogId || null,
         name: med.name,
-        dosage: med.dosage,
-        dosage_amount: med.dosage,
+        posology: med.posology,
+        strength: null, // TODO: récupérer du catalog si catalogId existe
         times: med.times.filter(t => t !== ""),
         initial_stock: formData.stocks[index] || 0,
         current_stock: formData.stocks[index] || 0,

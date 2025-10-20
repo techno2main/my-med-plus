@@ -66,9 +66,9 @@ export const useMissedIntakesDetection = () => {
           status,
           medications (
             name,
-            dosage_amount,
-            dosage,
-            medication_catalog(dosage_amount, default_dosage)
+            strength,
+            posology,
+            medication_catalog(strength, default_posology)
           )
         `)
         .eq("status", "pending")
@@ -93,10 +93,10 @@ export const useMissedIntakesDetection = () => {
             id: intake.id,
             medicationId: intake.medication_id,
             medication: intake.medications.name,
-            dosage: intake.medications.medication_catalog?.dosage_amount || 
-                   intake.medications.medication_catalog?.default_dosage || 
-                   intake.medications.dosage_amount || 
-                   intake.medications.dosage || '',
+            dosage: intake.medications.medication_catalog?.strength || 
+                   intake.medications.medication_catalog?.default_posology || 
+                   intake.medications.strength || 
+                   intake.medications.posology || '',
             scheduledTime: intake.scheduled_time,
             displayTime: format(scheduledTime, 'HH:mm'),
             date: scheduledTime,

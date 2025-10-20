@@ -20,7 +20,7 @@ export default function Stock() {
         .select(`
           *,
           treatments!inner(is_active),
-          medication_catalog(dosage_amount, default_dosage)
+          medication_catalog(strength, default_posology)
         `)
         .eq("treatments.is_active", true)
         .order("name");
@@ -41,7 +41,7 @@ export default function Stock() {
   const stockItems = medications?.map(med => ({
     ...med,
     medication: med.name,
-    dosage: med.medication_catalog?.dosage_amount || med.medication_catalog?.default_dosage || "",
+    dosage: med.medication_catalog?.strength || med.medication_catalog?.default_posology || "",
     unit: "unités",
     status: getStockStatus(med.current_stock || 0, med.min_threshold || 10)
   })) || [];

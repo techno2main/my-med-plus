@@ -39,7 +39,7 @@ interface PrescriptionWithDetails extends Prescription {
   medications: Array<{
     id: string;
     name: string;
-    dosage: string;
+    posology: string;
   }>;
   refillVisits: RefillVisit[];
 }
@@ -106,12 +106,12 @@ export default function Prescriptions() {
             .eq("prescription_id", presc.id);
 
           // Charger tous les médicaments des traitements liés
-          const medications: Array<{ id: string; name: string; dosage: string }> = [];
+          const medications: Array<{ id: string; name: string; posology: string }> = [];
           if (treatmentsData && treatmentsData.length > 0) {
             for (const treatment of treatmentsData) {
               const { data: medsData } = await supabase
                 .from("medications")
-                .select("id, name, dosage")
+                .select("id, name, posology")
                 .eq("treatment_id", treatment.id);
               
               if (medsData && medsData.length > 0) {

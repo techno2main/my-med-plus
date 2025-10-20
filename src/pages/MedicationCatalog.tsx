@@ -72,12 +72,48 @@ const getDefaultTimes = (numberOfTakes: number, detectedMoments: string[] = []):
   }
 };
 
+// Fonction INVERSE : Génère le texte de dosage à partir des horaires
+const generateDosageFromTimes = (times: string[]): string => {
+  if (times.length === 0) return "Définir une ou plusieurs prises";
+  
+  const sortedTimes = [...times].sort();
+  const moments: string[] = [];
+  
+  sortedTimes.forEach(time => {
+    const [hours] = time.split(':').map(Number);
+    
+    // Plages horaires définies
+    if (hours >= 6 && hours < 12) {
+      moments.push('le matin');
+    } else if (hours >= 12 && hours < 13) {
+      moments.push('le midi');
+    } else if (hours >= 13 && hours < 19) {
+      moments.push('l\'après-midi');
+    } else if (hours >= 19 && hours < 22) {
+      moments.push('le soir');
+    } else if (hours >= 22 || hours < 2) {
+      moments.push('au coucher');
+    } else {
+      moments.push('la nuit');
+    }
+  });
+  
+  if (moments.length === 1) {
+    return `1 comprimé ${moments[0]}`;
+  } else if (moments.length === 2) {
+    return `1 comprimé ${moments[0]} et 1 ${moments[1]}`;
+  } else {
+    const lastMoment = moments.pop();
+    return `1 comprimé ${moments.join(', 1 ')} et 1 ${lastMoment}`;
+  }
+};
+
 interface MedicationCatalog {
   id: string
   name: string
   pathology: string | null
-  default_dosage: string | null
-  dosage_amount: string | null
+  default_posology: string | null
+  strength: string | null
   description: string | null
   initial_stock: number
   min_threshold: number
@@ -99,8 +135,8 @@ const MedicationCatalog = () => {
   const [formData, setFormData] = useState({
     name: "",
     pathology: "",
-    default_dosage: "",
-    dosage_amount: "",
+    default_posology: "",
+    strength: "",
     description: "",
     initial_stock: "0",
     min_threshold: "10",
@@ -185,6 +221,18 @@ const MedicationCatalog = () => {
       return
     }
 
+    // Validation : au moins une prise doit être définie
+    if (formData.default_times.length === 0) {
+      toast.error("Veuillez définir au moins une heure de prise")
+      return
+    }
+
+    // Validation : la posologie ne doit pas être vide
+    if (!formData.default_posology || formData.default_posology.trim() === "") {
+      toast.error("Veuillez définir la posologie")
+      return
+    }
+
     try {
       if (editingMed) {
         const { error } = await supabase
@@ -192,8 +240,8 @@ const MedicationCatalog = () => {
           .update({
             name: formData.name,
             pathology: formData.pathology || null,
-            default_dosage: formData.default_dosage || null,
-            dosage_amount: formData.dosage_amount || null,
+            default_posology: formData.default_posology || null,
+            strength: formData.strength || null,
             description: formData.description || null,
             initial_stock: parseInt(formData.initial_stock) || 0,
             min_threshold: parseInt(formData.min_threshold) || 10,
@@ -209,8 +257,8 @@ const MedicationCatalog = () => {
           .insert({
             name: formData.name,
             pathology: formData.pathology || null,
-            default_dosage: formData.default_dosage || null,
-            dosage_amount: formData.dosage_amount || null,
+            default_posology: formData.default_posology || null,
+            strength: formData.strength || null,
             description: formData.description || null,
             initial_stock: parseInt(formData.initial_stock) || 0,
             min_threshold: parseInt(formData.min_threshold) || 10,
@@ -261,8 +309,8 @@ const MedicationCatalog = () => {
       setFormData({
         name: med.name,
         pathology: med.pathology || "",
-        default_dosage: med.default_dosage || "",
-        dosage_amount: med.dosage_amount || "",
+        default_posology: med.default_posology || "",
+        strength: med.strength || "",
         description: med.description || "",
         initial_stock: String(med.initial_stock || 0),
         min_threshold: String(med.min_threshold || 10),
@@ -273,8 +321,8 @@ const MedicationCatalog = () => {
       setFormData({ 
         name: "", 
         pathology: "", 
-        default_dosage: "", 
-        dosage_amount: "",
+        default_posology: "Définir une ou plusieurs prises", 
+        strength: "",
         description: "",
         initial_stock: "0",
         min_threshold: "10",
@@ -290,8 +338,8 @@ const MedicationCatalog = () => {
     setFormData({ 
       name: "", 
       pathology: "", 
-      default_dosage: "", 
-      dosage_amount: "",
+      default_posology: "Définir une ou plusieurs prises", 
+      strength: "",
       description: "",
       initial_stock: "0",
       min_threshold: "10",
@@ -367,9 +415,9 @@ const MedicationCatalog = () => {
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
                       <h3 className="font-semibold text-lg">{med.name}</h3>
-                      {med.dosage_amount && (
+                      {med.strength && (
                         <span className="text-sm text-muted-foreground">
-                          {med.dosage_amount}
+                          {med.strength}
                         </span>
                       )}
                     </div>
@@ -418,9 +466,9 @@ const MedicationCatalog = () => {
                   )}
 
                   {/* Ligne 3: Posologie */}
-                  {med.default_dosage && (
+                  {med.default_posology && (
                     <p className="text-sm text-muted-foreground">
-                      {med.default_dosage}
+                      {med.default_posology}
                     </p>
                   )}
 
@@ -472,11 +520,11 @@ const MedicationCatalog = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="dosage_amount">Dosage</Label>
+                    <Label htmlFor="strength">Force</Label>
                     <Input
-                      id="dosage_amount"
-                      value={formData.dosage_amount}
-                      onChange={(e) => setFormData({ ...formData, dosage_amount: e.target.value })}
+                      id="strength"
+                      value={formData.strength}
+                      onChange={(e) => setFormData({ ...formData, strength: e.target.value })}
                       placeholder="Ex: 5mg/1000mg"
                       className="bg-surface"
                     />
@@ -515,14 +563,26 @@ const MedicationCatalog = () => {
                   <Label htmlFor="dosage">Posologie</Label>
                   <Input
                     id="dosage"
-                    value={formData.default_dosage}
+                    value={formData.default_posology}
                     onChange={(e) => {
-                      const newDosage = e.target.value;
+                      const newDosage = e.target.value.trim();
+                      
+                      // Si le champ est vidé manuellement
+                      if (newDosage === "") {
+                        setFormData({ 
+                          ...formData, 
+                          default_posology: "Définir une ou plusieurs prises",
+                          default_times: []
+                        });
+                        return;
+                      }
+                      
+                      // Sinon, détection automatique normale
                       const detectedTakes = detectTakesFromDosage(newDosage);
                       const newTimes = getDefaultTimes(detectedTakes.count, detectedTakes.moments);
                       setFormData({ 
                         ...formData, 
-                        default_dosage: newDosage,
+                        default_posology: newDosage,
                         default_times: newTimes
                       });
                     }}
@@ -560,7 +620,12 @@ const MedicationCatalog = () => {
                             onValueChange={(value) => {
                               const newTimes = [...formData.default_times];
                               newTimes[index] = value;
-                              setFormData({ ...formData, default_times: newTimes });
+                              const newDosage = generateDosageFromTimes(newTimes);
+                              setFormData({ 
+                                ...formData, 
+                                default_times: newTimes,
+                                default_posology: newDosage
+                              });
                             }}
                             className="bg-surface w-24 h-8 text-sm"
                           />
@@ -570,7 +635,12 @@ const MedicationCatalog = () => {
                             size="sm"
                             onClick={() => {
                               const newTimes = formData.default_times.filter((_, i) => i !== index);
-                              setFormData({ ...formData, default_times: newTimes });
+                              const newDosage = generateDosageFromTimes(newTimes);
+                              setFormData({ 
+                                ...formData, 
+                                default_times: newTimes,
+                                default_posology: newDosage
+                              });
                             }}
                             className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                           >

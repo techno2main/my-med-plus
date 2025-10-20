@@ -20,7 +20,7 @@ interface Treatment {
   medications: Array<{
     id: string
     name: string
-    dosage: string
+    posology: string
     times: string[]
     pathology: string | null
     currentStock: number
@@ -121,7 +121,7 @@ const Treatments = () => {
             .select(`
               id, 
               name, 
-              dosage, 
+              posology, 
               times,
               current_stock,
               min_threshold,
@@ -138,12 +138,12 @@ const Treatments = () => {
               if (med.catalog_id) {
                 const { data: catalogData } = await supabase
                   .from("medication_catalog")
-                  .select("pathology, dosage_amount, default_dosage")
+                  .select("pathology, strength, default_posology")
                   .eq("id", med.catalog_id)
                   .maybeSingle();
                 
                 pathology = catalogData?.pathology || null;
-                catalogDosage = catalogData?.dosage_amount || catalogData?.default_dosage;
+                catalogDosage = catalogData?.strength || catalogData?.default_posology;
               }
 
               // Sort times in ascending order
@@ -156,7 +156,7 @@ const Treatments = () => {
               return {
                 id: med.id,
                 name: med.name,
-                dosage: catalogDosage || med.dosage,
+                posology: catalogDosage || med.posology,
                 times: sortedTimes,
                 pathology,
                 currentStock: med.current_stock || 0,
@@ -279,7 +279,7 @@ const Treatments = () => {
                         <div className="flex-1 min-w-0 space-y-1">
                           <div className="flex items-center justify-between gap-2">
                             <p className="font-medium text-sm">
-                              {med.name} <span className="text-muted-foreground">• {med.dosage}</span>
+                              {med.name} <span className="text-muted-foreground">• {med.posology}</span>
                             </p>
                             {med.pathology && (
                               <Badge variant="secondary" className="text-xs flex-shrink-0">

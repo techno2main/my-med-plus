@@ -22,7 +22,7 @@ export interface MedicationItem {
   catalogId?: string;
   name: string;
   pathology: string;
-  dosage: string;
+  posology: string;
   takesPerDay: number;
   times: string[];
   unitsPerTake: number;
@@ -34,8 +34,8 @@ export interface CatalogMedication {
   id: string;
   name: string;
   pathology: string;
-  default_dosage: string;
-  dosage_amount?: string | null;
+  default_posology: string;
+  strength?: string | null;
   description: string;
   default_times?: string[] | null;
 }

@@ -99,10 +99,10 @@ export type Database = {
           color: string | null
           created_at: string | null
           created_by: string | null
-          default_dosage: string | null
+          default_posology: string | null
           default_times: string[] | null
           description: string | null
-          dosage_amount: string | null
+          strength: string | null
           form: string | null
           id: string
           initial_stock: number | null
@@ -116,10 +116,10 @@ export type Database = {
           color?: string | null
           created_at?: string | null
           created_by?: string | null
-          default_dosage?: string | null
+          default_posology?: string | null
           default_times?: string[] | null
           description?: string | null
-          dosage_amount?: string | null
+          strength?: string | null
           form?: string | null
           id?: string
           initial_stock?: number | null
@@ -133,10 +133,10 @@ export type Database = {
           color?: string | null
           created_at?: string | null
           created_by?: string | null
-          default_dosage?: string | null
+          default_posology?: string | null
           default_times?: string[] | null
           description?: string | null
-          dosage_amount?: string | null
+          strength?: string | null
           form?: string | null
           id?: string
           initial_stock?: number | null
@@ -194,8 +194,8 @@ export type Database = {
           catalog_id: string | null
           created_at: string | null
           current_stock: number | null
-          dosage: string
-          dosage_amount: string | null
+          posology: string
+          strength: string | null
           expiry_date: string | null
           id: string
           initial_stock: number | null
@@ -209,8 +209,8 @@ export type Database = {
           catalog_id?: string | null
           created_at?: string | null
           current_stock?: number | null
-          dosage: string
-          dosage_amount?: string | null
+          posology: string
+          strength?: string | null
           expiry_date?: string | null
           id?: string
           initial_stock?: number | null
@@ -224,8 +224,8 @@ export type Database = {
           catalog_id?: string | null
           created_at?: string | null
           current_stock?: number | null
-          dosage?: string
-          dosage_amount?: string | null
+          posology?: string
+          strength?: string | null
           expiry_date?: string | null
           id?: string
           initial_stock?: number | null

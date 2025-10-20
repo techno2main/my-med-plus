@@ -26,8 +26,8 @@ import { MedicationEditDialog } from "@/components/TreatmentEdit/MedicationEditD
 interface Medication {
   id: string;
   name: string;
-  dosage: string;
-  dosage_amount?: string | null;
+  posology: string;
+  strength?: string | null;
   times: string[];
   catalog_id?: string;
   pathology?: string | null;
@@ -128,12 +128,12 @@ export default function TreatmentEdit() {
       // Load medications for this treatment
       const { data: medsData, error: medsError } = await supabase
         .from("medications")
-        .select("id, name, dosage, dosage_amount, times, catalog_id")
+        .select("id, name, posology, strength, times, catalog_id")
         .eq("treatment_id", id);
 
       if (medsError) throw medsError;
       
-      // Load pathology and dosage_amount from catalog for each medication
+      // Load pathology and strength from catalog for each medication
       const medsWithPathology = await Promise.all(
         (medsData || []).map(async (med: any) => {
           let pathology = null;
@@ -142,18 +142,18 @@ export default function TreatmentEdit() {
           if (med.catalog_id) {
             const { data: catalogData } = await supabase
               .from("medication_catalog")
-              .select("pathology, dosage_amount")
+              .select("pathology, strength")
               .eq("id", med.catalog_id)
               .maybeSingle();
             
             pathology = catalogData?.pathology || null;
-            catalogDosageAmount = catalogData?.dosage_amount || null;
+            catalogDosageAmount = catalogData?.strength || null;
           }
 
           return {
             ...med,
             pathology,
-            dosage_amount: catalogDosageAmount || med.dosage_amount
+            strength: catalogDosageAmount || med.strength
           };
         })
       );
@@ -375,8 +375,8 @@ export default function TreatmentEdit() {
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <p className="font-medium">{med.name}</p>
-                      {med.dosage_amount && (
-                        <span className="text-sm text-muted-foreground">{med.dosage_amount}</span>
+                      {med.strength && (
+                        <span className="text-sm text-muted-foreground">{med.strength}</span>
                       )}
                     </div>
                     {med.pathology && (
@@ -388,7 +388,7 @@ export default function TreatmentEdit() {
                   
                   {/* Ligne 2: Posologie + Icône Edit */}
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm text-muted-foreground">{med.dosage}</p>
+                    <p className="text-sm text-muted-foreground">{med.posology}</p>
                     <Button 
                       variant="ghost" 
                       size="icon" 

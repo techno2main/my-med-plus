@@ -12,6 +12,7 @@ import { fr } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useIntakeOverdue } from "@/hooks/useIntakeOverdue";
+import { formatToFrenchTime } from "../lib/dateUtils";
 
 interface DayIntake {
   date: Date;
@@ -168,7 +169,7 @@ const Calendar = () => {
 
   const loadDayDetails = async () => {
     try {
-      // Check if selected date is before treatment start (compare only dates, not times)
+      // Check if selected date is before treatment start
       if (treatmentStartDate) {
         const selectedDateOnly = new Date(selectedDate);
         selectedDateOnly.setHours(0, 0, 0, 0);
@@ -191,15 +192,10 @@ const Calendar = () => {
       today.setHours(0, 0, 0, 0);
       const selectedDateOnly = new Date(selectedDate);
       selectedDateOnly.setHours(0, 0, 0, 0);
-      const isToday = selectedDateOnly.getTime() === today.getTime();
       const isPast = selectedDateOnly < today;
 
-      // APPROCHE HYBRIDE :
-      // - Jours PASSÉS : uniquement medication_intakes (historique figé)
-      // - AUJOURD'HUI : combiner medication_intakes + medications.times
-      // - Jours FUTURS : générer depuis medications.times
-
-      // 1. Charger les prises enregistrées
+      // SYSTÈME UNIFIÉ : Lire UNIQUEMENT depuis medication_intakes
+      // Plus de génération dynamique !
       const { data: intakes, error: intakesError } = await supabase
         .from("medication_intakes")
         .select(`
@@ -212,7 +208,7 @@ const Calendar = () => {
             name,
             treatment_id,
             treatments (name),
-            medication_catalog (dosage_amount, default_dosage)
+            medication_catalog (strength, default_posology)
           )
         `)
         .gte("scheduled_time", dayStart.toISOString())
@@ -223,123 +219,42 @@ const Calendar = () => {
 
       const details: IntakeDetail[] = [];
 
-      if (isPast) {
-        // JOURS PASSÉS : Utiliser UNIQUEMENT medication_intakes (historique figé)
-        (intakes || []).forEach((intake: any) => {
-          const scheduledTime = new Date(intake.scheduled_time);
-          
-          let status: 'taken' | 'missed' | 'upcoming' = 'upcoming';
-          if (intake.status === 'taken') {
-            status = 'taken';
-          } else if (intake.status === 'skipped') {
-            status = 'missed';
-          } else if (intake.status === 'pending') {
-            status = 'missed'; // Dans le passé, pending = missed
-          }
-
-          const catalogDosage = intake.medications?.medication_catalog?.dosage_amount || 
-                                intake.medications?.medication_catalog?.default_dosage || "";
-
-          details.push({
-            id: intake.id,
-            medication: intake.medications?.name || '',
-            dosage: catalogDosage,
-            time: format(scheduledTime, 'HH:mm'),
-            takenAt: intake.taken_at ? format(new Date(intake.taken_at), 'HH:mm') : undefined,
-            status: status,
-            treatment: intake.medications?.treatments?.name || '',
-            scheduledTimestamp: intake.scheduled_time,
-            takenAtTimestamp: intake.taken_at || undefined
-          });
-        });
-      } else {
-        // AUJOURD'HUI ou FUTUR : Combiner medication_intakes + medications.times
+      // Traiter toutes les prises de la même manière
+      (intakes || []).forEach((intake: any) => {
+        const scheduledTime = new Date(intake.scheduled_time);
         
-        // 2. Charger les médicaments actifs
-        const { data: medications, error: medsError } = await supabase
-          .from("medications")
-          .select(`
-            id,
-            name,
-            times,
-            treatment_id,
-            treatments!inner(name, is_active),
-            medication_catalog(dosage_amount, default_dosage)
-          `)
-          .eq("treatments.is_active", true);
+        let status: 'taken' | 'missed' | 'upcoming' = 'upcoming';
+        if (intake.status === 'taken') {
+          status = 'taken';
+        } else if (intake.status === 'skipped') {
+          status = 'missed';
+        } else if (intake.status === 'pending') {
+          if (isPast || scheduledTime < now) {
+            status = 'missed';
+          } else {
+            status = 'upcoming';
+          }
+        }
 
-        if (medsError) throw medsError;
+        const catalogDosage = intake.medications?.medication_catalog?.strength || 
+                              intake.medications?.medication_catalog?.default_posology || "";
 
-        // 3. Créer un Set des prises déjà enregistrées
-        const intakesSet = new Set(
-          (intakes || []).map(i => {
-            const time = format(new Date(i.scheduled_time), 'HH:mm');
-            return `${i.medication_id}-${time}`;
-          })
-        );
+        // Convertir les timestamps en heure locale française
+        const localTime = formatToFrenchTime(intake.scheduled_time, 'HH:mm');
+        const localTakenAt = intake.taken_at ? formatToFrenchTime(intake.taken_at, 'HH:mm') : undefined;
 
-        // 4. Générer les prises depuis medications.times
-        (medications || []).forEach((med: any) => {
-          med.times?.forEach((time: string) => {
-            const key = `${med.id}-${time}`;
-            const [hours, minutes] = time.split(':');
-            const scheduledTime = new Date(selectedDate);
-            scheduledTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-
-            // Chercher si cette prise existe déjà dans medication_intakes
-            const existingIntake = (intakes || []).find((i: any) => 
-              i.medication_id === med.id && 
-              format(new Date(i.scheduled_time), 'HH:mm') === time
-            );
-
-            if (existingIntake) {
-              // Utiliser l'enregistrement existant
-              let status: 'taken' | 'missed' | 'upcoming' = 'upcoming';
-              if (existingIntake.status === 'taken') {
-                status = 'taken';
-              } else if (existingIntake.status === 'skipped') {
-                status = 'missed';
-              } else if (existingIntake.status === 'pending') {
-                if (scheduledTime < now) {
-                  status = 'missed';
-                } else {
-                  status = 'upcoming';
-                }
-              }
-
-              details.push({
-                id: existingIntake.id,
-                medication: med.name,
-                dosage: med.medication_catalog?.dosage_amount || 
-                       med.medication_catalog?.default_dosage || '',
-                time: time,
-                takenAt: existingIntake.taken_at ? format(new Date(existingIntake.taken_at), 'HH:mm') : undefined,
-                status: status,
-                treatment: med.treatments.name,
-                scheduledTimestamp: existingIntake.scheduled_time,
-                takenAtTimestamp: existingIntake.taken_at || undefined
-              });
-            } else {
-              // Générer une prise virtuelle (pas encore enregistrée)
-              details.push({
-                id: `${med.id}-${time}`,
-                medication: med.name,
-                dosage: med.medication_catalog?.dosage_amount || 
-                       med.medication_catalog?.default_dosage || '',
-                time: time,
-                takenAt: undefined,
-                status: 'upcoming',
-                treatment: med.treatments.name,
-                scheduledTimestamp: scheduledTime.toISOString(),
-                takenAtTimestamp: undefined
-              });
-            }
-          });
+        details.push({
+          id: intake.id,
+          medication: intake.medications?.name || '',
+          dosage: catalogDosage,
+          time: localTime,
+          takenAt: localTakenAt,
+          status: status,
+          treatment: intake.medications?.treatments?.name || '',
+          scheduledTimestamp: intake.scheduled_time,
+          takenAtTimestamp: intake.taken_at || undefined
         });
-
-        // Trier par heure
-        details.sort((a, b) => a.time.localeCompare(b.time));
-      }
+      });
 
       setDayDetails(details);
 
