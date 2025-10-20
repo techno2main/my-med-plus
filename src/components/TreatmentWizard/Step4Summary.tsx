@@ -63,7 +63,7 @@ export function Step4Summary({ formData, prescriptions, pharmacies }: Step4Summa
       <Card className="p-6">
         <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
           <Clock className="h-5 w-5" />
-          Médicaments ({formData.medications.length})
+          Médicament(s) ({formData.medications.length})
         </h3>
         {formData.medications.length === 0 ? (
           <p className="text-muted-foreground text-sm">Aucun médicament ajouté</p>

@@ -233,7 +233,7 @@ const Treatments = () => {
     <AppLayout>
       <div className="container max-w-2xl mx-auto px-3 md:px-4 py-6 space-y-6">
         <PageHeader 
-          title="Traitements"
+          title="Traitement(s)"
           subtitle={`${treatments.filter(t => t.is_active).length} traitement(s) actif(s)`}
           showAddButton
           onAdd={() => navigate("/treatments/new")}
@@ -346,7 +346,7 @@ const Treatments = () => {
                     {treatment.end_date && (
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Stethoscope className="h-3 w-3" />
-                        <span>Prochaine visite : {new Date(treatment.end_date).toLocaleDateString("fr-FR")}</span>
+                        <span>Prochain RDV : {new Date(treatment.end_date).toLocaleDateString("fr-FR")}</span>
                       </div>
                     )}
                   </div>

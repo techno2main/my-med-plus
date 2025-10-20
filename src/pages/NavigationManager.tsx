@@ -405,7 +405,7 @@ export default function NavigationManager() {
       <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
         <PageHeader 
           title="Navigation"
-          subtitle="Configurez la navigation"
+          subtitle="Configurer la navigation"
           backTo="/admin"
           showAddButton
           onAdd={() => setIsDialogOpen(true)}

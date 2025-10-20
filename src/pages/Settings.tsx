@@ -49,7 +49,7 @@ export default function Settings() {
       <div className="container max-w-2xl mx-auto px-3 md:px-4 py-6 space-y-6">
         <PageHeader 
           title="Paramètres"
-          subtitle="Gérez vos préférences et votre compte"
+          subtitle="Gérer les préférences"
         />
 
         {/* Section Réglages */}
@@ -64,7 +64,7 @@ export default function Settings() {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold">Apparence</h3>
-                <p className="text-sm text-muted-foreground">Personnalisez l'interface</p>
+                <p className="text-sm text-muted-foreground">Personnaliser l'interface</p>
               </div>
             </div>
 
@@ -105,7 +105,7 @@ export default function Settings() {
                 </div>
                 <div>
                   <h3 className="font-semibold">Notifications</h3>
-                  <p className="text-sm text-muted-foreground">Configurez vos rappels</p>
+                  <p className="text-sm text-muted-foreground">Configurer les rappels</p>
                 </div>
               </div>
               <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -121,7 +121,7 @@ export default function Settings() {
                 </div>
                 <div>
                   <h3 className="font-semibold">Confidentialité et sécurité</h3>
-                  <p className="text-sm text-muted-foreground">Protégez vos données</p>
+                  <p className="text-sm text-muted-foreground">Protection des données</p>
                 </div>
               </div>
               <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -145,15 +145,6 @@ export default function Settings() {
           </Card>
         </div>
 
-        {/* Déconnexion */}
-        <Button 
-          variant="outline" 
-          className="w-full border-danger text-danger hover:bg-danger hover:text-white"
-          onClick={handleSignOut}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          Déconnexion
-        </Button>
       </div>
     </AppLayout>
   );

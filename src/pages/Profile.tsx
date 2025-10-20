@@ -8,7 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { AvatarWithBadge } from "@/components/ui/avatar-with-badge";
 import { ModernDatePicker } from "@/components/ui/modern-date-picker";
 import { Badge } from "@/components/ui/badge";
-import { Save, Camera, Edit } from "lucide-react";
+import { Save, Camera, Edit, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -177,6 +177,17 @@ export default function Profile() {
       toast.error(error?.message || "Erreur lors de la sauvegarde du profil");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Déconnexion réussie");
+      navigate("/auth");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("Erreur lors de la déconnexion");
     }
   };
 
@@ -406,6 +417,16 @@ export default function Profile() {
             </>
           )}
         </Card>
+
+        {/* Déconnexion */}
+        <Button 
+          variant="outline" 
+          className="w-full border-danger text-danger hover:bg-danger hover:text-white"
+          onClick={handleLogout}
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Déconnexion
+        </Button>
       </div>
     </AppLayout>
   );

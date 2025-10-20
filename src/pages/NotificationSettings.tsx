@@ -55,7 +55,7 @@ export default function NotificationSettings() {
           <div className="flex-1">
             <h1 className="text-2xl font-bold">Notifications</h1>
             <p className="text-sm text-muted-foreground">
-              Configurez vos rappels et alertes
+              Configurer rappels et alertes
             </p>
           </div>
           {isSupported && (mode === 'native' ? hasPermission : permission === "granted") && (
@@ -157,7 +157,7 @@ export default function NotificationSettings() {
             <div className="flex-1">
               <h3 className="font-semibold">Rappels de prise</h3>
               <p className="text-sm text-muted-foreground">
-                Notifications pour vos médicaments
+                Pour vos médicaments
               </p>
             </div>
             <Switch
@@ -174,7 +174,7 @@ export default function NotificationSettings() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-4">
                   <Label htmlFor="reminder-before" className="text-sm">
-                    Alerte avant la prise
+                    Avant la prise
                   </Label>
                   <div className="flex items-center gap-2">
                     <NumberInput
@@ -185,20 +185,20 @@ export default function NotificationSettings() {
                       onChange={(value) =>
                         updatePreferences({ medicationReminderBefore: value })
                       }
-                      className="w-20"
+                      className="w-16"
                     />
                     <span className="text-sm text-muted-foreground">min</span>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Notification envoyée avant l'heure de prise prévue
+                  Minutes avant la prise
                 </p>
               </div>
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-4">
                   <Label htmlFor="reminder-delay" className="text-sm">
-                    Rappel si non pris après
+                    Après la prise
                   </Label>
                   <div className="flex items-center gap-2">
                     <NumberInput
@@ -209,13 +209,13 @@ export default function NotificationSettings() {
                       onChange={(value) =>
                         updatePreferences({ medicationReminderDelay: value })
                       }
-                      className="w-20"
+                      className="w-16"
                     />
                     <span className="text-sm text-muted-foreground">min</span>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Rappel envoyé si vous n'avez pas marqué la prise dans ce délai
+                  Minutes après la prise
                 </p>
               </div>
             </div>
@@ -246,7 +246,7 @@ export default function NotificationSettings() {
           {preferences.stockAlerts && (
             <div className="pl-11">
               <p className="text-xs text-muted-foreground">
-                Notification envoyée lorsque le stock atteint le seuil d'alerte configuré
+                Lorsque le seuil d'alerte est atteint
               </p>
             </div>
           )}
@@ -259,9 +259,9 @@ export default function NotificationSettings() {
               <Calendar className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold">Renouvellement d'ordonnances</h3>
+              <h3 className="font-semibold">Ordonnances</h3>
               <p className="text-sm text-muted-foreground">
-                Avant l'expiration
+                Avant expiration
               </p>
             </div>
             <Switch
@@ -283,7 +283,7 @@ export default function NotificationSettings() {
                 ))}
               </div>
               <p className="text-xs text-muted-foreground">
-                Rappels à J-10 et J-2 avant l'échéance de votre ordonnance
+                Rappels avant échéance
               </p>
             </div>
           )}
@@ -296,9 +296,9 @@ export default function NotificationSettings() {
               <Clock className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold">Rappels visite pharmacie</h3>
+              <h3 className="font-semibold">Pharmacie</h3>
               <p className="text-sm text-muted-foreground">
-                Avant chaque renouvellement
+                Avant renouvellement
               </p>
             </div>
             <Switch
@@ -314,7 +314,7 @@ export default function NotificationSettings() {
             <div className="pl-11 space-y-3">
               <div className="flex items-center justify-between gap-4">
                 <Label htmlFor="pharmacy-days" className="text-sm">
-                  Rappel avant visite
+                  Rappel
                 </Label>
                 <div className="flex items-center gap-2">
                   <NumberInput
@@ -325,13 +325,13 @@ export default function NotificationSettings() {
                     onChange={(value) =>
                       updatePreferences({ pharmacyVisitReminderDays: value })
                     }
-                    className="w-20"
+                    className="w-16"
                   />
                   <span className="text-sm text-muted-foreground">jour(s)</span>
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                Notification envoyée la veille de votre visite à la pharmacie
+                Avant renouvellement
               </p>
             </div>
           )}
@@ -344,9 +344,9 @@ export default function NotificationSettings() {
               <Settings2 className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold">Personnaliser les messages</h3>
+              <h3 className="font-semibold">Personnaliser</h3>
               <p className="text-sm text-muted-foreground">
-                Modifiez les titres des notifications
+                Modifier les textes
               </p>
             </div>
             <Button

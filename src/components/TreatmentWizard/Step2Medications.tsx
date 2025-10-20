@@ -232,7 +232,7 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
           <DialogHeader className="px-6 py-4 border-b">
             <DialogTitle>Référentiel de médicaments</DialogTitle>
             <DialogDescription>
-              Sélectionnez un médicament dans le catalogue ou créez-en un nouveau.
+              Sélectionner un médicament ou en créer un nouveau.
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className="h-[calc(80vh-80px)] px-6">
@@ -284,7 +284,7 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
           <DialogHeader>
             <DialogTitle>Créer un nouveau médicament</DialogTitle>
             <DialogDescription>
-              Ajoutez un médicament personnalisé qui ne figure pas dans le catalogue.
+              Ajouter un médicament au catalogue.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">

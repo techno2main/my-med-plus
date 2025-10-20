@@ -425,7 +425,7 @@ const Calendar = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium">
-                    RDV
+                    RDV Doc
                   </p>
                   <p className="text-xs text-muted-foreground whitespace-nowrap">
                     {nextDoctorVisit 
@@ -525,7 +525,7 @@ const Calendar = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <span>🩺</span>
-                  <span className="text-muted-foreground">Visite</span>
+                  <span className="text-muted-foreground">Médecin</span>
                 </div>
               </div>
             </div>

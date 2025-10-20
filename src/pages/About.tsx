@@ -83,18 +83,18 @@ export default function About() {
 
         {/* Contact */}
         <Card className="p-6">
-          <h3 className="font-semibold mb-4">Contactez-nous</h3>
+          <h3 className="font-semibold mb-4">Contact</h3>
           <div className="space-y-3">
             <Button variant="outline" className="w-full justify-start" asChild>
               <a href="mailto:support@techno2main.fr?bcc=techno2main@gmail.com&subject=Contact%20from%20MyHealth%2B%20App">
                 <Mail className="mr-2 h-4 w-4" />
-                support@techno2main.fr
+                E-mail
               </a>
             </Button>
             <Button variant="outline" className="w-full justify-start" asChild>
-              <a href="https://web-tad.app/myhealth+" target="_blank" rel="noopener noreferrer">
+              <a href="https://myhealthplus.web-tad.app" target="_blank" rel="noopener noreferrer">
                 <Globe className="mr-2 h-4 w-4" />
-                web-tad.app/myhealth+
+                Application MyHealth+ 
               </a>
             </Button>
           </div>
@@ -103,10 +103,10 @@ export default function About() {
         {/* Crédits */}
         <Card className="p-6 text-center">
           <p className="text-sm text-muted-foreground">
-            Développé avec <Heart className="inline h-4 w-4 text-danger" /> pour votre santé
+            MyHealth+
           </p>
           <p className="text-xs text-muted-foreground mt-2">
-            © 2025 MyHealth+. Tous droits réservés.
+            © 2025 • TAD • Tous droits réservés.
           </p>
         </Card>
       </div>

@@ -43,7 +43,7 @@ const Referentials = () => {
           </Button>
           <header>
             <h1 className="text-2xl font-bold">Référentiels</h1>
-            <p className="text-sm text-muted-foreground">Gérez vos référentiels de données</p>
+            <p className="text-sm text-muted-foreground">Gérer les référentiels</p>
           </header>
         </div>
 

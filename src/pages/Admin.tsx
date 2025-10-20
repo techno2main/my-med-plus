@@ -41,7 +41,7 @@ export default function Admin() {
       <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
         <PageHeader 
           title="Administration"
-          subtitle="Gérez les paramètres avancés de l'application"
+          subtitle="Gérer les paramètres avancés"
         />
 
         {/* Section Navigation */}

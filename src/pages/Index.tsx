@@ -643,7 +643,7 @@ const Index = () => {
               Confirmer la prise
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Voulez-vous confirmer la prise de ce médicament ?
+              Valider la prise de ce médicament ?
             </DialogDescription>
           </DialogHeader>
           

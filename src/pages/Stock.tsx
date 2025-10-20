@@ -76,7 +76,7 @@ export default function Stock() {
       <div className="container max-w-2xl mx-auto px-3 md:px-4 py-6 space-y-6">
         <PageHeader 
           title="Stocks"
-          subtitle="Gérez les stocks de vos traitements actifs"
+          subtitle="Gérer les stocks des médicaments"
         />
 
         {/* Alertes */}

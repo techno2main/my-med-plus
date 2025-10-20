@@ -359,7 +359,7 @@ export default function TreatmentEdit() {
         {/* Médicaments */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">Médicaments</h3>
+            <h3 className="font-semibold">Médicament(s)</h3>
             <Button size="icon" variant="default" onClick={handleAddMedication}>
               +
             </Button>

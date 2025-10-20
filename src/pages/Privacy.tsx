@@ -346,7 +346,7 @@ export default function Privacy() {
       <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
         <PageHeader 
           title="Sécurité"
-          subtitle="Protégez vos données personnelles"
+          subtitle="Protection des données personnelles"
           backTo="/settings"
         />
 
@@ -409,7 +409,7 @@ export default function Privacy() {
               onClick={() => setShowExportDialog(true)}
             >
               <Download className="mr-2 h-4 w-4" />
-              Télécharger mes données
+              Télécharger les données
             </Button>
             <Button 
               variant="outline" 

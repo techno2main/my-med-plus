@@ -203,7 +203,7 @@ export function MedicationEditDialog({ open, onOpenChange, medication, treatment
             </Button>
             <DialogTitle>{medication ? "Modifier" : "Ajouter"}</DialogTitle>
             <DialogDescription>
-              {medication ? "Modifier les paramètres de ce médicament" : "Ajouter un nouveau médicament au traitement"}
+              {medication ? "Paramètres du médicament" : "Nouveau médicament"}
             </DialogDescription>
           </div>
         </DialogHeader>
