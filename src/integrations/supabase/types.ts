@@ -46,7 +46,9 @@ export type Database = {
       }
       health_professionals: {
         Row: {
-          address: string | null
+          street_address: string | null
+          postal_code: string | null
+          city: string | null
           created_at: string | null
           email: string | null
           id: string
@@ -59,7 +61,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          address?: string | null
+          street_address?: string | null
+          postal_code?: string | null
+          city?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
@@ -72,7 +76,9 @@ export type Database = {
           user_id: string
         }
         Update: {
-          address?: string | null
+          street_address?: string | null
+          postal_code?: string | null
+          city?: string | null
           created_at?: string | null
           email?: string | null
           id?: string

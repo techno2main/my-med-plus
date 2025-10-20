@@ -24,7 +24,9 @@ interface HealthProfessional {
   specialty: string | null
   phone: string | null
   email: string | null
-  address: string | null
+  street_address: string | null
+  postal_code: string | null
+  city: string | null
   is_primary_doctor: boolean | null
   user_id: string
 }
@@ -44,7 +46,9 @@ const HealthProfessionals = () => {
     specialty: "",
     phone: "",
     email: "",
-    address: "",
+    street_address: "",
+    postal_code: "",
+    city: "",
     is_primary_doctor: false
   })
 
@@ -88,7 +92,9 @@ const HealthProfessionals = () => {
             specialty: formData.specialty || null,
             phone: formData.phone || null,
             email: formData.email || null,
-            address: formData.address || null,
+            street_address: formData.street_address || null,
+            postal_code: formData.postal_code || null,
+            city: formData.city || null,
             is_primary_doctor: formData.is_primary_doctor
           })
           .eq("id", editingItem.id)
@@ -104,7 +110,9 @@ const HealthProfessionals = () => {
             specialty: formData.specialty || null,
             phone: formData.phone || null,
             email: formData.email || null,
-            address: formData.address || null,
+            street_address: formData.street_address || null,
+            postal_code: formData.postal_code || null,
+            city: formData.city || null,
             is_primary_doctor: formData.is_primary_doctor,
             user_id: user.id
           })
@@ -165,7 +173,9 @@ const HealthProfessionals = () => {
         specialty: item.specialty || "",
         phone: item.phone || "",
         email: item.email || "",
-        address: item.address || "",
+        street_address: item.street_address || "",
+        postal_code: item.postal_code || "",
+        city: item.city || "",
         is_primary_doctor: item.is_primary_doctor || false
       })
     } else {
@@ -177,7 +187,9 @@ const HealthProfessionals = () => {
         specialty: "",
         phone: "",
         email: "",
-        address: "",
+        street_address: "",
+        postal_code: "",
+        city: "",
         is_primary_doctor: false
       })
     }
@@ -193,7 +205,9 @@ const HealthProfessionals = () => {
       specialty: "",
       phone: "",
       email: "",
-      address: "",
+      street_address: "",
+      postal_code: "",
+      city: "",
       is_primary_doctor: false
     })
   }
@@ -263,10 +277,15 @@ const HealthProfessionals = () => {
             <span>{item.email}</span>
           </div>
         )}
-        {item.address && (
+        {(item.street_address || item.postal_code || item.city) && (
           <div className="flex items-center gap-2 text-muted-foreground">
             <MapPin className="h-4 w-4" />
-            <span>{item.address}</span>
+            <span>
+              {item.street_address && <>{item.street_address}<br /></>}
+              {(item.postal_code || item.city) && (
+                <>{item.postal_code} {item.city}</>
+              )}
+            </span>
           </div>
         )}
       </div>
@@ -432,14 +451,39 @@ const HealthProfessionals = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="address">Adresse</Label>
-                  <Textarea
-                    id="address"
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    placeholder="Adresse complète"
+                  <Label htmlFor="street_address">Adresse</Label>
+                  <Input
+                    id="street_address"
+                    value={formData.street_address}
+                    onChange={(e) => setFormData({ ...formData, street_address: e.target.value })}
+                    placeholder="Numéro et nom de rue"
                     className="bg-surface"
                   />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="postal_code">Code postal</Label>
+                    <Input
+                      id="postal_code"
+                      value={formData.postal_code}
+                      onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
+                      placeholder="75001"
+                      maxLength={5}
+                      className="bg-surface"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="city">Ville</Label>
+                    <Input
+                      id="city"
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      placeholder="Paris"
+                      className="bg-surface"
+                    />
+                  </div>
                 </div>
 
                 {(formData.type === "medecin" || formData.type === "doctor") && (
