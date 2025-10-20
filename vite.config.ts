@@ -33,7 +33,7 @@ export default defineConfig(({ mode }) => ({
       }
     },
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate', // Mise à jour automatique au lieu de 'prompt'
       includeAssets: ['icon-192.png', 'icon-512.png'],
       manifest: {
         name: 'MyHealthPlus',
@@ -62,6 +62,7 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         skipWaiting: true,
         clientsClaim: true,
+        cleanupOutdatedCaches: true, // Nettoie automatiquement les anciens caches
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3 MB
         runtimeCaching: [
