@@ -191,12 +191,16 @@
   }
 }
 
-/* Android-specific safe areas - applied to #root not body */
-#root {
-  padding-top: 24px; /* Status bar height on Android */
+/* Android-specific safe areas utilities */
+.pt-safe-android {
+  padding-top: 30px; /* 24px status bar + 6px spacing */
 }
 
-/* Bottom navigation safe area for all platforms */
-.bottom-nav-safe {
+.pb-safe {
   padding-bottom: max(env(safe-area-inset-bottom), 16px);
 }
+
+.mb-safe {
+  margin-bottom: max(env(safe-area-inset-bottom), 16px);
+}
+

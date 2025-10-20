@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { UpdateNotification } from "./components/UpdateNotification";
+import { NotificationSchedulerProvider } from "./components/NotificationSchedulerProvider";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Treatments from "./pages/Treatments";
@@ -29,6 +30,7 @@ import About from "./pages/About";
 import StockDetails from "./pages/StockDetails";
 import TreatmentEdit from "./pages/TreatmentEdit";
 import NotificationSettings from "./pages/NotificationSettings";
+import NotificationDebug from "./pages/NotificationDebug";
 import NavigationManager from "./pages/NavigationManager";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
@@ -43,7 +45,8 @@ const App = () => (
       <Sonner />
       <UpdateNotification />
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <Routes>
+        <NotificationSchedulerProvider>
+          <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
           <Route path="/treatments" element={<ProtectedRoute><Treatments /></ProtectedRoute>} />
@@ -64,6 +67,7 @@ const App = () => (
           <Route path="/settings/navigation" element={<ProtectedRoute><NavigationManager /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
+          <Route path="/notifications/debug" element={<ProtectedRoute><NotificationDebug /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/privacy" element={<ProtectedRoute><Privacy /></ProtectedRoute>} />
@@ -74,6 +78,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </NotificationSchedulerProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

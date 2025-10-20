@@ -6,11 +6,14 @@ import { Label } from "@/components/ui/label";
 import { NumberInput } from "@/components/ui/number-input";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Clock, AlertTriangle, Calendar, Pill, Settings2 } from "lucide-react";
+import { ArrowLeft, Bell, Clock, AlertTriangle, Calendar, Pill, Settings2, Bug } from "lucide-react";
 import { useNotificationSystem } from "@/hooks/useNotificationSystem";
+import { useMedicationNotificationScheduler } from "@/hooks/useMedicationNotificationScheduler";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useState } from "react";
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { Capacitor } from '@capacitor/core';
 
 export default function NotificationSettings() {
   const navigate = useNavigate();
@@ -24,7 +27,9 @@ export default function NotificationSettings() {
     sendTestNotification,
     mode
   } = useNotificationSystem();
+  const { rescheduleAll, scheduledCount } = useMedicationNotificationScheduler();
   const [showCustomize, setShowCustomize] = useState(false);
+  const [isRescheduling, setIsRescheduling] = useState(false);
 
   const handleTogglePush = async (enabled: boolean) => {
     const permissionGranted = mode === 'native' ? hasPermission : permission === "granted";
@@ -45,6 +50,74 @@ export default function NotificationSettings() {
     await sendTestNotification();
   };
 
+  const handleRescheduleAll = async () => {
+    const permissionGranted = mode === 'native' ? hasPermission : permission === "granted";
+    if (!permissionGranted) {
+      toast.error("Veuillez d'abord autoriser les notifications");
+      return;
+    }
+    
+    setIsRescheduling(true);
+    try {
+      await rescheduleAll();
+      toast.success("Notifications replanifiées avec succès !");
+    } catch (error) {
+      console.error("Erreur replanification:", error);
+      toast.error("Erreur lors de la replanification");
+    } finally {
+      setIsRescheduling(false);
+    }
+  };
+
+  const handleSimpleTest = async () => {
+    if (!Capacitor.isNativePlatform()) {
+      toast.error("Disponible uniquement sur mobile");
+      return;
+    }
+
+    try {
+      const scheduleTime = new Date(Date.now() + 10 * 1000); // 10 secondes
+      
+      await LocalNotifications.schedule({
+        notifications: [{
+          title: "🧪 Test Simple",
+          body: "Notification dans 10s",
+          id: 999999,
+          schedule: { at: scheduleTime },
+          sound: 'beep.wav',
+          channelId: 'medication-reminders'
+        }]
+      });
+      
+      toast.success("Test planifié dans 10 secondes");
+      
+      // Vérifier
+      const pending = await LocalNotifications.getPending();
+      console.log("Pending notifications:", pending);
+      toast.info(`${pending.notifications.length} notif en attente`);
+      
+    } catch (error) {
+      console.error("Erreur test:", error);
+      toast.error(`Erreur: ${error}`);
+    }
+  };
+
+  const handleCancelAll = async () => {
+    if (!Capacitor.isNativePlatform()) {
+      toast.error("Disponible uniquement sur mobile");
+      return;
+    }
+
+    try {
+      const pending = await LocalNotifications.getPending();
+      await LocalNotifications.cancel(pending);
+      toast.success("Toutes les notifications annulées");
+    } catch (error) {
+      console.error("Erreur annulation:", error);
+      toast.error(`Erreur: ${error}`);
+    }
+  };
+
   return (
     <AppLayout>
       <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
@@ -58,11 +131,18 @@ export default function NotificationSettings() {
               Configurer rappels et alertes
             </p>
           </div>
-          {isSupported && (mode === 'native' ? hasPermission : permission === "granted") && (
-            <Button variant="outline" size="sm" onClick={handleTestNotification}>
-              Tester
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {Capacitor.isNativePlatform() && (
+              <Button variant="outline" size="sm" onClick={() => navigate("/notifications/debug")}>
+                <Bug className="h-4 w-4" />
+              </Button>
+            )}
+            {isSupported && (mode === 'native' ? hasPermission : permission === "granted") && (
+              <Button variant="outline" size="sm" onClick={handleTestNotification}>
+                Tester
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Permission Status */}

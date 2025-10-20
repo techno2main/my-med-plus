@@ -117,7 +117,7 @@ export function BottomNavigation() {
   if (filteredNavItems.length === 0) return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-sm bottom-nav-safe">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-sm pb-safe">
       <div 
         ref={scrollContainerRef}
         className={cn(

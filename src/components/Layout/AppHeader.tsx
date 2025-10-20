@@ -41,7 +41,7 @@ export function AppHeader() {
   }
 
   return (
-    <header className="bg-background border-b border-border py-4 sticky top-0 z-50">
+    <header className="bg-background border-b border-border py-4 sticky top-0 z-50 pt-safe-android">
       <div className="container max-w-2xl mx-auto px-3 md:px-4 space-y-2">
         <div className="flex items-center justify-between">
           <h1 
