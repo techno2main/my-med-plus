@@ -1,10 +1,13 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNotificationSystem } from "./useNotificationSystem";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
 import { toast } from "sonner";
 import { parseISO } from 'date-fns';
+
+// Mode debug pour les logs détaillés (false en production)
+const DEBUG_NOTIFICATIONS = import.meta.env.DEV && false; // Mettre à true pour déboguer
 
 /**
  * Génère un ID numérique unique à partir d'une chaîne
@@ -42,7 +45,9 @@ export const useMedicationNotificationScheduler = () => {
       try {
         const parsed = JSON.parse(savedCache);
         scheduledNotificationsRef.current = new Set(parsed);
-        console.log(`📦 Cache restauré: ${parsed.length} notifications`);
+        if (DEBUG_NOTIFICATIONS) {
+          console.log(`📦 Cache restauré: ${parsed.length} notifications`);
+        }
       } catch (error) {
         console.error("Erreur chargement cache:", error);
       }
@@ -66,7 +71,9 @@ export const useMedicationNotificationScheduler = () => {
             lightColor: '#488AFF'
           });
           channelCreatedRef.current = true;
-          console.log("✅ Canal de notification créé");
+          if (DEBUG_NOTIFICATIONS) {
+            console.log("✅ Canal de notification créé");
+          }
         } catch (error) {
           console.error("❌ Erreur création canal:", error);
         }
@@ -108,12 +115,14 @@ export const useMedicationNotificationScheduler = () => {
                        preferences.medicationReminders;
 
     if (!canSchedule) {
-      console.log("❌ Planification automatique désactivée:", {
-        isSupported,
-        hasPermission,
-        pushEnabled: preferences.pushEnabled,
-        medicationReminders: preferences.medicationReminders
-      });
+      if (DEBUG_NOTIFICATIONS) {
+        console.log("❌ Planification automatique désactivée:", {
+          isSupported,
+          hasPermission,
+          pushEnabled: preferences.pushEnabled,
+          medicationReminders: preferences.medicationReminders
+        });
+      }
       
       // Nettoyer les notifications existantes si désactivé
       if (intervalRef.current) {
@@ -123,7 +132,9 @@ export const useMedicationNotificationScheduler = () => {
       return;
     }
 
-    console.log("✅ Planification automatique activée - Mode:", mode);
+    if (DEBUG_NOTIFICATIONS) {
+      console.log("✅ Planification automatique activée - Mode:", mode);
+    }
 
     // Planifier immédiatement au démarrage (SANS toasts)
     scheduleUpcomingNotifications(false);
@@ -141,37 +152,43 @@ export const useMedicationNotificationScheduler = () => {
   /**
    * Planifie les notifications pour toutes les prises à venir dans les prochaines 24h
    */
-  const scheduleUpcomingNotifications = async (showToasts: boolean = false) => {
+  const scheduleUpcomingNotifications = useCallback(async (showToasts: boolean = false) => {
     try {
-      console.log("🔔 ========== DÉBUT PLANIFICATION ==========");
-      console.log("🔔 Recherche des prises à planifier...");
-      console.log("🔔 Préférences:", {
-        pushEnabled: preferences.pushEnabled,
-        medicationReminders: preferences.medicationReminders,
-        reminderBefore: preferences.medicationReminderBefore,
-        reminderDelay: preferences.medicationReminderDelay
-      });
+      // Logs uniquement en mode debug
+      if (DEBUG_NOTIFICATIONS) {
+        console.log("🔔 ========== DÉBUT PLANIFICATION ==========");
+        console.log("🔔 Recherche des prises à planifier...");
+        console.log("🔔 Préférences:", {
+          pushEnabled: preferences.pushEnabled,
+          medicationReminders: preferences.medicationReminders,
+          reminderBefore: preferences.medicationReminderBefore,
+          reminderDelay: preferences.medicationReminderDelay
+        });
+      }
       
       // Vérifier qu'on a un utilisateur connecté
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        console.log("❌ Pas d'utilisateur connecté");
-        if (showToasts) toast.error("Pas d'utilisateur connecté");
+        // Ne pas afficher de message, c'est normal au démarrage
         return;
       }
       
-      console.log("✅ Utilisateur connecté:", user.id);
+      if (DEBUG_NOTIFICATIONS) {
+        console.log("✅ Utilisateur connecté:", user.id);
+      }
       
       // Récupérer les prises pending dans les prochaines 24h
       const now = new Date();
       const next24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
-      console.log("🔍 Recherche prises entre:", {
-        now: now.toISOString(),
-        next24h: next24h.toISOString(),
-        nowLocal: now.toLocaleString('fr-FR'),
-        next24hLocal: next24h.toLocaleString('fr-FR')
-      });
+      if (DEBUG_NOTIFICATIONS) {
+        console.log("🔍 Recherche prises entre:", {
+          now: now.toISOString(),
+          next24h: next24h.toISOString(),
+          nowLocal: now.toLocaleString('fr-FR'),
+          next24hLocal: next24h.toLocaleString('fr-FR')
+        });
+      }
 
       const { data: upcomingIntakes, error } = await supabase
         .from("medication_intakes")
@@ -202,22 +219,28 @@ export const useMedicationNotificationScheduler = () => {
         return;
       }
       
-      console.log("📋 Prises trouvées (brut):", upcomingIntakes?.length || 0);
+      if (DEBUG_NOTIFICATIONS) {
+        console.log("📋 Prises trouvées (brut):", upcomingIntakes?.length || 0);
+      }
       
       // Filtrer pour garder seulement les prises de l'utilisateur connecté
       const userIntakes = upcomingIntakes?.filter((intake: any) => 
         intake.medications?.treatments?.user_id === user.id
       ) || [];
 
-      console.log(`📋 ${userIntakes.length} prises de l'utilisateur`, userIntakes.map((i: any) => ({
-        id: i.id,
-        medication: i.medications?.name,
-        scheduledTime: i.scheduled_time,
-        scheduledLocal: new Date(i.scheduled_time).toLocaleString('fr-FR')
-      })));
+      if (DEBUG_NOTIFICATIONS) {
+        console.log(`📋 ${userIntakes.length} prises de l'utilisateur`, userIntakes.map((i: any) => ({
+          id: i.id,
+          medication: i.medications?.name,
+          scheduledTime: i.scheduled_time,
+          scheduledLocal: new Date(i.scheduled_time).toLocaleString('fr-FR')
+        })));
+      }
       
       if (userIntakes.length === 0) {
-        console.log("⚠️ Aucune prise trouvée dans les 24h");
+        if (DEBUG_NOTIFICATIONS) {
+          console.log("⚠️ Aucune prise trouvée dans les 24h");
+        }
         if (showToasts) toast.info("Aucune prise à planifier dans les 24h");
         return;
       }
@@ -225,13 +248,17 @@ export const useMedicationNotificationScheduler = () => {
       // Planifier une notification pour chaque prise
       let successCount = 0;
       for (const intake of userIntakes) {
-        console.log(`\n📌 Traitement de la prise ${intake.id} - ${intake.medications?.name}`);
+        if (DEBUG_NOTIFICATIONS) {
+          console.log(`\n📌 Traitement de la prise ${intake.id} - ${intake.medications?.name}`);
+        }
         const result = await scheduleNotificationForIntake(intake);
         if (result) successCount++;
       }
       
-      console.log(`\n✅ ${successCount}/${userIntakes.length} prises planifiées avec succès`);
-      console.log("🔔 ========== FIN PLANIFICATION ==========\n");
+      if (DEBUG_NOTIFICATIONS) {
+        console.log(`\n✅ ${successCount}/${userIntakes.length} prises planifiées avec succès`);
+        console.log("🔔 ========== FIN PLANIFICATION ==========\n");
+      }
       
       if (showToasts) toast.success(`${successCount} prises planifiées`);
 
@@ -239,7 +266,8 @@ export const useMedicationNotificationScheduler = () => {
       console.error("❌ Erreur planification notifications:", error);
       if (showToasts) toast.error(`Erreur: ${error}`);
     }
-  };
+  }, [preferences.pushEnabled, preferences.medicationReminders, preferences.medicationReminderBefore, preferences.medicationReminderDelay, hasPermission, isSupported, mode]);
+
 
   /**
    * Planifie les notifications (avant + après) pour une prise spécifique
@@ -279,7 +307,9 @@ export const useMedicationNotificationScheduler = () => {
       
       const now = new Date();
       
-      console.log(`📅 ${intake.medications?.name}: DB=${intake.scheduled_time} -> Paris=${parisTimeString} -> Date=${scheduledTime.toLocaleString('fr-FR')}`);
+      if (DEBUG_NOTIFICATIONS) {
+        console.log(`📅 ${intake.medications?.name}: DB=${intake.scheduled_time} -> Paris=${parisTimeString} -> Date=${scheduledTime.toLocaleString('fr-FR')}`);
+      }
       
       const medicationName = intake.medications?.name || "Médicament";
       const dosage = intake.medications?.medication_catalog?.strength || 
@@ -291,7 +321,9 @@ export const useMedicationNotificationScheduler = () => {
 
       // Vérifier si déjà planifiée
       if (scheduledNotificationsRef.current.has(notifKey)) {
-        console.log(`  ⚠️ Déjà en cache, skip`);
+        if (DEBUG_NOTIFICATIONS) {
+          console.log(`  ⚠️ Déjà en cache, skip`);
+        }
         return false;
       }
 
@@ -301,12 +333,16 @@ export const useMedicationNotificationScheduler = () => {
       if (preferences.medicationReminderBefore > 0) {
         const beforeTime = new Date(scheduledTime.getTime() - preferences.medicationReminderBefore * 60 * 1000);
         
-        console.log(`  🔔 AVANT: ${beforeTime.toLocaleString('fr-FR')} (dans ${preferences.medicationReminderBefore} min avant)`);
+        if (DEBUG_NOTIFICATIONS) {
+          console.log(`  🔔 AVANT: ${beforeTime.toLocaleString('fr-FR')} (dans ${preferences.medicationReminderBefore} min avant)`);
+        }
         
         if (beforeTime > now) {
           const beforeId = Math.abs(hashCode(`${intake.id}_before`));
           
-          console.log(`  ✅ Planification AVANT (ID: ${beforeId})`);
+          if (DEBUG_NOTIFICATIONS) {
+            console.log(`  ✅ Planification AVANT (ID: ${beforeId})`);
+          }
           
           await scheduleNativeNotification({
             id: beforeId,
@@ -316,20 +352,24 @@ export const useMedicationNotificationScheduler = () => {
           });
 
           notifCount++;
-        } else {
+        } else if (DEBUG_NOTIFICATIONS) {
           console.log(`  ⏭️ AVANT dans le passé, skip`);
         }
-      } else {
+      } else if (DEBUG_NOTIFICATIONS) {
         console.log(`  ⏭️ AVANT désactivé (0 min)`);
       }
 
       // 2. NOTIFICATION À L'HEURE DE LA PRISE (TOUJOURS)
-      console.log(`  🔔 À L'HEURE: ${scheduledTime.toLocaleString('fr-FR')}`);
+      if (DEBUG_NOTIFICATIONS) {
+        console.log(`  🔔 À L'HEURE: ${scheduledTime.toLocaleString('fr-FR')}`);
+      }
       
       if (scheduledTime > now) {
         const onTimeId = Math.abs(hashCode(`${intake.id}_ontime`));
         
-        console.log(`  ✅ Planification À L'HEURE (ID: ${onTimeId})`);
+        if (DEBUG_NOTIFICATIONS) {
+          console.log(`  ✅ Planification À L'HEURE (ID: ${onTimeId})`);
+        }
         
         await scheduleNativeNotification({
           id: onTimeId,
@@ -339,7 +379,7 @@ export const useMedicationNotificationScheduler = () => {
         });
 
         notifCount++;
-      } else {
+      } else if (DEBUG_NOTIFICATIONS) {
         console.log(`  ⏭️ À L'HEURE dans le passé, skip`);
       }
 
@@ -347,12 +387,16 @@ export const useMedicationNotificationScheduler = () => {
       if (preferences.medicationReminderDelay > 0) {
         const afterTime = new Date(scheduledTime.getTime() + preferences.medicationReminderDelay * 60 * 1000);
         
-        console.log(`  🔔 APRÈS: ${afterTime.toLocaleString('fr-FR')} (${preferences.medicationReminderDelay} min après)`);
+        if (DEBUG_NOTIFICATIONS) {
+          console.log(`  🔔 APRÈS: ${afterTime.toLocaleString('fr-FR')} (${preferences.medicationReminderDelay} min après)`);
+        }
         
         if (afterTime > now) {
           const afterId = Math.abs(hashCode(`${intake.id}_after`));
           
-          console.log(`  ✅ Planification APRÈS (ID: ${afterId})`);
+          if (DEBUG_NOTIFICATIONS) {
+            console.log(`  ✅ Planification APRÈS (ID: ${afterId})`);
+          }
           
           await scheduleNativeNotification({
             id: afterId,
@@ -362,14 +406,16 @@ export const useMedicationNotificationScheduler = () => {
           });
 
           notifCount++;
-        } else {
+        } else if (DEBUG_NOTIFICATIONS) {
           console.log(`  ⏭️ APRÈS dans le passé, skip`);
         }
-      } else {
+      } else if (DEBUG_NOTIFICATIONS) {
         console.log(`  ⏭️ APRÈS désactivé (0 min)`);
       }
 
-      console.log(`  📊 Total: ${notifCount} notifications planifiées`);
+      if (DEBUG_NOTIFICATIONS) {
+        console.log(`  📊 Total: ${notifCount} notifications planifiées`);
+      }
 
       // Marquer comme planifiée
       scheduledNotificationsRef.current.add(notifKey);
@@ -377,7 +423,10 @@ export const useMedicationNotificationScheduler = () => {
       // Sauvegarder le cache dans localStorage
       const cacheArray = Array.from(scheduledNotificationsRef.current);
       localStorage.setItem('scheduled_notifications_cache', JSON.stringify(cacheArray));
-      console.log(`  💾 Cache sauvegardé (${cacheArray.length} entrées)`);
+      
+      if (DEBUG_NOTIFICATIONS) {
+        console.log(`  💾 Cache sauvegardé (${cacheArray.length} entrées)`);
+      }
 
       // Nettoyer les anciennes clés (plus de 48h)
       const twoDaysAgo = now.getTime() - 48 * 60 * 60 * 1000;
@@ -413,17 +462,21 @@ export const useMedicationNotificationScheduler = () => {
     try {
       // Vérifier si Capacitor est disponible (mobile natif)
       if (!Capacitor.isNativePlatform()) {
-        console.log("    ⚠️ Capacitor non disponible, notification ignorée");
+        if (DEBUG_NOTIFICATIONS) {
+          console.log("    ⚠️ Capacitor non disponible, notification ignorée");
+        }
         return;
       }
 
-      console.log(`    🚀 LocalNotifications.schedule() appelé:`, {
-        id,
-        title,
-        body: body.substring(0, 50) + '...',
-        scheduleAt: scheduleAt.toISOString(),
-        scheduleAtLocal: scheduleAt.toLocaleString('fr-FR')
-      });
+      if (DEBUG_NOTIFICATIONS) {
+        console.log(`    🚀 LocalNotifications.schedule() appelé:`, {
+          id,
+          title,
+          body: body.substring(0, 50) + '...',
+          scheduleAt: scheduleAt.toISOString(),
+          scheduleAtLocal: scheduleAt.toLocaleString('fr-FR')
+        });
+      }
 
       await LocalNotifications.schedule({
         notifications: [
@@ -448,7 +501,9 @@ export const useMedicationNotificationScheduler = () => {
         ]
       });
 
-      console.log(`    ✅ Notification ID ${id} planifiée pour ${scheduleAt.toLocaleString('fr-FR')}`);
+      if (DEBUG_NOTIFICATIONS) {
+        console.log(`    ✅ Notification ID ${id} planifiée pour ${scheduleAt.toLocaleString('fr-FR')}`);
+      }
 
     } catch (error) {
       console.error(`    ❌ ERREUR planification ID ${id}:`, error);
@@ -459,8 +514,10 @@ export const useMedicationNotificationScheduler = () => {
   /**
    * Force la replanification immédiate (appelé manuellement si besoin)
    */
-  const rescheduleAll = async (showToasts: boolean = true) => {
-    console.log("🔄 Replanification forcée de toutes les notifications...");
+  const rescheduleAll = useCallback(async (showToasts: boolean = true) => {
+    if (DEBUG_NOTIFICATIONS) {
+      console.log("🔄 Replanification forcée de toutes les notifications...");
+    }
     
     const toastId = showToasts ? toast.loading("Replanification des notifications...") : null;
     
@@ -472,11 +529,16 @@ export const useMedicationNotificationScheduler = () => {
     try {
       if (Capacitor.isNativePlatform()) {
         const pending = await LocalNotifications.getPending();
-        console.log(`📋 ${pending.notifications.length} notifications en attente:`, pending.notifications);
+        
+        if (DEBUG_NOTIFICATIONS) {
+          console.log(`📋 ${pending.notifications.length} notifications en attente:`, pending.notifications);
+        }
         
         if (pending.notifications.length > 0) {
           await LocalNotifications.cancel(pending);
-          console.log("✅ Notifications annulées");
+          if (DEBUG_NOTIFICATIONS) {
+            console.log("✅ Notifications annulées");
+          }
         }
       }
     } catch (error) {
@@ -489,7 +551,11 @@ export const useMedicationNotificationScheduler = () => {
     try {
       if (Capacitor.isNativePlatform()) {
         const pendingAfter = await LocalNotifications.getPending();
-        console.log(`✅ ${pendingAfter.notifications.length} notifications planifiées:`, pendingAfter.notifications);
+        
+        if (DEBUG_NOTIFICATIONS) {
+          console.log(`✅ ${pendingAfter.notifications.length} notifications planifiées:`, pendingAfter.notifications);
+        }
+        
         if (showToasts && toastId) {
           toast.dismiss(toastId);
           toast.success(`✅ ${pendingAfter.notifications.length} notifications planifiées`);
@@ -507,7 +573,7 @@ export const useMedicationNotificationScheduler = () => {
         toast.error("Erreur lors de la planification");
       }
     }
-  };
+  }, [scheduleUpcomingNotifications]);
 
   return {
     rescheduleAll,
