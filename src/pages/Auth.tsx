@@ -7,8 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Fingerprint } from 'lucide-react';
 import { toast } from 'sonner';
+import { Capacitor } from '@capacitor/core';
+import { NativeBiometric } from 'capacitor-native-biometric';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -16,12 +18,46 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [savedEmail, setSavedEmail] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
       navigate('/');
     }
   }, [user, navigate]);
+
+  // Vérifier si la biométrie est disponible et activée
+  useEffect(() => {
+    const checkBiometric = async () => {
+      if (!Capacitor.isNativePlatform()) {
+        return;
+      }
+
+      try {
+        // Vérifier si l'appareil supporte la biométrie
+        const result = await NativeBiometric.isAvailable();
+        if (!result.isAvailable) {
+          return;
+        }
+
+        // Vérifier si des credentials sont sauvegardés
+        const credentials = await NativeBiometric.getCredentials({
+          server: "myhealth.app",
+        });
+
+        if (credentials.username) {
+          setBiometricAvailable(true);
+          setSavedEmail(credentials.username);
+        }
+      } catch (error) {
+        // Pas de credentials sauvegardés ou erreur
+        console.log("Biométrie non configurée");
+      }
+    };
+
+    checkBiometric();
+  }, []);
 
   const handleGoogleSignIn = async () => {
     const { error } = await signInWithGoogle();
@@ -62,6 +98,70 @@ const Auth = () => {
     }
     
     setIsSubmitting(false);
+  };
+
+  const handleBiometricSignIn = async () => {
+    if (!savedEmail) {
+      toast.error('Erreur', {
+        description: 'Aucun compte configuré pour la biométrie',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Demander la vérification biométrique
+      await NativeBiometric.verifyIdentity({
+        reason: "Connexion à MyHealth+",
+        title: "Authentification",
+        subtitle: "Utilisez votre empreinte digitale ou Face ID",
+        description: "Authentifiez-vous pour accéder à votre compte",
+      });
+
+      // Si la vérification réussit, récupérer le refresh token depuis les credentials
+      const credentials = await NativeBiometric.getCredentials({
+        server: "myhealth.app",
+      });
+
+      // Importer supabase pour la connexion
+      const { supabase } = await import('@/integrations/supabase/client');
+
+      // D'abord, définir le refresh token dans le storage
+      // Puis utiliser refreshSession pour obtenir un nouveau access token
+      const { data, error } = await supabase.auth.refreshSession({
+        refresh_token: credentials.password, // Le refresh token stocké
+      });
+
+      if (error || !data.session) {
+        throw new Error('Session expirée, veuillez vous reconnecter normalement');
+      }
+
+      toast.success('Authentification réussie !', {
+        description: `Bienvenue ${credentials.username}`,
+      });
+
+      // La navigation se fera automatiquement via le useEffect qui détecte user
+
+    } catch (error: any) {
+      console.error('Biometric auth error:', error);
+      
+      // Si le token a expiré, on demande à l'utilisateur de se reconnecter
+      if (error.message?.includes('Session') || error.message?.includes('expired')) {
+        toast.error('Session expirée', {
+          description: 'Veuillez vous reconnecter avec votre mot de passe',
+        });
+        
+        // Pré-remplir l'email pour faciliter la reconnexion
+        setEmail(savedEmail);
+      } else {
+        toast.error('Échec de l\'authentification', {
+          description: 'Authentification biométrique échouée',
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (loading) {
@@ -128,6 +228,29 @@ const Auth = () => {
         </div>
 
         <div className="space-y-4">
+          {biometricAvailable && (
+            <>
+              <Button
+                onClick={handleBiometricSignIn}
+                variant="default"
+                className="w-full h-12 text-base gradient-primary"
+                disabled={isSubmitting}
+              >
+                <Fingerprint className="w-5 h-5 mr-2" />
+                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin ml-2" /> : 'Se connecter avec biométrie'}
+              </Button>
+              
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <Separator />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">ou avec mot de passe</span>
+                </div>
+              </div>
+            </>
+          )}
+          
           <Button
             onClick={handleGoogleSignIn}
             variant="outline"

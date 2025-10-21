@@ -178,10 +178,23 @@ export default function Privacy() {
           return;
         }
 
-        // Enregistrer les credentials pour future utilisation
+        // Récupérer la session actuelle pour avoir le refresh token
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session?.refresh_token) {
+          toast({
+            title: "Erreur",
+            description: "Session invalide, veuillez vous reconnecter",
+            variant: "destructive",
+          });
+          setPendingBiometricChange(false);
+          return;
+        }
+
+        // Enregistrer les credentials pour future utilisation (refresh token pour connexion auto)
         await NativeBiometric.setCredentials({
           username: user.email || "",
-          password: "biometric_enabled",
+          password: session.refresh_token, // Stocker le refresh token de manière sécurisée
           server: "myhealth.app",
         });
 
