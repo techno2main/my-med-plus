@@ -88,7 +88,7 @@ export const UpdateNotification = () => {
 
       {/* Badge réel de mise à jour */}
       {updateAvailable && (
-        <div className="fixed bottom-4 right-4 z-[9999] animate-in slide-in-from-bottom-5">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] animate-in slide-in-from-bottom-5">
           <Button
             onClick={handleUpdate}
             className="bg-green-600 hover:bg-green-700 text-white shadow-2xl flex items-center gap-2 ring-4 ring-green-400"

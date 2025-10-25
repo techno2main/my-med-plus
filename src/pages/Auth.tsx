@@ -7,8 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Fingerprint } from 'lucide-react';
 import { toast } from 'sonner';
+import { Capacitor } from '@capacitor/core';
+import { NativeBiometric } from 'capacitor-native-biometric';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -16,12 +18,67 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [savedEmail, setSavedEmail] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
       navigate('/');
     }
   }, [user, navigate]);
+
+  // Vérifier si la biométrie est disponible et activée
+  useEffect(() => {
+    const checkBiometric = async () => {
+      // Ne vérifier que sur plateforme native
+      if (!Capacitor.isNativePlatform()) {
+        setBiometricAvailable(false);
+        setSavedEmail(null);
+        return;
+      }
+
+      try {
+        // Vérifier si l'appareil supporte la biométrie
+        const result = await NativeBiometric.isAvailable();
+        if (!result.isAvailable) {
+          setBiometricAvailable(false);
+          setSavedEmail(null);
+          return;
+        }
+
+        // Vérifier si des credentials sont sauvegardés
+        const credentials = await NativeBiometric.getCredentials({
+          server: "myhealth.app",
+        });
+
+        if (credentials.username) {
+          setBiometricAvailable(true);
+          setSavedEmail(credentials.username);
+        } else {
+          setBiometricAvailable(false);
+          setSavedEmail(null);
+        }
+      } catch (error) {
+        // Pas de credentials sauvegardés
+        setBiometricAvailable(false);
+        setSavedEmail(null);
+      }
+    };
+
+    // Vérifier chaque fois que le composant se monte ou reprend le focus
+    checkBiometric();
+
+    // Écouter les événements de focus (quand on revient sur l'écran)
+    const handleFocus = () => {
+      checkBiometric();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
 
   const handleGoogleSignIn = async () => {
     const { error } = await signInWithGoogle();
@@ -62,6 +119,78 @@ const Auth = () => {
     }
     
     setIsSubmitting(false);
+  };
+
+  const handleBiometricSignIn = async () => {
+    if (!savedEmail) {
+      toast.error('Erreur', {
+        description: 'Aucun compte configuré pour la biométrie',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Demander la vérification biométrique
+      await NativeBiometric.verifyIdentity({
+        reason: "Connexion à MyHealth+",
+        title: "Authentification",
+        subtitle: "Utilisez votre empreinte digitale ou Face ID",
+        description: "Authentifiez-vous pour accéder à votre compte",
+      });
+
+      // Si la vérification réussit, récupérer les credentials
+      const credentials = await NativeBiometric.getCredentials({
+        server: "myhealth.app",
+      });
+
+      // Le username contient l'email, le password contient le mot de passe
+      const email = credentials.username;
+      const password = credentials.password;
+
+      // Importer supabase pour la connexion
+      const { supabase } = await import('@/integrations/supabase/client');
+
+      // Utiliser signInWithPassword() pour une vraie connexion
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error('Biometric signIn error:', error);
+        throw new Error('Erreur d\'authentification, veuillez vous reconnecter normalement');
+      }
+
+      if (!data.session) {
+        throw new Error('Impossible de restaurer la session');
+      }
+      toast.success('Authentification réussie !', {
+        description: `Bienvenue ${credentials.username}`,
+      });
+
+      // La navigation se fera automatiquement via le useEffect qui détecte user
+
+    } catch (error: any) {
+      console.error('Biometric auth error:', error);
+      
+      // Si le token a expiré, on demande à l'utilisateur de se reconnecter
+      if (error.message?.includes('Session') || error.message?.includes('expired')) {
+        toast.error('Session expirée', {
+          description: 'Veuillez vous reconnecter avec votre mot de passe',
+        });
+        
+        // Pré-remplir l'email pour faciliter la reconnexion
+        setEmail(savedEmail);
+      } else {
+        toast.error('Échec de l\'authentification', {
+          description: 'Authentification biométrique échouée',
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (loading) {
@@ -128,6 +257,29 @@ const Auth = () => {
         </div>
 
         <div className="space-y-4">
+          {biometricAvailable && (
+            <>
+              <Button
+                onClick={handleBiometricSignIn}
+                variant="default"
+                className="w-full h-12 text-base gradient-primary"
+                disabled={isSubmitting}
+              >
+                <Fingerprint className="w-5 h-5 mr-2" />
+                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin ml-2" /> : 'Se connecter avec biométrie'}
+              </Button>
+              
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <Separator />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">ou avec mot de passe</span>
+                </div>
+              </div>
+            </>
+          )}
+          
           <Button
             onClick={handleGoogleSignIn}
             variant="outline"
