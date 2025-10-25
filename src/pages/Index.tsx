@@ -458,6 +458,17 @@ const Index = () => {
                     return acc;
                   }, {} as Record<string, { treatment: string; qspDays?: number | null; endDate?: string | null; intakes: UpcomingIntake[] }>);
 
+                  // Sort intakes within each treatment: 1) by time, 2) by medication name
+                  Object.values(groupedByTreatment).forEach(group => {
+                    group.intakes.sort((a, b) => {
+                      // Compare times first
+                      const timeCompare = a.time.localeCompare(b.time);
+                      if (timeCompare !== 0) return timeCompare;
+                      // If same time, compare medication names alphabetically
+                      return a.medication.localeCompare(b.medication);
+                    });
+                  });
+
                   return Object.entries(groupedByTreatment).map(([treatmentId, group]) => (
                     <div key={treatmentId} className="space-y-2">
                       <div className="flex items-baseline gap-2 px-1">
@@ -560,6 +571,17 @@ const Index = () => {
                     return acc;
                   }, {} as Record<string, { treatment: string; qspDays?: number | null; endDate?: string | null; intakes: UpcomingIntake[] }>);
 
+                  // Sort intakes within each treatment: 1) by time, 2) by medication name
+                  Object.values(groupedByTreatment).forEach(group => {
+                    group.intakes.sort((a, b) => {
+                      // Compare times first
+                      const timeCompare = a.time.localeCompare(b.time);
+                      if (timeCompare !== 0) return timeCompare;
+                      // If same time, compare medication names alphabetically
+                      return a.medication.localeCompare(b.medication);
+                    });
+                  });
+
                   return Object.entries(groupedByTreatment).map(([treatmentId, group]) => (
                     <div key={treatmentId} className="space-y-2">
                       <div className="flex items-baseline gap-2 px-1">
@@ -600,9 +622,14 @@ const Index = () => {
                               
                               <Button 
                                 size="sm" 
-                                className="gradient-primary h-8 w-8 p-0"
-                                onClick={() => handleTakeIntake(intake)}
-                                disabled={intake.currentStock === 0}
+                                className="gradient-primary h-8 w-8 p-0 opacity-50 cursor-not-allowed"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  toast.error("Prises de demain non disponibles", {
+                                    description: "Attendez le jour J pour valider"
+                                  });
+                                }}
+                                disabled={true}
                               >
                                 <CheckCircle2 className="h-3.5 w-3.5" />
                               </Button>

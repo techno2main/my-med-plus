@@ -259,6 +259,17 @@ export default function History() {
         return acc;
       }, {});
 
+      // Sort intakes within each day: 1) by scheduled time, 2) by medication name
+      Object.values(grouped).forEach(day => {
+        day.intakes.sort((a, b) => {
+          // Compare scheduled time first
+          const timeCompare = a.time.localeCompare(b.time);
+          if (timeCompare !== 0) return timeCompare;
+          // If same time, compare medication names alphabetically
+          return a.medication.localeCompare(b.medication);
+        });
+      });
+
       setHistoryData(Object.values(grouped));
 
     } catch (error) {

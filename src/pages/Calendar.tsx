@@ -256,6 +256,15 @@ const Calendar = () => {
         });
       });
 
+      // Sort details: 1) by scheduled time, 2) by medication name alphabetically
+      details.sort((a, b) => {
+        // Compare scheduled time first
+        const timeCompare = a.time.localeCompare(b.time);
+        if (timeCompare !== 0) return timeCompare;
+        // If same time, compare medication names alphabetically
+        return a.medication.localeCompare(b.medication);
+      });
+
       setDayDetails(details);
 
     } catch (error) {
