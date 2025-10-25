@@ -14,11 +14,6 @@ export function useAuth() {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
-        
-        // Si erreur de token, nettoyer le localStorage
-        if (event === 'TOKEN_REFRESHED' && !session) {
-          console.log("🧹 Token invalide détecté, nettoyage du localStorage");
-        }
       }
     );
 
@@ -26,11 +21,12 @@ export function useAuth() {
     supabase.auth.getSession()
       .then(({ data: { session }, error }) => {
         if (error) {
-          console.warn("⚠️ Erreur lors de la récupération de la session:", error.message);
-          // Si erreur de refresh token, on nettoie silencieusement
+          // Si erreur de refresh token, on nettoie silencieusement (pas de console.warn)
           if (error.message.includes('refresh_token_not_found') || error.message.includes('Invalid Refresh Token')) {
-            console.log("🧹 Nettoyage des tokens invalides");
             supabase.auth.signOut().catch(() => {}); // Nettoyage silencieux
+          } else {
+            // Autres erreurs : on les affiche
+            console.warn("⚠️ Erreur lors de la récupération de la session:", error.message);
           }
           setSession(null);
           setUser(null);

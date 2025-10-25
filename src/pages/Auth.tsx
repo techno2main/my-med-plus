@@ -30,7 +30,10 @@ const Auth = () => {
   // Vérifier si la biométrie est disponible et activée
   useEffect(() => {
     const checkBiometric = async () => {
+      // Ne vérifier que sur plateforme native
       if (!Capacitor.isNativePlatform()) {
+        setBiometricAvailable(false);
+        setSavedEmail(null);
         return;
       }
 
@@ -38,6 +41,8 @@ const Auth = () => {
         // Vérifier si l'appareil supporte la biométrie
         const result = await NativeBiometric.isAvailable();
         if (!result.isAvailable) {
+          setBiometricAvailable(false);
+          setSavedEmail(null);
           return;
         }
 
@@ -49,14 +54,30 @@ const Auth = () => {
         if (credentials.username) {
           setBiometricAvailable(true);
           setSavedEmail(credentials.username);
+        } else {
+          setBiometricAvailable(false);
+          setSavedEmail(null);
         }
       } catch (error) {
-        // Pas de credentials sauvegardés ou erreur
-        console.log("Biométrie non configurée");
+        // Pas de credentials sauvegardés
+        setBiometricAvailable(false);
+        setSavedEmail(null);
       }
     };
 
+    // Vérifier chaque fois que le composant se monte ou reprend le focus
     checkBiometric();
+
+    // Écouter les événements de focus (quand on revient sur l'écran)
+    const handleFocus = () => {
+      checkBiometric();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const handleGoogleSignIn = async () => {
@@ -119,24 +140,32 @@ const Auth = () => {
         description: "Authentifiez-vous pour accéder à votre compte",
       });
 
-      // Si la vérification réussit, récupérer le refresh token depuis les credentials
+      // Si la vérification réussit, récupérer les credentials
       const credentials = await NativeBiometric.getCredentials({
         server: "myhealth.app",
       });
 
+      // Le username contient l'email, le password contient le mot de passe
+      const email = credentials.username;
+      const password = credentials.password;
+
       // Importer supabase pour la connexion
       const { supabase } = await import('@/integrations/supabase/client');
 
-      // D'abord, définir le refresh token dans le storage
-      // Puis utiliser refreshSession pour obtenir un nouveau access token
-      const { data, error } = await supabase.auth.refreshSession({
-        refresh_token: credentials.password, // Le refresh token stocké
+      // Utiliser signInWithPassword() pour une vraie connexion
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      if (error || !data.session) {
-        throw new Error('Session expirée, veuillez vous reconnecter normalement');
+      if (error) {
+        console.error('Biometric signIn error:', error);
+        throw new Error('Erreur d\'authentification, veuillez vous reconnecter normalement');
       }
 
+      if (!data.session) {
+        throw new Error('Impossible de restaurer la session');
+      }
       toast.success('Authentification réussie !', {
         description: `Bienvenue ${credentials.username}`,
       });

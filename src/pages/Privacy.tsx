@@ -45,6 +45,10 @@ export default function Privacy() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   
+  // Biometric password prompt
+  const [showBiometricPasswordDialog, setShowBiometricPasswordDialog] = useState(false);
+  const [biometricPassword, setBiometricPassword] = useState("");
+  
   // Confirmation dialogs
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
@@ -158,64 +162,13 @@ export default function Privacy() {
           return;
         }
 
-        // Demander l'authentification biométrique
-        const verified = await NativeBiometric.verifyIdentity({
-          reason: "Activer l'authentification biométrique",
-          title: "Authentification",
-          subtitle: "Utilisez votre empreinte digitale ou Face ID",
-          description: "Sécurisez l'accès à MyHealth+",
-        })
-          .then(() => true)
-          .catch(() => false);
-
-        if (!verified) {
-          toast({
-            title: "Échec",
-            description: "Authentification biométrique non vérifiée",
-            variant: "destructive",
-          });
-          setPendingBiometricChange(false);
-          return;
-        }
-
-        // Récupérer la session actuelle pour avoir le refresh token
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session?.refresh_token) {
-          toast({
-            title: "Erreur",
-            description: "Session invalide, veuillez vous reconnecter",
-            variant: "destructive",
-          });
-          setPendingBiometricChange(false);
-          return;
-        }
-
-        // Enregistrer les credentials pour future utilisation (refresh token pour connexion auto)
-        await NativeBiometric.setCredentials({
-          username: user.email || "",
-          password: session.refresh_token, // Stocker le refresh token de manière sécurisée
-          server: "myhealth.app",
-        });
-
-        // Sauvegarder la préférence
-        const { error } = await supabase
-          .from('user_preferences')
-          .update({ biometric_enabled: enabled })
-          .eq('user_id', user.id);
-
-        if (error) throw error;
-
-        setBiometricEnabled(enabled);
-        
-        const biometryTypeText = biometryResult.biometryType === BiometryType.FACE_ID 
-          ? "Face ID" 
-          : "empreinte digitale";
-        
-        toast({
-          title: "Succès",
-          description: `Authentification par ${biometryTypeText} activée`,
-        });
+        // Demander le mot de passe à l'utilisateur
+        setPendingBiometricChange(false);
+        // Petit délai pour laisser l'AlertDialog se fermer avant d'ouvrir le Dialog
+        setTimeout(() => {
+          setShowBiometricPasswordDialog(true);
+        }, 100);
+        return;
       } else {
         // Supprimer les credentials
         await NativeBiometric.deleteCredentials({
@@ -245,6 +198,66 @@ export default function Privacy() {
       });
     }
     setPendingBiometricChange(false);
+  };
+
+  const handleBiometricPasswordConfirm = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !user.email) return;
+
+      // Vérifier le mot de passe en essayant de se connecter
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: biometricPassword,
+      });
+
+      if (signInError) {
+        toast({
+          title: "Mot de passe incorrect",
+          description: "Veuillez réessayer",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Mot de passe correct, demander la biométrie
+      await NativeBiometric.verifyIdentity({
+        reason: "Activer l'authentification biométrique",
+        title: "Authentification",
+        subtitle: "Utilisez votre empreinte digitale ou Face ID",
+        description: "Sécurisez l'accès à MyHealth+",
+      });
+
+      // Stocker email + password de manière sécurisée (chiffré par le Keystore Android)
+      await NativeBiometric.setCredentials({
+        username: user.email,
+        password: biometricPassword,
+        server: "myhealth.app",
+      });
+
+      // Sauvegarder la préférence
+      await supabase
+        .from('user_preferences')
+        .update({ biometric_enabled: true })
+        .eq('user_id', user.id);
+
+      setBiometricEnabled(true);
+      setShowBiometricPasswordDialog(false);
+      setBiometricPassword("");
+      
+      toast({
+        title: "Succès",
+        description: "Authentification biométrique activée",
+      });
+
+    } catch (error: any) {
+      console.error("Biometric setup error:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'activer la biométrie",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleTwoFactorToggle = async (enabled: boolean) => {
@@ -471,6 +484,41 @@ export default function Privacy() {
                 Annuler
               </Button>
               <Button onClick={handlePasswordChange}>
+                Confirmer
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Biometric Password Dialog */}
+        <Dialog open={showBiometricPasswordDialog} onOpenChange={setShowBiometricPasswordDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Activer l'authentification biométrique</DialogTitle>
+              <DialogDescription>
+                Entrez votre mot de passe actuel pour activer la biométrie
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label htmlFor="biometric-password">Mot de passe</Label>
+                <Input
+                  id="biometric-password"
+                  type="password"
+                  value={biometricPassword}
+                  onChange={(e) => setBiometricPassword(e.target.value)}
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setShowBiometricPasswordDialog(false);
+                setBiometricPassword("");
+              }}>
+                Annuler
+              </Button>
+              <Button onClick={handleBiometricPasswordConfirm}>
                 Confirmer
               </Button>
             </DialogFooter>
