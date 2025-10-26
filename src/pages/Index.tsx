@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { AppLayout } from "@/components/Layout/AppLayout"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Clock, Pill, AlertCircle, CheckCircle2, X } from "lucide-react"
-import { format } from "date-fns"
+import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
@@ -58,6 +59,12 @@ const Index = () => {
   const [selectedIntake, setSelectedIntake] = useState<UpcomingIntake | null>(null)
   const { stats: adherenceStats } = useAdherenceStats()
   const { missedIntakes, totalMissed, loading: missedLoading } = useMissedIntakesDetection()
+  
+  // State for treatment filter
+  const [selectedTreatmentId, setSelectedTreatmentId] = useState<string | null>(null)
+  const [openAccordions, setOpenAccordions] = useState<string[]>([])
+  const todaySectionRef = useRef<HTMLDivElement>(null)
+  const tomorrowSectionRef = useRef<HTMLDivElement>(null)
 
   // Fonction pour détecter si une prise est en retard
 
@@ -65,6 +72,28 @@ const Index = () => {
   useEffect(() => {
     loadDashboardData()
   }, [])
+
+  // Ouvrir les accordions "Aujourd'hui" par défaut au chargement de la page
+  useEffect(() => {
+    if (!loading && upcomingIntakes.length > 0) {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      
+      // Trouver tous les traitements qui ont des prises aujourd'hui
+      const todayTreatmentIds = upcomingIntakes
+        .filter(intake => {
+          const intakeDate = new Date(intake.date)
+          intakeDate.setHours(0, 0, 0, 0)
+          return intakeDate.getTime() === today.getTime()
+        })
+        .map(intake => `today-${intake.treatmentId}`)
+      
+      // Ouvrir uniquement les accordions d'aujourd'hui
+      if (todayTreatmentIds.length > 0) {
+        setOpenAccordions(todayTreatmentIds)
+      }
+    }
+  }, [loading, upcomingIntakes])
 
   const loadDashboardData = async () => {
     try {
@@ -171,6 +200,9 @@ const Index = () => {
 
         // Convertir UTC vers heure locale française avec date-fns
         const localTime = formatToFrenchTime(intake.scheduled_time);
+        
+        // Utiliser parseISO pour parser correctement la date UTC
+        const scheduledDate = parseISO(intake.scheduled_time.replace(' ', 'T').replace('+00', 'Z'));
 
         intakes.push({
           id: intake.id,
@@ -178,7 +210,7 @@ const Index = () => {
           medication: intake.medications.name,
           dosage: catalogDosage,
           time: localTime,
-          date: new Date(intake.scheduled_time), // Parser UNIQUEMENT pour les comparaisons de date
+          date: scheduledDate,
           treatment: intake.medications.treatments.name,
           treatmentId: intake.medications.treatment_id,
           pathology: intake.medications?.medication_catalog?.pathology || "",
@@ -189,7 +221,8 @@ const Index = () => {
         })
       })
 
-      setUpcomingIntakes(intakes.slice(0, 10))
+      setUpcomingIntakes(intakes) // Afficher TOUTES les prises, pas seulement les 10 premières
+
 
       // Process stock alerts
       const alerts: StockAlert[] = []
@@ -267,6 +300,26 @@ const Index = () => {
     return "text-success"
   }
 
+  const handleTreatmentClick = (treatmentId: string) => {
+    // Set selected treatment
+    setSelectedTreatmentId(treatmentId)
+    
+    // Open accordions for this treatment in both sections
+    const accordionIds = [
+      `today-${treatmentId}`,
+      `tomorrow-${treatmentId}`
+    ]
+    setOpenAccordions(accordionIds)
+    
+    // Scroll to today section first
+    setTimeout(() => {
+      todaySectionRef.current?.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start'
+      })
+    }, 100)
+  }
+
   const getStockBgColor = (stock: number, threshold: number) => {
     if (stock === 0) return "bg-danger/10"
     if (stock <= threshold) return "bg-warning/10"
@@ -298,7 +351,7 @@ const Index = () => {
                     <div 
                       key={treatment.id} 
                       className="cursor-pointer hover:bg-surface/50 p-3 rounded-lg transition-colors border border-border"
-                      onClick={() => navigate("/treatments")}
+                      onClick={() => handleTreatmentClick(treatment.id)}
                     >
                       {/* Ligne 1 : Numéro + Nom du traitement + QSP */}
                       <div className="flex items-center gap-2 mb-1">
@@ -455,17 +508,17 @@ const Index = () => {
               today.setHours(0, 0, 0, 0);
               return intakeDate.getTime() === today.getTime();
             }) && (
-              <div className="space-y-3">
+              <div className="space-y-3" ref={todaySectionRef}>
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                   Aujourd'hui
                 </h3>
                 {(() => {
+                  const today = new Date();
+                  const todayDateString = today.toISOString().split('T')[0]; // Format YYYY-MM-DD
+                  
                   const todayIntakes = upcomingIntakes.filter(intake => {
-                    const intakeDate = new Date(intake.date);
-                    const today = new Date();
-                    intakeDate.setHours(0, 0, 0, 0);
-                    today.setHours(0, 0, 0, 0);
-                    return intakeDate.getTime() === today.getTime();
+                    const intakeDateString = intake.date.toISOString().split('T')[0];
+                    return intakeDateString === todayDateString;
                   });
                   
                   // Group by treatment
@@ -493,67 +546,80 @@ const Index = () => {
                     });
                   });
 
-                  return Object.entries(groupedByTreatment).map(([treatmentId, group]) => (
-                    <div key={treatmentId} className="space-y-2">
-                      <div className="flex items-baseline gap-2 px-1">
-                        <p className="text-xs font-medium text-primary">
-                          {group.treatment}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {group.qspDays && `QSP : ${Math.round(group.qspDays / 30)} mois`}
-                          {group.endDate && ` • Fin : ${new Date(group.endDate).toLocaleDateString("fr-FR")}`}
-                        </p>
-                      </div>
-                      {group.intakes.map((intake) => {
-                        const isOverdue = isIntakeOverdue(intake.date);
-                        return (
-                          <Card key={intake.id} className="p-3 surface-elevated hover:shadow-md transition-shadow">
-                            <div className="flex items-center gap-3">
-                              <div className={`flex flex-col items-center justify-center min-w-[60px] p-1.5 rounded-lg ${isOverdue ? 'bg-orange-100' : 'bg-primary/10'}`}>
-                                <Clock className={`h-3.5 w-3.5 mb-0.5 ${isOverdue ? 'text-orange-600' : 'text-primary'}`} />
-                                <span className={`text-xs font-semibold ${isOverdue ? 'text-orange-700' : 'text-primary'}`}>{intake.time}</span>
-                                <span className="text-[10px] text-muted-foreground">{format(intake.date, "dd/MM")}</span>
-                              </div>
-                              
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <p className="text-sm font-medium truncate">{intake.medication}</p>
-                                  <span className="text-xs text-muted-foreground flex-shrink-0">{intake.dosage}</span>
-                                </div>
-                                {intake.pathology && (
-                                  <p className="text-xs text-muted-foreground truncate">{intake.pathology}</p>
-                                )}
-                              </div>
-
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${getStockBgColor(intake.currentStock, intake.minThreshold)}`}>
-                                  <Pill className={`h-3 w-3 ${getStockColor(intake.currentStock, intake.minThreshold)}`} />
-                                  <span className={`text-xs font-semibold ${getStockColor(intake.currentStock, intake.minThreshold)}`}>
-                                    {intake.currentStock}
-                                  </span>
-                                </div>
-                                
-                                <Button 
-                                  size="sm" 
-                                  className={
-                                    intake.currentStock === 0 
-                                      ? "gradient-primary h-8 w-8 p-0" 
-                                      : isOverdue
-                                        ? "bg-orange-500 hover:bg-orange-600 text-white h-8 w-8 p-0"
-                                        : "gradient-primary h-8 w-8 p-0"
-                                  }
-                                  onClick={() => handleTakeIntake(intake)}
-                                  disabled={intake.currentStock === 0 || isOverdue}
-                                >
-                                  <CheckCircle2 className="h-3.5 w-3.5" />
-                                </Button>
-                              </div>
+                  return (
+                    <Accordion 
+                      type="multiple" 
+                      className="space-y-2"
+                      value={openAccordions}
+                      onValueChange={setOpenAccordions}
+                    >
+                      {Object.entries(groupedByTreatment).map(([treatmentId, group]) => (
+                        <AccordionItem key={`today-${treatmentId}`} value={`today-${treatmentId}`} className="border-none">
+                          <AccordionTrigger className="hover:no-underline py-2 px-1">
+                            <div className="flex items-baseline gap-2 text-left">
+                              <p className="text-xs font-medium text-primary">
+                                {group.treatment}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {group.qspDays && `QSP : ${Math.round(group.qspDays / 30)} mois`}
+                                {group.endDate && ` • Fin : ${new Date(group.endDate).toLocaleDateString("fr-FR")}`}
+                              </p>
                             </div>
-                          </Card>
-                        );
-                      })}
-                    </div>
-                  ));
+                          </AccordionTrigger>
+                          <AccordionContent className="space-y-2 pb-2">
+                            {group.intakes.map((intake) => {
+                              const isOverdue = isIntakeOverdue(intake.date);
+                              return (
+                                <Card key={intake.id} className="p-3 surface-elevated hover:shadow-md transition-shadow">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`flex flex-col items-center justify-center min-w-[60px] p-1.5 rounded-lg ${isOverdue ? 'bg-orange-100' : 'bg-primary/10'}`}>
+                                      <Clock className={`h-3.5 w-3.5 mb-0.5 ${isOverdue ? 'text-orange-600' : 'text-primary'}`} />
+                                      <span className={`text-xs font-semibold ${isOverdue ? 'text-orange-700' : 'text-primary'}`}>{intake.time}</span>
+                                      <span className="text-[10px] text-muted-foreground">{format(intake.date, "dd/MM")}</span>
+                                    </div>
+                                    
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <p className="text-sm font-medium truncate">{intake.medication}</p>
+                                        <span className="text-xs text-muted-foreground flex-shrink-0">{intake.dosage}</span>
+                                      </div>
+                                      {intake.pathology && (
+                                        <p className="text-xs text-muted-foreground truncate">{intake.pathology}</p>
+                                      )}
+                                    </div>
+
+                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${getStockBgColor(intake.currentStock, intake.minThreshold)}`}>
+                                        <Pill className={`h-3 w-3 ${getStockColor(intake.currentStock, intake.minThreshold)}`} />
+                                        <span className={`text-xs font-semibold ${getStockColor(intake.currentStock, intake.minThreshold)}`}>
+                                          {intake.currentStock}
+                                        </span>
+                                      </div>
+                                      
+                                      <Button 
+                                        size="sm" 
+                                        className={
+                                          intake.currentStock === 0 
+                                            ? "gradient-primary h-8 w-8 p-0" 
+                                            : isOverdue
+                                              ? "bg-orange-500 hover:bg-orange-600 text-white h-8 w-8 p-0"
+                                              : "gradient-primary h-8 w-8 p-0"
+                                        }
+                                        onClick={() => handleTakeIntake(intake)}
+                                        disabled={intake.currentStock === 0 || isOverdue}
+                                      >
+                                        <CheckCircle2 className="h-3.5 w-3.5" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </Card>
+                              );
+                            })}
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  );
                 })()}
               </div>
             )}
@@ -567,18 +633,18 @@ const Index = () => {
               tomorrow.setHours(0, 0, 0, 0);
               return intakeDate.getTime() === tomorrow.getTime();
             }) && (
-              <div className="space-y-3">
+              <div className="space-y-3" ref={tomorrowSectionRef}>
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                   Demain
                 </h3>
                 {(() => {
+                  const tomorrow = new Date();
+                  tomorrow.setDate(tomorrow.getDate() + 1);
+                  const tomorrowDateString = tomorrow.toISOString().split('T')[0]; // Format YYYY-MM-DD
+                  
                   const tomorrowIntakes = upcomingIntakes.filter(intake => {
-                    const intakeDate = new Date(intake.date);
-                    const tomorrow = new Date();
-                    tomorrow.setDate(tomorrow.getDate() + 1);
-                    intakeDate.setHours(0, 0, 0, 0);
-                    tomorrow.setHours(0, 0, 0, 0);
-                    return intakeDate.getTime() === tomorrow.getTime();
+                    const intakeDateString = intake.date.toISOString().split('T')[0];
+                    return intakeDateString === tomorrowDateString;
                   });
                   
                   // Group by treatment
@@ -606,63 +672,76 @@ const Index = () => {
                     });
                   });
 
-                  return Object.entries(groupedByTreatment).map(([treatmentId, group]) => (
-                    <div key={treatmentId} className="space-y-2">
-                      <div className="flex items-baseline gap-2 px-1">
-                        <p className="text-xs font-medium text-primary">
-                          {group.treatment}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {group.qspDays && `QSP : ${Math.round(group.qspDays / 30)} mois`}
-                          {group.endDate && ` • Fin : ${new Date(group.endDate).toLocaleDateString("fr-FR")}`}
-                        </p>
-                      </div>
-                      {group.intakes.map((intake) => (
-                        <Card key={intake.id} className="p-3 surface-elevated hover:shadow-md transition-shadow">
-                          <div className="flex items-center gap-3">
-                            <div className="flex flex-col items-center justify-center min-w-[60px] p-1.5 rounded-lg bg-primary/10">
-                              <Clock className="h-3.5 w-3.5 text-primary mb-0.5" />
-                              <span className="text-xs font-semibold text-primary">{intake.time}</span>
-                              <span className="text-[10px] text-muted-foreground">{format(intake.date, "dd/MM")}</span>
+                  return (
+                    <Accordion 
+                      type="multiple" 
+                      className="space-y-2"
+                      value={openAccordions}
+                      onValueChange={setOpenAccordions}
+                    >
+                      {Object.entries(groupedByTreatment).map(([treatmentId, group]) => (
+                        <AccordionItem key={`tomorrow-${treatmentId}`} value={`tomorrow-${treatmentId}`} className="border-none">
+                          <AccordionTrigger className="hover:no-underline py-2 px-1">
+                            <div className="flex items-baseline gap-2 text-left">
+                              <p className="text-xs font-medium text-primary">
+                                {group.treatment}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {group.qspDays && `QSP : ${Math.round(group.qspDays / 30)} mois`}
+                                {group.endDate && ` • Fin : ${new Date(group.endDate).toLocaleDateString("fr-FR")}`}
+                              </p>
                             </div>
-                            
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm font-medium truncate">{intake.medication}</p>
-                                <span className="text-xs text-muted-foreground flex-shrink-0">{intake.dosage}</span>
-                              </div>
-                              {intake.pathology && (
-                                <p className="text-xs text-muted-foreground truncate">{intake.pathology}</p>
-                              )}
-                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="space-y-2 pb-2">
+                            {group.intakes.map((intake) => (
+                              <Card key={intake.id} className="p-3 surface-elevated hover:shadow-md transition-shadow">
+                                <div className="flex items-center gap-3">
+                                  <div className="flex flex-col items-center justify-center min-w-[60px] p-1.5 rounded-lg bg-primary/10">
+                                    <Clock className="h-3.5 w-3.5 text-primary mb-0.5" />
+                                    <span className="text-xs font-semibold text-primary">{intake.time}</span>
+                                    <span className="text-[10px] text-muted-foreground">{format(intake.date, "dd/MM")}</span>
+                                  </div>
+                                  
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <p className="text-sm font-medium truncate">{intake.medication}</p>
+                                      <span className="text-xs text-muted-foreground flex-shrink-0">{intake.dosage}</span>
+                                    </div>
+                                    {intake.pathology && (
+                                      <p className="text-xs text-muted-foreground truncate">{intake.pathology}</p>
+                                    )}
+                                  </div>
 
-                            <div className="flex items-center gap-2 flex-shrink-0">
-                              <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${getStockBgColor(intake.currentStock, intake.minThreshold)}`}>
-                                <Pill className={`h-3 w-3 ${getStockColor(intake.currentStock, intake.minThreshold)}`} />
-                                <span className={`text-xs font-semibold ${getStockColor(intake.currentStock, intake.minThreshold)}`}>
-                                  {intake.currentStock}
-                                </span>
-                              </div>
-                              
-                              <Button 
-                                size="sm" 
-                                className="gradient-primary h-8 w-8 p-0 opacity-50 cursor-not-allowed"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  toast.error("Prises de demain non disponibles", {
-                                    description: "Attendez le jour J pour valider"
-                                  });
-                                }}
-                                disabled={true}
-                              >
-                                <CheckCircle2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                          </div>
-                        </Card>
+                                  <div className="flex items-center gap-2 flex-shrink-0">
+                                    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${getStockBgColor(intake.currentStock, intake.minThreshold)}`}>
+                                      <Pill className={`h-3 w-3 ${getStockColor(intake.currentStock, intake.minThreshold)}`} />
+                                      <span className={`text-xs font-semibold ${getStockColor(intake.currentStock, intake.minThreshold)}`}>
+                                        {intake.currentStock}
+                                      </span>
+                                    </div>
+                                    
+                                    <Button 
+                                      size="sm" 
+                                      className="gradient-primary h-8 w-8 p-0 opacity-50 cursor-not-allowed"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        toast.error("Prises de demain non disponibles", {
+                                          description: "Attendez le jour J pour valider"
+                                        });
+                                      }}
+                                      disabled={true}
+                                    >
+                                      <CheckCircle2 className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </Card>
+                            ))}
+                          </AccordionContent>
+                        </AccordionItem>
                       ))}
-                    </div>
-                  ));
+                    </Accordion>
+                  );
                 })()}
               </div>
             )}

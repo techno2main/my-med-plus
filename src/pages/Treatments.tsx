@@ -34,6 +34,7 @@ interface Treatment {
   } | null
   next_pharmacy_visit?: {
     visit_date: string
+    visit_number: number
   } | null
 }
 
@@ -110,7 +111,7 @@ const Treatments = () => {
           // Load next pharmacy visit
           const { data: pharmacyVisits } = await supabase
             .from("pharmacy_visits")
-            .select("visit_date, is_completed")
+            .select("visit_date, visit_number, is_completed")
             .eq("treatment_id", treatment.id)
             .eq("is_completed", false)
             .order("visit_date", { ascending: true })
@@ -337,17 +338,27 @@ const Treatments = () => {
                         </a>
                       </div>
                     )}
-                    {treatment.next_pharmacy_visit && (
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Pill className="h-3 w-3" />
-                        <span>Prochain rechargement : {new Date(treatment.next_pharmacy_visit.visit_date).toLocaleDateString("fr-FR")}</span>
-                      </div>
-                    )}
-                    {treatment.end_date && (
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Stethoscope className="h-3 w-3" />
-                        <span>Prochain RDV : {new Date(treatment.end_date).toLocaleDateString("fr-FR")}</span>
-                      </div>
+                    {treatment.next_pharmacy_visit && treatment.end_date && (
+                      (() => {
+                        // Afficher le prochain rechargement seulement si :
+                        // 1. La visite est AVANT la fin du traitement
+                        // 2. Ce n'est PAS la visite initiale (visit_number > 1)
+                        const nextVisitDate = new Date(treatment.next_pharmacy_visit.visit_date);
+                        const endDate = new Date(treatment.end_date);
+                        const isRefill = treatment.next_pharmacy_visit.visit_number > 1;
+                        
+                        // Pas d'affichage si :
+                        // - Visite après ou à la fin du traitement
+                        // - C'est la visite initiale (pas un rechargement)
+                        if (nextVisitDate >= endDate || !isRefill) return null;
+                        
+                        return (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Pill className="h-3 w-3" />
+                            <span>Prochain rechargement : {nextVisitDate.toLocaleDateString("fr-FR")}</span>
+                          </div>
+                        );
+                      })()
                     )}
                   </div>
                 </div>

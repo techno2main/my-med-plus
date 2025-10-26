@@ -29,7 +29,9 @@ export function TreatmentWizard() {
     prescribingDoctorId: "",
     prescriptionId: "",
     prescriptionDate: "",
+    startDate: "",
     durationDays: "90",
+    qsp: "30",
     prescriptionFile: null,
     prescriptionFileName: "",
     pharmacyId: "",
@@ -202,19 +204,35 @@ export function TreatmentWizard() {
       if (medError) throw medError;
 
       // Create pharmacy visits
-      if (formData.firstPharmacyVisit && formData.pharmacyId && formData.durationDays) {
+      if (formData.firstPharmacyVisit && formData.pharmacyId && formData.durationDays && formData.qsp) {
         const visits = [];
         const firstVisitDate = new Date(formData.firstPharmacyVisit);
-        const numberOfVisits = Math.floor(parseInt(formData.durationDays) / 30);
+        const treatmentDuration = parseInt(formData.durationDays);
+        const qspDays = parseInt(formData.qsp);
         
+        // Calculer le nombre de visites nécessaires selon le QSP
+        // Si durée <= QSP → 1 seule visite (la première), pas de refill
+        // Si durée > QSP → plusieurs visites espacées du QSP
+        const numberOfVisits = Math.ceil(treatmentDuration / qspDays);
+        
+        // Créer les visites espacées selon le QSP (en jours, pas en mois)
         for (let i = 0; i < numberOfVisits; i++) {
-          visits.push({
-            treatment_id: treatment.id,
-            pharmacy_id: formData.pharmacyId,
-            visit_date: format(addMonths(firstVisitDate, i), "yyyy-MM-dd"),
-            visit_number: i + 1,
-            is_completed: false,
-          });
+          const visitDate = new Date(firstVisitDate);
+          visitDate.setDate(visitDate.getDate() + (i * qspDays));
+          
+          // Ne pas créer de visite après la fin du traitement
+          const treatmentEndDate = new Date(formData.startDate);
+          treatmentEndDate.setDate(treatmentEndDate.getDate() + treatmentDuration);
+          
+          if (visitDate <= treatmentEndDate) {
+            visits.push({
+              treatment_id: treatment.id,
+              pharmacy_id: formData.pharmacyId,
+              visit_date: format(visitDate, "yyyy-MM-dd"),
+              visit_number: i + 1,
+              is_completed: i === 0 ? false : false, // Toutes en attente sauf si besoin
+            });
+          }
         }
 
         if (visits.length > 0) {
