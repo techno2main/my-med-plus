@@ -67,12 +67,12 @@ const Calendar = () => {
       const extendedEnd = new Date(monthEnd);
       extendedEnd.setDate(extendedEnd.getDate() + 7);
 
-      // Load active treatment start date and end date - get all active treatments and take the first one
+      // Load active treatment start date and end date - get all active treatments and take the EARLIEST one
       const { data: activeTreatments, error: treatmentError } = await supabase
         .from("treatments")
         .select("start_date, end_date")
         .eq("is_active", true)
-        .order("start_date", { ascending: false });
+        .order("start_date", { ascending: true }); // Prendre le plus ancien, pas le plus récent
 
       if (treatmentError) {
         console.error("Error loading active treatment:", treatmentError);
@@ -245,9 +245,9 @@ const Calendar = () => {
         const catalogDosage = intake.medications?.medication_catalog?.strength || 
                               intake.medications?.medication_catalog?.default_posology || "";
 
-        // Convertir les timestamps en heure locale française
-        const localTime = formatToFrenchTime(intake.scheduled_time, 'HH:mm');
-        const localTakenAt = intake.taken_at ? formatToFrenchTime(intake.taken_at, 'HH:mm') : undefined;
+        // Convertir UTC vers heure locale française
+        const localTime = formatToFrenchTime(intake.scheduled_time);
+        const localTakenAt = intake.taken_at ? formatToFrenchTime(intake.taken_at) : undefined;
 
         details.push({
           id: intake.id,
@@ -450,7 +450,11 @@ const Calendar = () => {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    onClick={() => setCurrentMonth(new Date())}
+                    onClick={() => {
+                      const today = new Date();
+                      setCurrentMonth(today);
+                      setSelectedDate(today);
+                    }}
                     className="h-8 px-2 text-xs"
                   >
                     Aujourd'hui

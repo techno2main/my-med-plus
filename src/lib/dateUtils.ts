@@ -2,42 +2,40 @@ import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 /**
- * Convertit une date UTC en heure française et la formate
- * Note: La base stocke en UTC, on veut afficher en heure locale française
+ * Convertit un timestamp UTC ISO en heure locale française
+ * La base Supabase stocke en UTC, on doit convertir pour l'affichage
  */
 export const formatToFrenchTime = (utcDateString: string, formatPattern: string = 'HH:mm') => {
-  const utcDate = parseISO(utcDateString);
-  // Utiliser toLocaleString avec le timezone français
-  const frenchTimeString = utcDate.toLocaleString('fr-FR', {
-    timeZone: 'Europe/Paris',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  // Utiliser parseISO qui gère correctement les dates ISO UTC
+  // parseISO interprète les dates sans 'Z' comme locales, donc on doit forcer UTC
+  let isoString = utcDateString;
   
-  // Si on veut un format personnalisé, on reconvertit
-  if (formatPattern !== 'HH:mm') {
-    const [hours, minutes] = frenchTimeString.split(':');
-    const frenchDate = new Date();
-    frenchDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-    return format(frenchDate, formatPattern, { locale: fr });
+  // Si la date ne se termine pas par Z et contient +00, on remplace par Z
+  if (!isoString.endsWith('Z') && isoString.includes('+00')) {
+    isoString = isoString.replace('+00', 'Z').replace(' ', 'T');
+  }
+  // Si la date contient un espace au lieu de T, on le remplace
+  else if (isoString.includes(' ') && !isoString.includes('T')) {
+    isoString = isoString.replace(' ', 'T');
+    if (!isoString.endsWith('Z') && !isoString.includes('+')) {
+      isoString += 'Z';
+    }
   }
   
-  return frenchTimeString;
+  const date = parseISO(isoString);
+  
+  // Formater avec date-fns (utilise l'heure locale du navigateur)
+  const result = format(date, formatPattern, { locale: fr });
+  
+  return result;
 };
 
 /**
  * Convertit une date UTC en heure française et la formate avec date complète
  */
 export const formatToFrenchDateTime = (utcDateString: string, formatPattern: string = 'dd/MM/yyyy HH:mm') => {
-  const utcDate = parseISO(utcDateString);
-  return utcDate.toLocaleString('fr-FR', {
-    timeZone: 'Europe/Paris',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  const date = new Date(utcDateString);
+  return format(date, formatPattern, { locale: fr });
 };
 
 /**

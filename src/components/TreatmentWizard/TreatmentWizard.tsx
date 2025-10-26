@@ -113,8 +113,27 @@ export function TreatmentWizard() {
 
       let prescriptionId = formData.prescriptionId;
 
+      // Toujours créer une prescription (obligatoire pour la contrainte DB)
+      if (!prescriptionId) {
+        const { data: prescData, error: prescError } = await supabase
+          .from("prescriptions")
+          .insert({
+            user_id: user.id,
+            prescribing_doctor_id: formData.prescribingDoctorId || null,
+            prescription_date: formData.prescriptionDate || new Date().toISOString().split('T')[0],
+            duration_days: parseInt(formData.durationDays) || 90,
+            file_path: null,
+            original_filename: null,
+          })
+          .select()
+          .single();
+
+        if (prescError) throw prescError;
+        prescriptionId = prescData.id;
+      }
+
       // Upload prescription file if provided
-      if (formData.prescriptionFile) {
+      if (formData.prescriptionFile && prescriptionId) {
         const fileExt = formData.prescriptionFile.name.split('.').pop();
         const filePath = `${user.id}/${Date.now()}.${fileExt}`;
         
@@ -124,22 +143,16 @@ export function TreatmentWizard() {
 
         if (uploadError) throw uploadError;
 
-        // Create prescription record with file
-        const { data: prescData, error: prescError } = await supabase
+        // Update prescription record with file
+        const { error: updateError } = await supabase
           .from("prescriptions")
-          .insert({
-            user_id: user.id,
-            prescribing_doctor_id: formData.prescribingDoctorId || null,
-            prescription_date: formData.prescriptionDate || new Date().toISOString().split('T')[0],
-            duration_days: parseInt(formData.durationDays) || 90,
+          .update({
             file_path: filePath,
             original_filename: formData.prescriptionFileName,
           })
-          .select()
-          .single();
+          .eq('id', prescriptionId);
 
-        if (prescError) throw prescError;
-        prescriptionId = prescData.id;
+        if (updateError) throw updateError;
       }
 
       // Create treatment
@@ -156,7 +169,7 @@ export function TreatmentWizard() {
         .from("treatments")
         .insert({
           user_id: user.id,
-          prescription_id: prescriptionId || null,
+          prescription_id: prescriptionId, // Toujours défini maintenant
           pharmacy_id: formData.pharmacyId || null,
           name: formData.name,
           description: formData.description,

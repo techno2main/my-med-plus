@@ -21,10 +21,13 @@ BEGIN
     AND scheduled_time > NOW();
   
   -- Régénérer les 7 prochains jours avec les horaires actuels
+  -- IMPORTANT : Les horaires dans md.times sont en heure LOCALE Paris
+  -- On doit les convertir en UTC en soustrayant le décalage horaire
   INSERT INTO medication_intakes (medication_id, scheduled_time, status, created_at, updated_at)
   SELECT 
     md.id AS medication_id,
-    (d.intake_date || ' ' || time_value::text)::timestamp AS scheduled_time,
+    -- Créer un timestamp en zone Europe/Paris puis le convertir en UTC
+    timezone('UTC', timezone('Europe/Paris', (d.intake_date || ' ' || time_value::text)::timestamp)) AS scheduled_time,
     'pending' AS status,
     NOW() AS created_at,
     NOW() AS updated_at

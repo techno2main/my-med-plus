@@ -37,14 +37,21 @@ interface StockAlert {
   daysLeft: number
 }
 
+interface ActiveTreatment {
+  id: string
+  name: string
+  startDate: string
+  endDate: string
+  qspDays: number | null
+}
+
 // Règles de tolérance identiques à celles du hook de détection
 const Index = () => {
   const navigate = useNavigate()
   const { isIntakeOverdue } = useIntakeOverdue()
   const [upcomingIntakes, setUpcomingIntakes] = useState<UpcomingIntake[]>([])
   const [stockAlerts, setStockAlerts] = useState<StockAlert[]>([])
-  const [activeTreatmentsCount, setActiveTreatmentsCount] = useState(0)
-  const [activeTreatmentName, setActiveTreatmentName] = useState("")
+  const [activeTreatments, setActiveTreatments] = useState<ActiveTreatment[]>([])
   const [loading, setLoading] = useState(true)
   // States for confirmation dialog
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
@@ -68,9 +75,8 @@ const Index = () => {
         .eq("is_active", true)
 
       if (treatmentsError) throw treatmentsError
-      setActiveTreatmentsCount(treatments?.length || 0)
 
-      // Calculate QSP for each treatment
+      // Calculate QSP for each treatment and format data
       const treatmentsWithQsp = await Promise.all(
         (treatments || []).map(async (treatment: any) => {
           let qspDays: number | null = null
@@ -94,12 +100,16 @@ const Index = () => {
           }
           
           return {
-            ...treatment,
-            qsp_days: qspDays
+            id: treatment.id,
+            name: treatment.name,
+            startDate: treatment.start_date,
+            endDate: treatment.end_date,
+            qspDays: qspDays
           }
         })
       )
       
+      setActiveTreatments(treatmentsWithQsp)
       const treatmentsMap = new Map(treatmentsWithQsp.map(t => [t.id, t]))
 
       // Load medications info for stock alerts
@@ -116,10 +126,6 @@ const Index = () => {
         `)
         .eq("treatments.is_active", true)
       
-      if (treatments && treatments.length > 0) {
-        setActiveTreatmentName(treatments[0].name)
-      }
-
       if (medsError) throw medsError
 
       // SYSTÈME UNIFIÉ : Lire les prises depuis medication_intakes uniquement
@@ -158,15 +164,13 @@ const Index = () => {
       const now = new Date();
 
       (upcomingIntakesData || []).forEach((intake: any) => {
-        const scheduledDate = new Date(intake.scheduled_time)
-        
         // Afficher toutes les prises pending (aujourd'hui + demain)
         const treatmentInfo = treatmentsMap.get(intake.medications.treatment_id)
         const catalogDosage = intake.medications?.medication_catalog?.strength || 
                              intake.medications?.medication_catalog?.default_posology || ""
 
-        // Convertir en heure locale française
-        const localTime = formatToFrenchTime(intake.scheduled_time, 'HH:mm')
+        // Convertir UTC vers heure locale française avec date-fns
+        const localTime = formatToFrenchTime(intake.scheduled_time);
 
         intakes.push({
           id: intake.id,
@@ -174,14 +178,14 @@ const Index = () => {
           medication: intake.medications.name,
           dosage: catalogDosage,
           time: localTime,
-          date: scheduledDate,
+          date: new Date(intake.scheduled_time), // Parser UNIQUEMENT pour les comparaisons de date
           treatment: intake.medications.treatments.name,
           treatmentId: intake.medications.treatment_id,
           pathology: intake.medications?.medication_catalog?.pathology || "",
           currentStock: intake.medications.current_stock || 0,
           minThreshold: intake.medications.min_threshold || 10,
-          treatmentQspDays: treatmentInfo?.qsp_days || null,
-          treatmentEndDate: treatmentInfo?.end_date || null
+          treatmentQspDays: treatmentInfo?.qspDays || null,
+          treatmentEndDate: treatmentInfo?.endDate || null
         })
       })
 
@@ -272,32 +276,52 @@ const Index = () => {
   return (
     <AppLayout>
       <div className="container max-w-2xl mx-auto px-3 md:px-4 py-6 space-y-6">
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 gap-4">
-          <Card className="p-4 surface-elevated cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/treatments")}>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Pill className="h-5 w-5 text-primary" />
+        {/* Active Treatments Section */}
+        {activeTreatments.length > 0 && (
+          <Card className="p-4 surface-elevated">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">
+                  Traitement{activeTreatments.length > 1 ? 's' : ''} Actif{activeTreatments.length > 1 ? 's' : ''}
+                </h2>
+                <Button variant="ghost" size="sm" onClick={() => navigate("/treatments")}>
+                  Voir tout
+                </Button>
               </div>
-              <div>
-                <p className="text-2xl font-bold">{activeTreatmentsCount}</p>
-                <p className="text-xs text-muted-foreground">Actif{activeTreatmentsCount > 1 ? 's' : ''}</p>
+              <div className="space-y-2">
+                {activeTreatments.map((treatment, index) => {
+                  const startDate = new Date(treatment.startDate);
+                  const endDate = new Date(treatment.endDate);
+                  const qspMonths = treatment.qspDays ? Math.round(treatment.qspDays / 30) : null;
+                  
+                  return (
+                    <div 
+                      key={treatment.id} 
+                      className="cursor-pointer hover:bg-surface/50 p-3 rounded-lg transition-colors border border-border"
+                      onClick={() => navigate("/treatments")}
+                    >
+                      {/* Ligne 1 : Numéro + Nom du traitement + QSP */}
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold text-primary text-base">{index + 1}</span>
+                        <span className="font-semibold text-base">{treatment.name}</span>
+                        {qspMonths && (
+                          <span className="text-sm text-muted-foreground">(QSP {qspMonths} mois)</span>
+                        )}
+                      </div>
+                      
+                      {/* Ligne 2 : Dates */}
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground ml-6">
+                        <span>
+                          {format(startDate, "dd/MM/yy", { locale: fr })} - {format(endDate, "dd/MM/yy", { locale: fr })}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </Card>
-          
-          <Card className="p-4 surface-elevated cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/history?tab=statistics")}>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-success/10">
-                <CheckCircle2 className="h-5 w-5 text-success" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{adherenceStats.adherence7Days}%</p>
-                <p className="text-xs text-muted-foreground">Observance</p>
-              </div>
-            </div>
-          </Card>
-        </div>
+        )}
 
         {/* Stock Alerts */}
         {stockAlerts.length > 0 && (

@@ -237,11 +237,11 @@ export default function History() {
         
         acc[dateKey].intakes.push({
           id: intake.id,
-          time: formatToFrenchTime(intake.scheduled_time, 'HH:mm'),
+          time: formatToFrenchTime(intake.scheduled_time),
           medication: intake.medications?.name || 'Médicament inconnu',
           dosage: dosage,
           status: intake.status,
-          takenAt: intake.taken_at ? formatToFrenchTime(intake.taken_at, 'HH:mm') : undefined,
+          takenAt: intake.taken_at ? formatToFrenchTime(intake.taken_at) : undefined,
           scheduledTimestamp: intake.scheduled_time,
           takenAtTimestamp: intake.taken_at,
           treatment: intake.medications?.treatments?.name || 'Traitement inconnu',

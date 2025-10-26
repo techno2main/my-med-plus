@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfDay, endOfDay, subDays } from 'date-fns';
+import { formatToFrenchTime } from "@/lib/dateUtils";
 
 interface MissedIntake {
   id: string;
@@ -98,7 +99,7 @@ export const useMissedIntakesDetection = () => {
                    intake.medications.strength || 
                    intake.medications.posology || '',
             scheduledTime: intake.scheduled_time,
-            displayTime: format(scheduledTime, 'HH:mm'),
+            displayTime: formatToFrenchTime(intake.scheduled_time),
             date: scheduledTime,
             dayName: isYesterday ? 'Hier' : format(scheduledTime, 'dd/MM/yyyy'),
             status: isYesterday ? 'missed_yesterday' : 'missed_today'

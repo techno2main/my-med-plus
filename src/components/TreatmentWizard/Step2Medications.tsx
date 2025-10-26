@@ -11,6 +11,62 @@ import { TreatmentFormData, MedicationItem, CatalogMedication } from "./types";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
+// Fonctions utilitaires pour la détection automatique des prises
+const detectTakesFromDosage = (posology: string): { count: number; moments: string[] } => {
+  const text = posology.toLowerCase().trim();
+  
+  // 1. Priorité aux indications numériques explicites
+  const numericMatch = text.match(/(\d+)\s*(fois|x)\s*(par\s*jour|\/jour)/i);
+  if (numericMatch) return { count: parseInt(numericMatch[1]), moments: [] };
+  
+  // 2. Détection par moments de la journée
+  const moments = [];
+  if (/matin|matinée|lever|réveil/i.test(text)) moments.push('matin');
+  if (/midi|déjeuner/i.test(text)) moments.push('midi');
+  if (/après.midi|après midi|aprem|apm/i.test(text)) moments.push('apres-midi');
+  if (/soir|soirée/i.test(text)) moments.push('soir');
+  if (/coucher/i.test(text)) moments.push('coucher');
+  if (/nuit|nocturne/i.test(text)) moments.push('nuit');
+  
+  if (moments.length > 0) return { count: moments.length, moments };
+  
+  // 3. Détection par conjonctions
+  if (/ et | puis | avec /i.test(text)) {
+    return { count: text.split(/ et | puis | avec /i).length, moments: [] };
+  }
+  
+  // 4. Par défaut : 1 prise
+  return { count: 1, moments: [] };
+};
+
+const getDefaultTimes = (numberOfTakes: number, detectedMoments: string[] = []): string[] => {
+  // Si des moments spécifiques ont été détectés, les utiliser
+  if (detectedMoments.length > 0) {
+    const timeMap: { [key: string]: string } = {
+      'matin': '09:30',
+      'midi': '12:30',
+      'apres-midi': '16:00',
+      'soir': '19:30',
+      'coucher': '22:30',
+      'nuit': '03:00'
+    };
+    
+    return detectedMoments.map(moment => timeMap[moment] || '09:30');
+  }
+  
+  // Sinon, utiliser la répartition par défaut
+  switch(numberOfTakes) {
+    case 1: return ['09:30'];
+    case 2: return ['09:30', '19:30'];
+    case 3: return ['09:30', '12:30', '19:30'];
+    case 4: return ['09:30', '12:30', '16:00', '19:30'];
+    default: return Array(numberOfTakes).fill(0).map((_, i) => {
+      const hour = 9 + (i * 12 / numberOfTakes);
+      return `${Math.floor(hour).toString().padStart(2, '0')}:30`;
+    });
+  }
+};
+
 interface Step2MedicationsProps {
   formData: TreatmentFormData;
   setFormData: (data: TreatmentFormData) => void;
@@ -21,9 +77,13 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
   const [showDialog, setShowDialog] = useState(false);
   const [showCustomDialog, setShowCustomDialog] = useState(false);
   const [newCustomMed, setNewCustomMed] = useState({ name: "", pathology: "", posology: "", strength: "" });
+  const [pathologies, setPathologies] = useState<string[]>([]);
+  const [pathologySuggestions, setPathologySuggestions] = useState<string[]>([]);
+  const [showPathologySuggestions, setShowPathologySuggestions] = useState(false);
 
   useEffect(() => {
     loadCatalog();
+    loadPathologies();
   }, []);
 
   const loadCatalog = async () => {
@@ -32,6 +92,36 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
       .select("id, name, pathology, description, default_posology, strength, default_times")
       .order("name");
     if (data) setCatalog(data);
+  };
+
+  const loadPathologies = async () => {
+    const { data } = await supabase
+      .from("pathologies")
+      .select("name")
+      .order("name");
+    if (data) {
+      setPathologies(data.map(p => p.name));
+    }
+  };
+
+  const handlePathologyChange = (value: string) => {
+    setNewCustomMed({ ...newCustomMed, pathology: value });
+    
+    if (value.trim().length > 0) {
+      const filtered = pathologies.filter(p => 
+        p.toLowerCase().startsWith(value.toLowerCase())
+      );
+      setPathologySuggestions(filtered);
+      setShowPathologySuggestions(filtered.length > 0);
+    } else {
+      setPathologySuggestions([]);
+      setShowPathologySuggestions(false);
+    }
+  };
+
+  const selectPathology = (pathology: string) => {
+    setNewCustomMed({ ...newCustomMed, pathology });
+    setShowPathologySuggestions(false);
   };
 
   const addMedicationFromCatalog = (catalogMed: CatalogMedication) => {
@@ -56,39 +146,80 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
   const addCustomMedication = async () => {
     if (!newCustomMed.name) return;
 
-    // Add to catalog
-    const { data } = await supabase
-      .from("medication_catalog")
-      .insert({
-        name: newCustomMed.name,
-        pathology: newCustomMed.pathology,
-        default_posology: newCustomMed.posology,
-      })
-      .select()
-      .single();
+    try {
+      // Si une pathologie est saisie, vérifier si elle existe, sinon la créer
+      if (newCustomMed.pathology && newCustomMed.pathology.trim()) {
+        const { data: existingPathology } = await supabase
+          .from("pathologies")
+          .select("id")
+          .ilike("name", newCustomMed.pathology.trim())
+          .maybeSingle();
 
-    if (data) {
-      const newMed: MedicationItem = {
-        catalogId: data.id,
-        name: data.name,
-        pathology: data.pathology || "",
-        posology: data.default_posology || "",
-        takesPerDay: 1,
-        times: [""],
-        unitsPerTake: 1,
-        minThreshold: 10,
-        isCustom: true,
-      };
-      setFormData({ ...formData, medications: [...formData.medications, newMed] });
-      setShowCustomDialog(false);
-      setNewCustomMed({ name: "", pathology: "", posology: "", strength: "" });
-      loadCatalog();
+        if (!existingPathology) {
+          // Créer la nouvelle pathologie
+          await supabase
+            .from("pathologies")
+            .insert({ name: newCustomMed.pathology.trim() });
+        }
+      }
+
+      // Parse la posologie pour détecter le nombre de prises et les moments
+      const { count: detectedTakes, moments: detectedMoments } = detectTakesFromDosage(newCustomMed.posology || "");
+      const defaultTimes = getDefaultTimes(detectedTakes, detectedMoments);
+
+      // Add to catalog
+      const { data } = await supabase
+        .from("medication_catalog")
+        .insert({
+          name: newCustomMed.name,
+          pathology: newCustomMed.pathology || null,
+          default_posology: newCustomMed.posology || null,
+          strength: newCustomMed.strength || null,
+          default_times: defaultTimes
+        })
+        .select()
+        .single();
+
+      if (data) {
+        const newMed: MedicationItem = {
+          catalogId: data.id,
+          name: data.name,
+          pathology: data.pathology || "",
+          posology: data.default_posology || "",
+          takesPerDay: detectedTakes,
+          times: defaultTimes,
+          unitsPerTake: 1,
+          minThreshold: 10,
+          isCustom: true,
+        };
+        setFormData({ ...formData, medications: [...formData.medications, newMed] });
+        setShowCustomDialog(false);
+        setNewCustomMed({ name: "", pathology: "", posology: "", strength: "" });
+        loadCatalog();
+      }
+    } catch (error) {
+      console.error("Error adding custom medication:", error);
     }
   };
 
   const updateMedication = (index: number, updates: Partial<MedicationItem>) => {
     const updated = [...formData.medications];
     updated[index] = { ...updated[index], ...updates };
+    setFormData({ ...formData, medications: updated });
+  };
+
+  const updateMedicationPosology = (index: number, newPosology: string) => {
+    // Parse la posologie pour détecter le nombre de prises et les moments
+    const { count: detectedTakes, moments: detectedMoments } = detectTakesFromDosage(newPosology);
+    const defaultTimes = getDefaultTimes(detectedTakes, detectedMoments);
+
+    const updated = [...formData.medications];
+    updated[index] = { 
+      ...updated[index], 
+      posology: newPosology,
+      takesPerDay: detectedTakes,
+      times: defaultTimes
+    };
     setFormData({ ...formData, medications: updated });
   };
 
@@ -216,7 +347,7 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
                 <Input
                   id={`dosage-${index}`}
                   value={med.posology}
-                  onChange={(e) => updateMedication(index, { posology: e.target.value })}
+                  onChange={(e) => updateMedicationPosology(index, e.target.value)}
                   placeholder="Ex: 1 comprimé matin et soir"
                   className="bg-surface"
                 />
@@ -312,14 +443,37 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
             
             {/* Deuxième ligne : Pathologie + Posologie */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <Label>Pathologie</Label>
                 <Input
                   id="custom-med-pathology"
                   value={newCustomMed.pathology}
-                  onChange={(e) => setNewCustomMed({ ...newCustomMed, pathology: e.target.value })}
+                  onChange={(e) => handlePathologyChange(e.target.value)}
+                  onFocus={() => {
+                    if (newCustomMed.pathology.trim().length > 0 && pathologySuggestions.length > 0) {
+                      setShowPathologySuggestions(true);
+                    }
+                  }}
+                  onBlur={() => {
+                    // Delay to allow click on suggestion
+                    setTimeout(() => setShowPathologySuggestions(false), 200);
+                  }}
                   placeholder="Ex: Diabète"
+                  autoComplete="off"
                 />
+                {showPathologySuggestions && pathologySuggestions.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-auto">
+                    {pathologySuggestions.map((pathology, index) => (
+                      <div
+                        key={index}
+                        className="px-3 py-2 cursor-pointer hover:bg-accent text-sm"
+                        onClick={() => selectPathology(pathology)}
+                      >
+                        {pathology}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Posologie</Label>
