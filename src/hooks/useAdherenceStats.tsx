@@ -13,7 +13,8 @@ export interface AdherenceStats {
 
 /**
  * Hook pour calculer les statistiques d'observance de manière cohérente
- * Filtre toujours par période de 7 ou 30 jours
+ * - Les compteurs (À l'heure, En retard, Manquées) portent sur TOUT l'historique
+ * - L'observance (%) est calculée sur 7 ou 30 jours
  */
 export const useAdherenceStats = () => {
   const [stats, setStats] = useState<AdherenceStats>({
@@ -31,7 +32,7 @@ export const useAdherenceStats = () => {
     try {
       setLoading(true);
 
-      // Charger tous les intakes nécessaires (30 derniers jours)
+      // Charger tous les intakes (tout l'historique)
       const { data: intakesData, error } = await supabase
         .from("medication_intakes")
         .select(`
@@ -56,22 +57,29 @@ export const useAdherenceStats = () => {
       const thirtyDaysAgo = new Date(now);
       thirtyDaysAgo.setDate(now.getDate() - 30);
 
-      // Filtrer par 7 jours
+      // Filtrer TOUS les intakes passés (taken ou skipped) pour les stats globales
+      const allPastIntakes = (intakesData || []).filter(i => {
+        const scheduledTime = new Date(i.scheduled_time);
+        return scheduledTime <= now && 
+               (i.status === 'taken' || i.status === 'skipped');
+      });
+
+      // Filtrer par 7 jours pour l'observance
       const intakes7Days = (intakesData || []).filter(i => {
         const scheduledTime = new Date(i.scheduled_time);
         return scheduledTime >= sevenDaysAgo && 
                (i.status === 'taken' || i.status === 'skipped');
       });
 
-      // Filtrer par 30 jours
+      // Filtrer par 30 jours pour l'observance
       const intakes30Days = (intakesData || []).filter(i => {
         const scheduledTime = new Date(i.scheduled_time);
         return scheduledTime >= thirtyDaysAgo && 
                (i.status === 'taken' || i.status === 'skipped');
       });
 
-      // Calculer les prises à l'heure (≤30min) - 7 derniers jours uniquement
-      const takenOnTime7Days = intakes7Days.filter(i => {
+      // Calculer les prises à l'heure (≤30min) - TOUT l'historique
+      const takenOnTimeAll = allPastIntakes.filter(i => {
         if (i.status !== 'taken' || !i.taken_at) return false;
         const scheduledTime = new Date(i.scheduled_time);
         const takenTime = new Date(i.taken_at);
@@ -79,11 +87,11 @@ export const useAdherenceStats = () => {
         return differenceMinutes <= 30;
       }).length;
 
-      // Calculer les prises manquées - 7 derniers jours uniquement
-      const skipped7Days = intakes7Days.filter(i => i.status === 'skipped').length;
+      // Calculer les prises manquées - TOUT l'historique
+      const skippedAll = allPastIntakes.filter(i => i.status === 'skipped').length;
 
-      // Calculer les prises en retard (>30min) - 7 derniers jours uniquement
-      const lateIntakes7Days = intakes7Days.filter(i => {
+      // Calculer les prises en retard (>30min) - TOUT l'historique
+      const lateIntakesAll = allPastIntakes.filter(i => {
         if (i.status !== 'taken' || !i.taken_at) return false;
         const scheduledTime = new Date(i.scheduled_time);
         const takenTime = new Date(i.taken_at);
@@ -100,9 +108,9 @@ export const useAdherenceStats = () => {
       const total30 = intakes30Days.length;
 
       setStats({
-        takenOnTime: takenOnTime7Days,
-        skipped: skipped7Days,
-        lateIntakes: lateIntakes7Days,
+        takenOnTime: takenOnTimeAll,
+        skipped: skippedAll,
+        lateIntakes: lateIntakesAll,
         adherence7Days: total7 > 0 ? Math.round((taken7 / total7) * 100) : 0,
         adherence30Days: total30 > 0 ? Math.round((taken30 / total30) * 100) : 0,
         total7Days: total7,
