@@ -71,7 +71,7 @@ export default function History() {
     loadHistory();
   }, []);
 
-  // Auto-expand today's section and scroll to it
+  // Auto-expand today's section without scrolling
   useEffect(() => {
     if (historyData.length > 0 && activeTab === "history") {
       // Find today's date in the data
@@ -79,11 +79,6 @@ export default function History() {
       if (todayData) {
         const todayKey = todayData.date.toISOString();
         setExpandedDays(new Set([todayKey])); // Only expand today
-        
-        // Scroll to today's section after a short delay to ensure rendering
-        setTimeout(() => {
-          todayRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
       }
     }
   }, [historyData, activeTab]);
@@ -183,8 +178,7 @@ export default function History() {
             treatments(name, start_date, end_date, prescription_id)
           )
         `)
-        .order("scheduled_time", { ascending: false })
-        .limit(100);
+        .order("scheduled_time", { ascending: false });
 
       if (error) throw error;
 
@@ -301,13 +295,13 @@ export default function History() {
       if (differenceMinutes <= 30) {
         return <CheckCircle2 className="h-6 w-6 text-success" />;
       }
-      // Jaune : entre 30min et 1h après (léger retard)
+      // Vert : entre 30min et 1h après (léger retard)
       else if (differenceMinutes <= 60) {
-        return <ClockAlert className="h-6 w-6 text-yellow-500" />;
+        return <ClockAlert className="h-6 w-6 text-success" />;
       }
-      // Jaune foncé : plus d'1h après (gros retard)
+      // Vert : plus d'1h après (gros retard)
       else {
-        return <ClockAlert className="h-6 w-6 text-yellow-600" />;
+        return <ClockAlert className="h-6 w-6 text-success" />;
       }
     }
     
@@ -384,11 +378,11 @@ export default function History() {
                   variant={filterStatus === "late" ? "default" : "outline"} 
                   size="sm"
                   onClick={() => setFilterStatus("late")}
-                  className={`h-10 w-full relative ${filterStatus === "late" ? "" : "border-warning/50 text-warning hover:bg-warning/10"}`}
+                  className={`h-10 w-full relative ${filterStatus === "late" ? "" : "border-success/50 text-success hover:bg-success/10"}`}
                 >
                   <ClockAlert className="h-5 w-5" />
                   {stats.lateIntakes > 0 && (
-                    <span className={`absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold rounded-full border-2 border-background ${filterStatus === "late" ? "bg-primary-foreground text-primary" : "bg-warning text-white"}`}>
+                    <span className={`absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold rounded-full border-2 border-background ${filterStatus === "late" ? "bg-primary-foreground text-primary" : "bg-success text-white"}`}>
                       {stats.lateIntakes}
                     </span>
                   )}
@@ -593,7 +587,7 @@ export default function History() {
             </Card>
 
             <Card className="p-6">
-              <h3 className="font-semibold mb-4">Résumé</h3>
+              <h3 className="font-semibold mb-4">Résumé (depuis le 13/10/25)</h3>
               <div className="grid grid-cols-3 gap-3">
                 <div 
                   className="p-3 rounded-lg bg-success/10 cursor-pointer hover:bg-success/20 transition-colors" 
@@ -603,11 +597,11 @@ export default function History() {
                   <p className="text-2xl font-bold text-success">{stats.takenOnTime}</p>
                 </div>
                 <div 
-                  className="p-3 rounded-lg bg-warning/10 cursor-pointer hover:bg-warning/20 transition-colors" 
+                  className="p-3 rounded-lg bg-success/10 cursor-pointer hover:bg-success/20 transition-colors" 
                   onClick={() => handleFilterClick("late")}
                 >
                   <p className="text-xs text-muted-foreground mb-1">En retard</p>
-                  <p className="text-2xl font-bold text-warning">{stats.lateIntakes}</p>
+                  <p className="text-2xl font-bold text-success">{stats.lateIntakes}</p>
                 </div>
                 <div 
                   className="p-3 rounded-lg bg-danger/10 cursor-pointer hover:bg-danger/20 transition-colors" 
@@ -617,6 +611,54 @@ export default function History() {
                   <p className="text-2xl font-bold text-danger">{stats.skipped}</p>
                 </div>
               </div>
+              
+              {/* Total des prises avec période */}
+              {historyData.length > 0 && (() => {
+                // Séparer les prises effectuées (taken/skipped) des prises à venir (pending)
+                const completedDays = historyData
+                  .map(day => ({
+                    date: day.date,
+                    intakes: day.intakes.filter(intake => intake.status !== 'pending')
+                  }))
+                  .filter(day => day.intakes.length > 0);
+                
+                const pendingDays = historyData
+                  .map(day => ({
+                    date: day.date,
+                    intakes: day.intakes.filter(intake => intake.status === 'pending')
+                  }))
+                  .filter(day => day.intakes.length > 0);
+                
+                const completedIntakesCount = completedDays.reduce((sum, day) => sum + day.intakes.length, 0);
+                const pendingIntakesCount = pendingDays.reduce((sum, day) => sum + day.intakes.length, 0);
+                
+                // Dates pour les prises effectuées
+                const sortedCompletedDays = [...completedDays].sort((a, b) => a.date.getTime() - b.date.getTime());
+                const completedFirstDate = sortedCompletedDays[0]?.date;
+                const completedLastDate = sortedCompletedDays[sortedCompletedDays.length - 1]?.date;
+                
+                // Dates pour les prises prévues
+                const sortedPendingDays = [...pendingDays].sort((a, b) => a.date.getTime() - b.date.getTime());
+                const pendingFirstDate = sortedPendingDays[0]?.date;
+                const pendingLastDate = sortedPendingDays[sortedPendingDays.length - 1]?.date;
+                
+                return (
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <div className="text-sm text-muted-foreground text-center space-y-1">
+                      {completedIntakesCount > 0 && (
+                        <p>
+                          <span className="font-semibold text-foreground">{completedIntakesCount}</span> prises effectuées à ce jour
+                        </p>
+                      )}
+                      {pendingIntakesCount > 0 && (
+                        <p>
+                          <span className="font-semibold text-foreground">{pendingIntakesCount}</span> prévues sur les 7 prochains jours
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
             </Card>
           </TabsContent>
         </Tabs>
