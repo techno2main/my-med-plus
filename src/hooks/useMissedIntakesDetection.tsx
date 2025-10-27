@@ -57,7 +57,7 @@ export const useMissedIntakesDetection = () => {
       // NOUVELLE APPROCHE : Ne détecter que les prises existantes dans medication_intakes
       // avec status='pending' et dont l'heure + tolérance est dépassée
       
-      // 1. Récupérer les prises en attente (pending) des derniers jours
+      // 1. Récupérer les prises en attente (pending) des derniers jours (UNIQUEMENT traitements actifs)
       const { data: pendingIntakes, error: pendingError } = await supabase
         .from("medication_intakes")
         .select(`
@@ -65,14 +65,16 @@ export const useMissedIntakesDetection = () => {
           medication_id,
           scheduled_time,
           status,
-          medications (
+          medications!inner (
             name,
             strength,
             posology,
-            medication_catalog(strength, default_posology)
+            medication_catalog(strength, default_posology),
+            treatments!inner(is_active)
           )
         `)
         .eq("status", "pending")
+        .eq("medications.treatments.is_active", true)
         .gte("scheduled_time", yesterday.toISOString())
         .lt("scheduled_time", now.toISOString())
         .order("scheduled_time", { ascending: false });
