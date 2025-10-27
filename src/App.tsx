@@ -29,7 +29,7 @@ import Profile from "./pages/Profile";
 import Privacy from "./pages/Privacy";
 import About from "./pages/About";
 import StockDetails from "./pages/StockDetails";
-import TreatmentEdit from "./pages/TreatmentEdit";
+import TreatmentEdit from "./pages/treatment-edit/TreatmentEdit";
 import NotificationSettings from "./pages/NotificationSettings";
 import NotificationDebug from "./pages/NotificationDebug";
 import NavigationManager from "./pages/NavigationManager";
