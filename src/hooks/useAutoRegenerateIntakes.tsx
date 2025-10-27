@@ -24,11 +24,15 @@ export function useAutoRegenerateIntakes() {
     isRegenerating.current = true;
 
     try {
-      // Appeler la fonction PostgreSQL pour tous les médicaments
+      // Appeler la fonction PostgreSQL uniquement pour les médicaments des traitements ACTIFS
       const { data: medications, error: medError } = await supabase
         .from('medications')
-        .select('id')
-        .not('times', 'is', null);
+        .select(`
+          id,
+          treatments!inner(is_active)
+        `)
+        .not('times', 'is', null)
+        .eq('treatments.is_active', true);
 
       if (medError) throw medError;
 

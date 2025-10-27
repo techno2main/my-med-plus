@@ -138,6 +138,13 @@ const Index = () => {
         })
       )
       
+      // Trier par date de début (du plus ancien au plus récent)
+      treatmentsWithQsp.sort((a, b) => {
+        const dateA = new Date(a.startDate).getTime()
+        const dateB = new Date(b.startDate).getTime()
+        return dateA - dateB
+      })
+      
       setActiveTreatments(treatmentsWithQsp)
       const treatmentsMap = new Map(treatmentsWithQsp.map(t => [t.id, t]))
 
@@ -172,19 +179,20 @@ const Index = () => {
           medication_id,
           scheduled_time,
           status,
-          medications (
+          medications!inner (
             id,
             name,
             current_stock,
             min_threshold,
             treatment_id,
-            treatments (name),
+            treatments!inner (name, is_active),
             medication_catalog (pathology, strength, default_posology)
           )
         `)
         .gte("scheduled_time", today.toISOString())
         .lt("scheduled_time", dayAfterTomorrow.toISOString())
         .eq("status", "pending")
+        .eq("medications.treatments.is_active", true)
         .order("scheduled_time", { ascending: true })
 
       if (intakesError) throw intakesError

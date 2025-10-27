@@ -94,9 +94,16 @@ const Calendar = () => {
       // Load intakes for the extended range to include visible days from adjacent months
       const { data: intakes } = await supabase
         .from("medication_intakes")
-        .select("*")
+        .select(`
+          *,
+          medications!inner(
+            treatment_id,
+            treatments!inner(is_active)
+          )
+        `)
         .gte("scheduled_time", extendedStart.toISOString())
-        .lte("scheduled_time", extendedEnd.toISOString());
+        .lte("scheduled_time", extendedEnd.toISOString())
+        .eq("medications.treatments.is_active", true);
 
       // Process day by day using REAL intakes only (but now including adjacent month days)
       const daysData: DayIntake[] = [];
@@ -152,12 +159,16 @@ const Calendar = () => {
       const totalTaken = daysData.reduce((sum, day) => sum + day.taken, 0);
       setObservanceRate(totalPast > 0 ? Math.round((totalTaken / totalPast) * 100) : 100);
 
-      // Load next pharmacy visit
+      // Load next pharmacy visit (uniquement pour traitements actifs)
       const { data: visits } = await supabase
         .from("pharmacy_visits")
-        .select("visit_date")
+        .select(`
+          visit_date,
+          treatments!inner(is_active)
+        `)
         .gte("visit_date", format(now, "yyyy-MM-dd"))
         .eq("is_completed", false)
+        .eq("treatments.is_active", true)
         .order("visit_date", { ascending: true })
         .limit(1);
 
@@ -210,15 +221,16 @@ const Calendar = () => {
           scheduled_time,
           taken_at,
           status,
-          medications (
+          medications!inner (
             name,
             treatment_id,
-            treatments (name),
+            treatments!inner (name, is_active),
             medication_catalog (strength, default_posology)
           )
         `)
         .gte("scheduled_time", dayStart.toISOString())
         .lte("scheduled_time", dayEnd.toISOString())
+        .eq("medications.treatments.is_active", true)
         .order("scheduled_time", { ascending: true });
 
       if (intakesError) throw intakesError;

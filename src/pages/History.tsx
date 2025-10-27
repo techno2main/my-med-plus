@@ -170,14 +170,15 @@ export default function History() {
           scheduled_time,
           taken_at,
           status,
-          medications (
+          medications!inner (
             name,
             catalog_id,
             treatment_id,
             medication_catalog(strength, default_posology),
-            treatments(name, start_date, end_date, prescription_id)
+            treatments!inner(name, start_date, end_date, prescription_id, is_active)
           )
         `)
+        .eq("medications.treatments.is_active", true)
         .order("scheduled_time", { ascending: false });
 
       if (error) throw error;
