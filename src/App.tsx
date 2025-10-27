@@ -7,7 +7,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { UpdateNotification } from "./components/UpdateNotification";
 import { NotificationSchedulerProvider } from "./components/NotificationSchedulerProvider";
 import { useAutoRegenerateIntakes } from "./hooks/useAutoRegenerateIntakes";
-import Index from "./pages/Index";
+import Index from "./pages/index/Index";
 import Auth from "./pages/Auth";
 import Treatments from "./pages/Treatments";
 import Calendar from "./pages/Calendar";
@@ -15,7 +15,7 @@ import Pros from "./pages/Pros";
 import Stock from "./pages/Stock";
 import Prescriptions from "./pages/Prescriptions";
 import Settings from "./pages/Settings";
-import History from "./pages/History";
+import History from "./pages/history/History";
 import TreatmentForm from "./pages/TreatmentForm";
 import StockForm from "./pages/StockForm";
 
