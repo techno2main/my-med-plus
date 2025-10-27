@@ -23,7 +23,7 @@ import MedicationCatalog from "./pages/medication-catalog/MedicationCatalog";
 import Referentials from "./pages/Referentials";
 import HealthProfessionals from "./pages/HealthProfessionals";
 import Pathologies from "./pages/pathologies/Pathologies";
-import Allergies from "./pages/Allergies";
+import Allergies from "./pages/allergies/Allergies";
 import Profile from "./pages/Profile";
 import Privacy from "./pages/Privacy";
 import About from "./pages/About";
