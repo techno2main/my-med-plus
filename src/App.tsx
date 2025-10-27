@@ -20,7 +20,7 @@ import TreatmentForm from "./pages/treatment-form/TreatmentForm";
 import StockForm from "./pages/StockForm";
 
 import ProForm from "./pages/ProForm";
-import MedicationCatalog from "./pages/MedicationCatalog";
+import MedicationCatalog from "./pages/medication-catalog/MedicationCatalog";
 import Referentials from "./pages/Referentials";
 import HealthProfessionals from "./pages/HealthProfessionals";
 import Pathologies from "./pages/Pathologies";
