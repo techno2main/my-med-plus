@@ -8,7 +8,7 @@ import { UpdateNotification } from "./components/UpdateNotification";
 import { NotificationSchedulerProvider } from "./components/NotificationSchedulerProvider";
 import { useAutoRegenerateIntakes } from "./hooks/useAutoRegenerateIntakes";
 import Index from "./pages/index/Index";
-import Auth from "./pages/Auth";
+import Auth from "./pages/auth/Auth";
 import Treatments from "./pages/Treatments";
 import Calendar from "./pages/calendar/Calendar";
 import Pros from "./pages/Pros";
