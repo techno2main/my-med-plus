@@ -1,240 +1,45 @@
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { DateInput } from "@/components/ui/date-input";
-import { Upload, FileText, X } from "lucide-react";
-import { TreatmentFormData } from "./types";
+import { Card } from "@/components/ui/card"
+import { TreatmentFormData } from "./types"
+import { BasicInfoFields } from "./components/BasicInfoFields"
+import { PrescriptionUpload } from "./components/PrescriptionUpload"
+import { PharmacyInfoFields } from "./components/PharmacyInfoFields"
 
 interface Step1InfoProps {
-  formData: TreatmentFormData;
-  setFormData: (data: TreatmentFormData) => void;
-  prescriptions: any[];
-  doctors: any[];
-  pharmacies: any[];
+  formData: TreatmentFormData
+  setFormData: (data: TreatmentFormData) => void
+  prescriptions: any[]
+  doctors: any[]
+  pharmacies: any[]
 }
 
-export function Step1Info({ formData, setFormData, prescriptions, doctors, pharmacies }: Step1InfoProps) {
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData({
-        ...formData,
-        prescriptionFile: file,
-        prescriptionFileName: file.name,
-      });
-    }
-  };
-
-  const removeFile = () => {
-    setFormData({
-      ...formData,
-      prescriptionFile: null,
-      prescriptionFileName: "",
-    });
-  };
-
+export function Step1Info({ 
+  formData, 
+  setFormData, 
+  prescriptions, 
+  doctors, 
+  pharmacies 
+}: Step1InfoProps) {
   return (
     <div className="space-y-6 animate-fade-in">
       <Card className="p-6 space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="treatment-name">Nom du traitement *</Label>
-          <Input
-            id="treatment-name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="Ex: Traitement diabète type 2"
-            className="bg-surface"
-            required
-          />
-        </div>
+        <BasicInfoFields
+          formData={formData}
+          setFormData={setFormData}
+          doctors={doctors}
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Input
-            id="description"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            placeholder="Informations complémentaires"
-            className="bg-surface"
-          />
-        </div>
+        <PharmacyInfoFields
+          formData={formData}
+          setFormData={setFormData}
+          prescriptions={prescriptions}
+          pharmacies={pharmacies}
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="doctor">Médecin prescripteur *</Label>
-          <Select
-            value={formData.prescribingDoctorId}
-            onValueChange={(value) => setFormData({ ...formData, prescribingDoctorId: value })}
-          >
-            <SelectTrigger className="bg-surface">
-              <SelectValue placeholder="Choisir" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover z-50">
-              {doctors.length === 0 ? (
-                <SelectItem value="none" disabled>
-                  Aucun médecin disponible
-                </SelectItem>
-              ) : (
-                doctors.map((doctor) => (
-                  <SelectItem key={doctor.id} value={doctor.id}>
-                    {doctor.name} {doctor.specialty ? `- ${doctor.specialty}` : ""}
-                  </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="prescription-date">Début *</Label>
-            <DateInput
-              id="prescription-date"
-              value={formData.prescriptionDate}
-              onChange={(date) => setFormData({ ...formData, prescriptionDate: date })}
-              placeholder="Date"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="duration-days">QSP *</Label>
-            <Input
-              id="duration-days"
-              type="number"
-              value={formData.durationDays}
-              onChange={(e) => setFormData({ ...formData, durationDays: e.target.value })}
-              placeholder="Ex: 30, 60, 90..."
-              className="bg-surface"
-              required
-              min="1"
-            />
-          </div>
-        </div>
-
-        <p className="text-xs text-muted-foreground -mt-2">
-          QSP = Quantité Suffisante Pour (en jours)
-        </p>
-
-        <div className="space-y-2">
-          <Label htmlFor="prescription">Ordonnance de référence (optionnel)</Label>
-          <Select
-            value={formData.prescriptionId}
-            onValueChange={(value) => setFormData({ ...formData, prescriptionId: value })}
-          >
-            <SelectTrigger className="bg-surface">
-              <SelectValue placeholder="Choisir" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover z-50">
-              {prescriptions.length === 0 ? (
-                <SelectItem value="none" disabled>
-                  Aucune ordonnance disponible
-                </SelectItem>
-              ) : (
-                prescriptions.map((presc) => (
-                  <SelectItem key={presc.id} value={presc.id}>
-                    {new Date(presc.prescription_date).toLocaleDateString('fr-FR')} - {presc.health_professionals?.name || "Médecin"}
-                  </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Upload d&apos;ordonnance (optionnel)</Label>
-          {!formData.prescriptionFile ? (
-            <label htmlFor="file-upload" className="block">
-              <div className="border-2 border-dashed border-muted rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors bg-surface">
-                <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  Cliquez pour uploader une ordonnance
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  PDF, JPEG, PNG (max 5MB)
-                </p>
-              </div>
-              <input
-                id="file-upload"
-                type="file"
-                accept="image/*,application/pdf"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-            </label>
-          ) : (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 p-3 bg-surface rounded-lg border">
-                <FileText className="h-5 w-5 text-primary" />
-                <span className="text-sm flex-1 truncate">{formData.prescriptionFile.name}</span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={removeFile}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="display-name">Nom d&apos;affichage du fichier</Label>
-                <Input
-                  id="display-name"
-                  value={formData.prescriptionFileName}
-                  onChange={(e) => setFormData({ ...formData, prescriptionFileName: e.target.value })}
-                  placeholder="Ex: Ordonnance Dr. Martin - Janvier 2024"
-                  className="bg-surface"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Ce nom sera affiché dans l&apos;application
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="pharmacy">Pharmacie de délivrance *</Label>
-          <Select
-            value={formData.pharmacyId}
-            onValueChange={(value) => setFormData({ ...formData, pharmacyId: value })}
-          >
-            <SelectTrigger className="bg-surface">
-              <SelectValue placeholder="Choisir" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover z-50">
-              {pharmacies.length === 0 ? (
-                <SelectItem value="none" disabled>
-                  Aucune pharmacie disponible
-                </SelectItem>
-              ) : (
-                pharmacies.map((pharmacy) => (
-                  <SelectItem key={pharmacy.id} value={pharmacy.id}>
-                    {pharmacy.name}
-                  </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="first-visit">Première visite en pharmacie</Label>
-          <DateInput
-            id="first-visit"
-            value={formData.firstPharmacyVisit}
-            onChange={(date) => setFormData({ ...formData, firstPharmacyVisit: date })}
-            placeholder="Date"
-          />
-          <p className="text-xs text-muted-foreground">
-            {formData.durationDays ? 
-              `Les ${Math.max(0, Math.floor(parseInt(formData.durationDays) / 30) - 1)} prochaines visites seront automatiquement planifiées à 1 mois d'intervalle` :
-              "Les prochaines visites seront automatiquement planifiées à 1 mois d'intervalle"
-            }
-          </p>
-        </div>
+        <PrescriptionUpload
+          formData={formData}
+          setFormData={setFormData}
+        />
       </Card>
     </div>
-  );
+  )
 }

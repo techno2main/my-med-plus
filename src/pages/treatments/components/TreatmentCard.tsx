@@ -1,0 +1,106 @@
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Calendar, User, Download, Pill } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { supabase } from "@/integrations/supabase/client"
+import { formatToFrenchDate } from "@/lib/dateUtils"
+import { MedicationItem } from "./MedicationItem"
+import type { Treatment } from "../types"
+
+interface TreatmentCardProps {
+  treatment: Treatment
+}
+
+export const TreatmentCard = ({ treatment }: TreatmentCardProps) => {
+  const navigate = useNavigate()
+
+  return (
+    <Card className="p-4 space-y-3">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <h3 className="font-semibold text-lg">{treatment.name}</h3>
+          {treatment.is_active ? (
+            <Badge variant="default" className="mt-1 bg-success text-white">
+              Actif
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="mt-1 bg-muted text-muted-foreground">
+              Archivé
+            </Badge>
+          )}
+        </div>
+        {treatment.is_active && (
+          <Button variant="ghost" size="sm" onClick={() => navigate(`/treatments/${treatment.id}/edit`)}>
+            Modifier
+          </Button>
+        )}
+      </div>
+
+      {/* Medications */}
+      <div className="space-y-2">
+        {treatment.medications.map((med, idx) => (
+          <MedicationItem key={idx} medication={med} />
+        ))}
+      </div>
+
+      {/* Metadata Footer */}
+      <div className="pt-2 border-t border-border space-y-1">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Calendar className="h-3 w-3" />
+          <span className="whitespace-nowrap">
+            Début : {formatToFrenchDate(treatment.start_date)}
+            {treatment.qsp_days && (
+              <span className="text-[10px]"> (QSP {Math.round(treatment.qsp_days / 30)} mois)</span>
+            )}
+            {treatment.end_date && (
+              <> • Fin : {formatToFrenchDate(treatment.end_date)}</>
+            )}
+          </span>
+        </div>
+        {treatment.prescribing_doctor && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <User className="h-3 w-3" />
+            <span>{treatment.prescribing_doctor.name}</span>
+          </div>
+        )}
+        {treatment.prescription?.file_path && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Download className="h-3 w-3" />
+            <a 
+              href={supabase.storage.from('prescriptions').getPublicUrl(treatment.prescription.file_path).data.publicUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-primary underline"
+            >
+              Voir l'ordonnance
+            </a>
+          </div>
+        )}
+        {treatment.next_pharmacy_visit && treatment.end_date && (
+          (() => {
+            // Afficher le prochain rechargement seulement si :
+            // 1. La visite est AVANT la fin du traitement
+            // 2. Ce n'est PAS la visite initiale (visit_number > 1)
+            const nextVisitDate = new Date(treatment.next_pharmacy_visit.visit_date);
+            const endDate = new Date(treatment.end_date);
+            const isRefill = treatment.next_pharmacy_visit.visit_number > 1;
+            
+            // Pas d'affichage si :
+            // - Visite après ou à la fin du traitement
+            // - C'est la visite initiale (pas un rechargement)
+            if (nextVisitDate >= endDate || !isRefill) return null;
+            
+            return (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Pill className="h-3 w-3" />
+                <span>Prochain rechargement : {nextVisitDate.toLocaleDateString("fr-FR")}</span>
+              </div>
+            );
+          })()
+        )}
+      </div>
+    </Card>
+  )
+}

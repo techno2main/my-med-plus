@@ -4,43 +4,51 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Treatments from "./pages/Treatments";
-import Calendar from "./pages/Calendar";
-import Pros from "./pages/Pros";
-import Stock from "./pages/Stock";
-import Prescriptions from "./pages/Prescriptions";
-import Settings from "./pages/Settings";
-import History from "./pages/History";
-import TreatmentForm from "./pages/TreatmentForm";
-import StockForm from "./pages/StockForm";
-
-import ProForm from "./pages/ProForm";
-import MedicationCatalog from "./pages/MedicationCatalog";
-import Referentials from "./pages/Referentials";
-import HealthProfessionals from "./pages/HealthProfessionals";
-import Pathologies from "./pages/Pathologies";
-import Allergies from "./pages/Allergies";
-import Profile from "./pages/Profile";
-import Privacy from "./pages/Privacy";
-import About from "./pages/About";
-import StockDetails from "./pages/StockDetails";
-import TreatmentEdit from "./pages/TreatmentEdit";
-import NotificationSettings from "./pages/NotificationSettings";
-import NavigationManager from "./pages/NavigationManager";
-import Admin from "./pages/Admin";
-import NotFound from "./pages/NotFound";
+import { UpdateNotification } from "./components/UpdateNotification";
+import { NotificationSchedulerProvider } from "./components/NotificationSchedulerProvider";
+import { useAutoRegenerateIntakes } from "./hooks/useAutoRegenerateIntakes";
+import Index from "./pages/index/Index";
+import Auth from "./pages/auth/Auth";
+import Treatments from "./pages/treatments/Treatments";
+import Calendar from "./pages/calendar/Calendar";
+import Stock from "./pages/stock/Stock";
+import Prescriptions from "./pages/prescriptions/Prescriptions";
+import Settings from "./pages/settings/Settings";
+import History from "./pages/history/History";
+import TreatmentForm from "./pages/treatment-form/TreatmentForm";
+import StockForm from "./pages/stock/StockForm";
+import MedicationCatalog from "./pages/medication-catalog/MedicationCatalog";
+import Referentials from "./pages/referentials/Referentials";
+import HealthProfessionals from "./pages/health-professionals/HealthProfessionals";
+import Pathologies from "./pages/pathologies/Pathologies";
+import Allergies from "./pages/allergies/Allergies";
+import Profile from "./pages/profile/Profile";
+import Privacy from "./pages/privacy/Privacy";
+import About from "./pages/about/About";
+import StockDetails from "./pages/stock/StockDetails";
+import TreatmentEdit from "./pages/treatment-edit/TreatmentEdit";
+import NotificationSettings from "./pages/notification-settings/NotificationSettings";
+import NotificationDebug from "./pages/admin/NotificationDebug";
+import NavigationManager from "./pages/admin/NavigationManager";
+import Admin from "./pages/admin/dashboard/AdminDashboard";
+import NotFound from "./pages/not-found/NotFound";
+import Rattrapage from "./pages/rattrapage/Rattrapage";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
+const App = () => {
+  // Régénération automatique des prises toutes les 6h
+  useAutoRegenerateIntakes();
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <UpdateNotification />
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <NotificationSchedulerProvider>
+          <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
           <Route path="/treatments" element={<ProtectedRoute><Treatments /></ProtectedRoute>} />
@@ -49,8 +57,6 @@ const App = () => (
           <Route path="/stock/new" element={<ProtectedRoute><StockForm /></ProtectedRoute>} />
           <Route path="/stock/adjust" element={<ProtectedRoute><StockForm /></ProtectedRoute>} />
           <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
-          <Route path="/pros" element={<ProtectedRoute><Pros /></ProtectedRoute>} />
-          <Route path="/pros/new" element={<ProtectedRoute><ProForm /></ProtectedRoute>} />
           <Route path="/prescriptions" element={<ProtectedRoute><Prescriptions /></ProtectedRoute>} />
           <Route path="/medications" element={<ProtectedRoute><MedicationCatalog /></ProtectedRoute>} />
           <Route path="/referentials" element={<ProtectedRoute><Referentials /></ProtectedRoute>} />
@@ -61,18 +67,22 @@ const App = () => (
           <Route path="/settings/navigation" element={<ProtectedRoute><NavigationManager /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
+          <Route path="/notifications/debug" element={<ProtectedRoute><NotificationDebug /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/privacy" element={<ProtectedRoute><Privacy /></ProtectedRoute>} />
           <Route path="/about" element={<ProtectedRoute><About /></ProtectedRoute>} />
           <Route path="/stock/:id" element={<ProtectedRoute><StockDetails /></ProtectedRoute>} />
           <Route path="/treatments/:id/edit" element={<ProtectedRoute><TreatmentEdit /></ProtectedRoute>} />
+          <Route path="/rattrapage" element={<ProtectedRoute><Rattrapage /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </NotificationSchedulerProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;

@@ -1,0 +1,6 @@
+id,name,pathology,default_posology,description,created_at,updated_at,form,color,strength,initial_stock,min_threshold,default_times,is_approved,created_by
+20cdc76f-4e18-403c-b05a-71ebd662c620,Xigduo,Diabète T2,1 comprimé matin et soir,Diabète Type 2,2025-10-13 12:41:41.333622+00,2025-10-20 18:32:40.553536+00,,,5mg/1000mg,0,10,"[""09:30"",""20:00""]",false,
+61a5e9aa-7a8a-4258-9d07-6fc8dde6e42e,Doliprane,Douleur/Fièvre,"1 comprimé matin, midi et soir",,2025-10-26 11:08:34.629837+00,2025-10-26 11:08:34.629837+00,,,1mg,0,10,"[""09:30"",""12:30"",""19:30""]",false,
+6a21de1a-3381-4923-b4c2-194ac8008ae8,Quviviq,Insomnie,1 comprimé au coucher,Troubles du Sommeil,2025-10-13 16:41:06.990099+00,2025-10-19 19:36:43.669411+00,,,50mg,0,10,"[""22:00""]",false,
+c5be88b2-d692-4a1d-8a7c-134a043ab0cd,Venlafaxine,Anxiété,1 comprimé au coucher,Anxiété chronique,2025-10-13 16:41:43.414395+00,2025-10-20 18:30:45.731075+00,,,225mg,0,10,"[""22:00""]",false,
+e145c2c2-2c49-4521-9dc0-89b9f2f3c54a,Simvastatine,Cholestérol,1 comprimé le soir,Cholestérol,2025-10-13 12:41:41.333622+00,2025-10-20 18:32:54.811993+00,,,10mg,0,7,"[""20:00""]",false,

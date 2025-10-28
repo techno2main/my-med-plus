@@ -36,7 +36,7 @@ const DEFAULT_PREFERENCES: NotificationPreferences = {
     delayedReminder: "⏰ Rappel de prise manquée",
     stockAlert: "⚠️ Stock faible",
     prescriptionRenewal: "📅 Renouvellement d'ordonnance",
-    pharmacyVisit: "💊 Visite pharmacie",
+    pharmacyVisit: "💊 Rechargement pharmacie",
   },
 };
 
@@ -46,7 +46,21 @@ export const useNativeNotifications = () => {
   const [hasPermission, setHasPermission] = useState(false);
 
   useEffect(() => {
-    checkPermissions();
+    // Vérifier si Capacitor LocalNotifications est vraiment disponible
+    const checkCapacitorAvailability = async () => {
+      try {
+        // Tenter d'appeler une méthode Capacitor pour vérifier qu'il existe
+        await LocalNotifications.checkPermissions();
+        setIsSupported(true);
+        checkPermissions();
+      } catch (error) {
+        // Capacitor n'est pas disponible (PWA sans Capacitor)
+        console.log("Capacitor LocalNotifications not available, falling back to Web API");
+        setIsSupported(false);
+      }
+    };
+    
+    checkCapacitorAvailability();
     
     // Load preferences from localStorage
     const saved = localStorage.getItem("notificationPreferences");
@@ -127,20 +141,43 @@ export const useNativeNotifications = () => {
   };
 
   const sendTestNotification = async (): Promise<boolean> => {
+    console.log("Test notification - hasPermission:", hasPermission);
+    
     if (!hasPermission) {
+      console.log("No permission, requesting...");
       const granted = await requestPermission();
+      console.log("Permission granted:", granted);
       if (!granted) return false;
     }
     
-    const success = await showNotification(
-      "💊 Test de notification",
-      "Les notifications fonctionnent correctement !"
-    );
+    toast.success("Notification programmée dans 5 secondes...");
+    
+    const success = await LocalNotifications.schedule({
+      notifications: [
+        {
+          title: "💊 Test de notification",
+          body: "Si vous voyez ceci, les notifications fonctionnent parfaitement !",
+          id: 1,
+          schedule: { at: new Date(Date.now() + 5000) }, // 5 seconds from now
+          sound: undefined,
+          attachments: undefined,
+          actionTypeId: "",
+          extra: null
+        }
+      ]
+    }).then(() => {
+      console.log("Test notification scheduled successfully");
+      return true;
+    }).catch((error) => {
+      console.error("Failed to schedule test notification:", error);
+      return false;
+    });
     
     if (success) {
-      toast.success("Notification de test envoyée ✓");
+      console.log("Test notification sent successfully");
     } else {
-      toast.error("Erreur lors de l'envoi de la notification");
+      console.error("Failed to send test notification");
+      toast.error("Échec de l'envoi");
     }
     
     return success;

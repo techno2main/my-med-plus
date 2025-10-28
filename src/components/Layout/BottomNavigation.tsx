@@ -107,20 +107,14 @@ export function BottomNavigation() {
   };
 
   // Filter items based on admin status
-  console.log('BottomNavigation - isAdmin:', isAdmin);
-  console.log('BottomNavigation - navItems:', navItems);
-  
   const filteredNavItems = navItems?.filter(item => {
-    console.log('Checking item:', item.name, item.path, 'isAdmin:', isAdmin);
     if (item.path === '/admin') {
       return isAdmin;
     }
     return true;
-  });
-  
-  console.log('BottomNavigation - filteredNavItems:', filteredNavItems);
+  }) || [];
 
-  if (!filteredNavItems?.length) return null;
+  if (filteredNavItems.length === 0) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-sm pb-safe">

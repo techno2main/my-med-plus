@@ -1,0 +1,4 @@
+id,name,severity,description,created_at,updated_at,user_id
+03217b5f-1b70-465c-88d4-1f0db218af39,Bactrim,Modérée,Association sulfaméthoxazole-triméthoprime,2025-10-13 14:16:00.043063+00,2025-10-13 15:35:03.203737+00,
+671c4659-ba88-4942-b394-380cc4a0b46f,Totapem,Sévère,Antibiotique céphalosporine,2025-10-13 14:16:00.043063+00,2025-10-13 15:35:07.088007+00,
+a58a2327-6232-4426-81bd-c62689380030,Amoxicilline,Sévère,Antibiotique de la famille des pénicillines,2025-10-13 14:16:00.043063+00,2025-10-13 15:34:57.236817+00,

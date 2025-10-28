@@ -20,12 +20,11 @@ export function useUserRole() {
         throw error;
       }
       
-      console.log('User roles loaded:', data);
-      return data.map(r => r.role);
+      return data?.map(r => r.role) || [];
     },
     enabled: !!user?.id,
-    staleTime: 0, // Always refetch
-    gcTime: 0, // Don't cache
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
 
   const isAdmin = roles?.includes('admin') ?? false;

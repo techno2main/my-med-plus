@@ -1,0 +1,76 @@
+schemaname,tablename,policyname,permissive,roles,cmd,qual,with_check
+public,prescriptions,Users can create own prescriptions,PERMISSIVE,{public},INSERT,null,(( SELECT auth.uid() AS uid) = user_id)
+public,prescriptions,Users can delete own prescriptions,PERMISSIVE,{public},DELETE,(( SELECT auth.uid() AS uid) = user_id),null
+public,prescriptions,Users can update own prescriptions,PERMISSIVE,{public},UPDATE,(( SELECT auth.uid() AS uid) = user_id),null
+public,prescriptions,Users can view own prescriptions,PERMISSIVE,{public},SELECT,(( SELECT auth.uid() AS uid) = user_id),null
+public,treatments,Users can create own treatments,PERMISSIVE,{public},INSERT,null,(( SELECT auth.uid() AS uid) = user_id)
+public,treatments,Users can delete own treatments,PERMISSIVE,{public},DELETE,(( SELECT auth.uid() AS uid) = user_id),null
+public,treatments,Users can update own treatments,PERMISSIVE,{public},UPDATE,(( SELECT auth.uid() AS uid) = user_id),null
+public,treatments,Users can view own treatments,PERMISSIVE,{public},SELECT,(( SELECT auth.uid() AS uid) = user_id),null
+public,profiles,Users can insert own profile,PERMISSIVE,{public},INSERT,null,(( SELECT auth.uid() AS uid) = id)
+public,profiles,Users can update own profile,PERMISSIVE,{public},UPDATE,(( SELECT auth.uid() AS uid) = id),null
+public,profiles,Users can view own profile,PERMISSIVE,{public},SELECT,(( SELECT auth.uid() AS uid) = id),null
+public,medications,Users can create own medications,PERMISSIVE,{public},INSERT,null,"(EXISTS ( SELECT 1
+   FROM treatments
+  WHERE ((treatments.id = medications.treatment_id) AND (treatments.user_id = ( SELECT auth.uid() AS uid)))))"
+public,medications,Users can delete own medications,PERMISSIVE,{public},DELETE,"(EXISTS ( SELECT 1
+   FROM treatments
+  WHERE ((treatments.id = medications.treatment_id) AND (treatments.user_id = ( SELECT auth.uid() AS uid)))))",null
+public,medications,Users can update own medications,PERMISSIVE,{public},UPDATE,"(EXISTS ( SELECT 1
+   FROM treatments
+  WHERE ((treatments.id = medications.treatment_id) AND (treatments.user_id = ( SELECT auth.uid() AS uid)))))",null
+public,medications,Users can view own medications,PERMISSIVE,{public},SELECT,"(EXISTS ( SELECT 1
+   FROM treatments
+  WHERE ((treatments.id = medications.treatment_id) AND (treatments.user_id = ( SELECT auth.uid() AS uid)))))",null
+public,pharmacy_visits,Users can create own pharmacy visits,PERMISSIVE,{public},INSERT,null,"(EXISTS ( SELECT 1
+   FROM treatments
+  WHERE ((treatments.id = pharmacy_visits.treatment_id) AND (treatments.user_id = ( SELECT auth.uid() AS uid)))))"
+public,pharmacy_visits,Users can delete own pharmacy visits,PERMISSIVE,{public},DELETE,"(EXISTS ( SELECT 1
+   FROM treatments
+  WHERE ((treatments.id = pharmacy_visits.treatment_id) AND (treatments.user_id = ( SELECT auth.uid() AS uid)))))",null
+public,pharmacy_visits,Users can update own pharmacy visits,PERMISSIVE,{public},UPDATE,"(EXISTS ( SELECT 1
+   FROM treatments
+  WHERE ((treatments.id = pharmacy_visits.treatment_id) AND (treatments.user_id = ( SELECT auth.uid() AS uid)))))",null
+public,pharmacy_visits,Users can view own pharmacy visits,PERMISSIVE,{public},SELECT,"(EXISTS ( SELECT 1
+   FROM treatments
+  WHERE ((treatments.id = pharmacy_visits.treatment_id) AND (treatments.user_id = ( SELECT auth.uid() AS uid)))))",null
+public,user_roles,user_roles_delete_policy,PERMISSIVE,{public},DELETE,"has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)",null
+public,user_roles,user_roles_insert_policy,PERMISSIVE,{public},INSERT,null,"has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)"
+public,user_roles,user_roles_select_policy,PERMISSIVE,{public},SELECT,"((user_id = ( SELECT auth.uid() AS uid)) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role))",null
+public,user_roles,user_roles_update_policy,PERMISSIVE,{public},UPDATE,"has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)",null
+public,medication_intakes,Users can create own medication intakes,PERMISSIVE,{public},INSERT,null,"(EXISTS ( SELECT 1
+   FROM (medications
+     JOIN treatments ON ((medications.treatment_id = treatments.id)))
+  WHERE ((medications.id = medication_intakes.medication_id) AND (treatments.user_id = ( SELECT auth.uid() AS uid)))))"
+public,medication_intakes,Users can delete own medication intakes,PERMISSIVE,{public},DELETE,"(EXISTS ( SELECT 1
+   FROM (medications
+     JOIN treatments ON ((medications.treatment_id = treatments.id)))
+  WHERE ((medications.id = medication_intakes.medication_id) AND (treatments.user_id = ( SELECT auth.uid() AS uid)))))",null
+public,medication_intakes,Users can update own medication intakes,PERMISSIVE,{public},UPDATE,"(EXISTS ( SELECT 1
+   FROM (medications
+     JOIN treatments ON ((medications.treatment_id = treatments.id)))
+  WHERE ((medications.id = medication_intakes.medication_id) AND (treatments.user_id = ( SELECT auth.uid() AS uid)))))",null
+public,medication_intakes,Users can view own medication intakes,PERMISSIVE,{public},SELECT,"(EXISTS ( SELECT 1
+   FROM (medications
+     JOIN treatments ON ((medications.treatment_id = treatments.id)))
+  WHERE ((medications.id = medication_intakes.medication_id) AND (treatments.user_id = ( SELECT auth.uid() AS uid)))))",null
+public,user_preferences,Users can insert own preferences,PERMISSIVE,{public},INSERT,null,(( SELECT auth.uid() AS uid) = user_id)
+public,user_preferences,Users can update own preferences,PERMISSIVE,{public},UPDATE,(( SELECT auth.uid() AS uid) = user_id),null
+public,user_preferences,Users can view own preferences,PERMISSIVE,{public},SELECT,(( SELECT auth.uid() AS uid) = user_id),null
+public,navigation_items,Authenticated users can delete navigation items,PERMISSIVE,{public},DELETE,(( SELECT auth.uid() AS uid) IS NOT NULL),null
+public,navigation_items,Authenticated users can insert navigation items,PERMISSIVE,{public},INSERT,null,(( SELECT auth.uid() AS uid) IS NOT NULL)
+public,navigation_items,Authenticated users can update navigation items,PERMISSIVE,{public},UPDATE,(( SELECT auth.uid() AS uid) IS NOT NULL),null
+public,navigation_items,Authenticated users can view navigation items,PERMISSIVE,{public},SELECT,(( SELECT auth.uid() AS uid) IS NOT NULL),null
+public,pathologies,pathologies_create,PERMISSIVE,{public},INSERT,null,"has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)"
+public,pathologies,pathologies_modify,PERMISSIVE,{public},UPDATE,"has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)",null
+public,pathologies,pathologies_read,PERMISSIVE,{public},SELECT,true,null
+public,pathologies,pathologies_remove,PERMISSIVE,{public},DELETE,"has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)",null
+public,allergies,Users can view all allergies,PERMISSIVE,{public},SELECT,true,null
+public,medication_catalog,medication_catalog_create,PERMISSIVE,{public},INSERT,null,"has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)"
+public,medication_catalog,medication_catalog_modify,PERMISSIVE,{public},UPDATE,"has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)",null
+public,medication_catalog,medication_catalog_read,PERMISSIVE,{public},SELECT,true,null
+public,medication_catalog,medication_catalog_remove,PERMISSIVE,{public},DELETE,"has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)",null
+public,health_professionals,Users can create own health professionals,PERMISSIVE,{public},INSERT,null,(( SELECT auth.uid() AS uid) = user_id)
+public,health_professionals,Users can delete own health professionals,PERMISSIVE,{public},DELETE,(( SELECT auth.uid() AS uid) = user_id),null
+public,health_professionals,Users can update own health professionals,PERMISSIVE,{public},UPDATE,(( SELECT auth.uid() AS uid) = user_id),null
+public,health_professionals,Users can view own health professionals,PERMISSIVE,{public},SELECT,(( SELECT auth.uid() AS uid) = user_id),null

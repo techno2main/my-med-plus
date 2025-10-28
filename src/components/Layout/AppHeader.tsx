@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { AvatarWithBadge } from "@/components/ui/avatar-with-badge"
 import { Switch } from "@/components/ui/switch"
 import { User, Moon, Sun } from "lucide-react"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { supabase } from "@/integrations/supabase/client"
 import { useTheme } from "@/components/theme-provider"
+import { useUserRole } from "@/hooks/useUserRole"
 
 export function AppHeader() {
   const navigate = useNavigate()
   const { theme, setTheme } = useTheme()
+  const { isAdmin } = useUserRole()
   const currentDate = format(new Date(), "EEEE d MMMM yyyy", { locale: fr })
   const currentTime = format(new Date(), "HH:mm")
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
@@ -39,10 +41,13 @@ export function AppHeader() {
   }
 
   return (
-    <header className="bg-background border-b border-border py-4 sticky top-0 z-50">
+    <header className="bg-background border-b border-border py-4 sticky top-0 z-50 pt-safe-android">
       <div className="container max-w-2xl mx-auto px-3 md:px-4 space-y-2">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold gradient-primary bg-clip-text text-transparent">
+          <h1 
+            className="text-2xl font-bold gradient-primary bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => navigate("/")}
+          >
             MyHealth+
           </h1>
           <div className="flex items-center gap-4">
@@ -55,15 +60,14 @@ export function AppHeader() {
               />
               <Moon className="h-3.5 w-3.5 text-muted-foreground" />
             </div>
-            <Avatar className="h-10 w-10 cursor-pointer" onClick={() => navigate("/profile")}>
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
-              ) : (
-                <AvatarFallback>
-                  <User className="h-5 w-5" />
-                </AvatarFallback>
-              )}
-            </Avatar>
+            <AvatarWithBadge
+              src={avatarUrl || undefined}
+              alt="Avatar utilisateur"
+              fallback={<User className="h-5 w-5" />}
+              isAdmin={isAdmin}
+              className="cursor-pointer"
+              onClick={() => navigate("/profile")}
+            />
           </div>
         </div>
         <p className="text-sm text-muted-foreground capitalize">{currentDate} • {currentTime}</p>

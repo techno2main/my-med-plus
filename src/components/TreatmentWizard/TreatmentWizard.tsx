@@ -29,7 +29,9 @@ export function TreatmentWizard() {
     prescribingDoctorId: "",
     prescriptionId: "",
     prescriptionDate: "",
+    startDate: "",
     durationDays: "90",
+    qsp: "30",
     prescriptionFile: null,
     prescriptionFileName: "",
     pharmacyId: "",
@@ -113,8 +115,27 @@ export function TreatmentWizard() {
 
       let prescriptionId = formData.prescriptionId;
 
+      // Toujours créer une prescription (obligatoire pour la contrainte DB)
+      if (!prescriptionId) {
+        const { data: prescData, error: prescError } = await supabase
+          .from("prescriptions")
+          .insert({
+            user_id: user.id,
+            prescribing_doctor_id: formData.prescribingDoctorId || null,
+            prescription_date: formData.prescriptionDate || new Date().toISOString().split('T')[0],
+            duration_days: parseInt(formData.durationDays) || 90,
+            file_path: null,
+            original_filename: null,
+          })
+          .select()
+          .single();
+
+        if (prescError) throw prescError;
+        prescriptionId = prescData.id;
+      }
+
       // Upload prescription file if provided
-      if (formData.prescriptionFile) {
+      if (formData.prescriptionFile && prescriptionId) {
         const fileExt = formData.prescriptionFile.name.split('.').pop();
         const filePath = `${user.id}/${Date.now()}.${fileExt}`;
         
@@ -124,22 +145,16 @@ export function TreatmentWizard() {
 
         if (uploadError) throw uploadError;
 
-        // Create prescription record with file
-        const { data: prescData, error: prescError } = await supabase
+        // Update prescription record with file
+        const { error: updateError } = await supabase
           .from("prescriptions")
-          .insert({
-            user_id: user.id,
-            prescribing_doctor_id: formData.prescribingDoctorId || null,
-            prescription_date: formData.prescriptionDate || new Date().toISOString().split('T')[0],
-            duration_days: parseInt(formData.durationDays) || 90,
+          .update({
             file_path: filePath,
             original_filename: formData.prescriptionFileName,
           })
-          .select()
-          .single();
+          .eq('id', prescriptionId);
 
-        if (prescError) throw prescError;
-        prescriptionId = prescData.id;
+        if (updateError) throw updateError;
       }
 
       // Create treatment
@@ -156,7 +171,7 @@ export function TreatmentWizard() {
         .from("treatments")
         .insert({
           user_id: user.id,
-          prescription_id: prescriptionId || null,
+          prescription_id: prescriptionId, // Toujours défini maintenant
           pharmacy_id: formData.pharmacyId || null,
           name: formData.name,
           description: formData.description,
@@ -174,8 +189,8 @@ export function TreatmentWizard() {
         treatment_id: treatment.id,
         catalog_id: med.catalogId || null,
         name: med.name,
-        dosage: med.dosage,
-        dosage_amount: med.dosage,
+        posology: med.posology,
+        strength: null, // TODO: récupérer du catalog si catalogId existe
         times: med.times.filter(t => t !== ""),
         initial_stock: formData.stocks[index] || 0,
         current_stock: formData.stocks[index] || 0,
@@ -189,19 +204,35 @@ export function TreatmentWizard() {
       if (medError) throw medError;
 
       // Create pharmacy visits
-      if (formData.firstPharmacyVisit && formData.pharmacyId && formData.durationDays) {
+      if (formData.firstPharmacyVisit && formData.pharmacyId && formData.durationDays && formData.qsp) {
         const visits = [];
         const firstVisitDate = new Date(formData.firstPharmacyVisit);
-        const numberOfVisits = Math.floor(parseInt(formData.durationDays) / 30);
+        const treatmentDuration = parseInt(formData.durationDays);
+        const qspDays = parseInt(formData.qsp);
         
+        // Calculer le nombre de visites nécessaires selon le QSP
+        // Si durée <= QSP → 1 seule visite (la première), pas de refill
+        // Si durée > QSP → plusieurs visites espacées du QSP
+        const numberOfVisits = Math.ceil(treatmentDuration / qspDays);
+        
+        // Créer les visites espacées selon le QSP (en jours, pas en mois)
         for (let i = 0; i < numberOfVisits; i++) {
-          visits.push({
-            treatment_id: treatment.id,
-            pharmacy_id: formData.pharmacyId,
-            visit_date: format(addMonths(firstVisitDate, i), "yyyy-MM-dd"),
-            visit_number: i + 1,
-            is_completed: false,
-          });
+          const visitDate = new Date(firstVisitDate);
+          visitDate.setDate(visitDate.getDate() + (i * qspDays));
+          
+          // Ne pas créer de visite après la fin du traitement
+          const treatmentEndDate = new Date(formData.startDate);
+          treatmentEndDate.setDate(treatmentEndDate.getDate() + treatmentDuration);
+          
+          if (visitDate <= treatmentEndDate) {
+            visits.push({
+              treatment_id: treatment.id,
+              pharmacy_id: formData.pharmacyId,
+              visit_date: format(visitDate, "yyyy-MM-dd"),
+              visit_number: i + 1,
+              is_completed: i === 0 ? false : false, // Toutes en attente sauf si besoin
+            });
+          }
         }
 
         if (visits.length > 0) {

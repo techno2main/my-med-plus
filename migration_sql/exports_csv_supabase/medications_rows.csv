@@ -1,0 +1,6 @@
+id,treatment_id,name,posology,times,initial_stock,current_stock,min_threshold,expiry_date,created_at,updated_at,catalog_id,strength
+0017616d-a18d-40d9-b586-31af1025d5fe,b9e3808d-c8ee-45bb-8c25-fa83aa94eb0b,Xigduo,1 comprimé matin et soir,"[""09:30"",""20:00""]",58,75,10,,2025-10-13 16:34:33.284419+00,2025-10-28 07:45:21.574683+00,20cdc76f-4e18-403c-b05a-71ebd662c620,5mg/1000mg
+86ef1704-fbed-4a65-b026-dc5d0ea26953,b9e3808d-c8ee-45bb-8c25-fa83aa94eb0b,Simvastatine,1 comprimé le soir,"[""20:00""]",27,9,6,,2025-10-13 16:34:33.284419+00,2025-10-27 19:02:52.889226+00,e145c2c2-2c49-4521-9dc0-89b9f2f3c54a,10mg
+98a396ee-051d-4531-bb26-62fe0ccc57e3,b9e3808d-c8ee-45bb-8c25-fa83aa94eb0b,Quviviq,1 comprimé au coucher,"[""22:00""]",0,77,10,,2025-10-13 16:44:56.405072+00,2025-10-27 21:10:30.246654+00,6a21de1a-3381-4923-b4c2-194ac8008ae8,50mg
+b3087022-943f-4830-a94c-32866f856776,4a63ab08-3985-4e13-aaed-7000c229d043,Doliprane,"1 comprimé matin, midi et soir","[""09:30"",""12:30"",""19:30""]",60,58,10,,2025-10-26 11:10:58.798737+00,2025-10-26 14:47:12.74632+00,61a5e9aa-7a8a-4258-9d07-6fc8dde6e42e,
+eb3b4d05-b031-4bae-a212-a40087bb28f0,b9e3808d-c8ee-45bb-8c25-fa83aa94eb0b,Venlafaxine,1 comprimé au coucher,"[""22:00""]",0,108,10,,2025-10-13 17:42:17.497951+00,2025-10-27 21:10:32.935207+00,c5be88b2-d692-4a1d-8a7c-134a043ab0cd,225mg

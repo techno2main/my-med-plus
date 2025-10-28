@@ -2,6 +2,7 @@
   "name": "MyHealth+",
   "short_name": "MyHealth+",
   "description": "Gérez vos traitements médicaux en toute confidentialité",
+  "version": "1.0.1",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1a1f38",

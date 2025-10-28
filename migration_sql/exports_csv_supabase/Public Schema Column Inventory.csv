@@ -1,0 +1,128 @@
+table_name,column_name,data_type,character_maximum_length,is_nullable,column_default
+allergies,id,uuid,null,NO,gen_random_uuid()
+allergies,name,text,null,NO,null
+allergies,severity,text,null,NO,null
+allergies,description,text,null,YES,null
+allergies,created_at,timestamp with time zone,null,YES,now()
+allergies,updated_at,timestamp with time zone,null,YES,now()
+allergies,user_id,uuid,null,YES,null
+health_professionals,id,uuid,null,NO,gen_random_uuid()
+health_professionals,user_id,uuid,null,NO,null
+health_professionals,type,text,null,NO,null
+health_professionals,name,text,null,NO,null
+health_professionals,specialty,text,null,YES,null
+health_professionals,phone,text,null,YES,null
+health_professionals,email,text,null,YES,null
+health_professionals,street_address,text,null,YES,null
+health_professionals,is_primary_doctor,boolean,null,YES,false
+health_professionals,created_at,timestamp with time zone,null,YES,now()
+health_professionals,updated_at,timestamp with time zone,null,YES,now()
+health_professionals,postal_code,character varying,10,YES,null
+health_professionals,city,character varying,100,YES,null
+medication_catalog,id,uuid,null,NO,gen_random_uuid()
+medication_catalog,name,text,null,NO,null
+medication_catalog,pathology,text,null,YES,null
+medication_catalog,default_posology,text,null,YES,null
+medication_catalog,description,text,null,YES,null
+medication_catalog,created_at,timestamp with time zone,null,YES,now()
+medication_catalog,updated_at,timestamp with time zone,null,YES,now()
+medication_catalog,form,text,null,YES,null
+medication_catalog,color,text,null,YES,null
+medication_catalog,strength,text,null,YES,null
+medication_catalog,initial_stock,integer,null,YES,0
+medication_catalog,min_threshold,integer,null,YES,10
+medication_catalog,default_times,ARRAY,null,YES,'{}'::text[]
+medication_catalog,is_approved,boolean,null,YES,false
+medication_catalog,created_by,uuid,null,YES,null
+medication_intakes,id,uuid,null,NO,gen_random_uuid()
+medication_intakes,medication_id,uuid,null,NO,null
+medication_intakes,scheduled_time,timestamp with time zone,null,NO,null
+medication_intakes,taken_at,timestamp with time zone,null,YES,null
+medication_intakes,status,text,null,NO,'pending'::text
+medication_intakes,notes,text,null,YES,null
+medication_intakes,created_at,timestamp with time zone,null,YES,now()
+medication_intakes,updated_at,timestamp with time zone,null,YES,now()
+medications,id,uuid,null,NO,gen_random_uuid()
+medications,treatment_id,uuid,null,NO,null
+medications,name,text,null,NO,null
+medications,posology,text,null,NO,null
+medications,times,ARRAY,null,NO,null
+medications,initial_stock,integer,null,YES,0
+medications,current_stock,integer,null,YES,0
+medications,min_threshold,integer,null,YES,10
+medications,expiry_date,date,null,YES,null
+medications,created_at,timestamp with time zone,null,YES,now()
+medications,updated_at,timestamp with time zone,null,YES,now()
+medications,catalog_id,uuid,null,YES,null
+medications,strength,text,null,YES,null
+navigation_items,id,uuid,null,NO,gen_random_uuid()
+navigation_items,name,text,null,NO,null
+navigation_items,path,text,null,NO,null
+navigation_items,icon,text,null,NO,null
+navigation_items,position,integer,null,NO,null
+navigation_items,is_active,boolean,null,YES,true
+navigation_items,created_at,timestamp with time zone,null,YES,now()
+navigation_items,updated_at,timestamp with time zone,null,YES,now()
+pathologies,id,uuid,null,NO,gen_random_uuid()
+pathologies,name,text,null,NO,null
+pathologies,description,text,null,YES,null
+pathologies,created_at,timestamp with time zone,null,YES,now()
+pathologies,updated_at,timestamp with time zone,null,YES,now()
+pathologies,is_approved,boolean,null,YES,false
+pathologies,created_by,uuid,null,YES,null
+pharmacy_visits,id,uuid,null,NO,gen_random_uuid()
+pharmacy_visits,treatment_id,uuid,null,NO,null
+pharmacy_visits,pharmacy_id,uuid,null,YES,null
+pharmacy_visits,visit_date,date,null,NO,null
+pharmacy_visits,visit_number,integer,null,NO,null
+pharmacy_visits,is_completed,boolean,null,YES,false
+pharmacy_visits,notes,text,null,YES,null
+pharmacy_visits,created_at,timestamp with time zone,null,YES,now()
+pharmacy_visits,updated_at,timestamp with time zone,null,YES,now()
+pharmacy_visits,actual_visit_date,date,null,YES,null
+prescriptions,id,uuid,null,NO,gen_random_uuid()
+prescriptions,user_id,uuid,null,NO,null
+prescriptions,prescribing_doctor_id,uuid,null,YES,null
+prescriptions,prescription_date,date,null,NO,null
+prescriptions,duration_days,integer,null,NO,90
+prescriptions,notes,text,null,YES,null
+prescriptions,document_url,text,null,YES,null
+prescriptions,created_at,timestamp with time zone,null,YES,now()
+prescriptions,updated_at,timestamp with time zone,null,YES,now()
+prescriptions,file_path,text,null,YES,null
+prescriptions,original_filename,text,null,YES,null
+profiles,id,uuid,null,NO,null
+profiles,full_name,text,null,YES,null
+profiles,date_of_birth,date,null,YES,null
+profiles,created_at,timestamp with time zone,null,YES,now()
+profiles,updated_at,timestamp with time zone,null,YES,now()
+profiles,first_name,text,null,YES,null
+profiles,last_name,text,null,YES,null
+profiles,phone,text,null,YES,null
+profiles,blood_type,text,null,YES,null
+profiles,height,integer,null,YES,null
+profiles,weight,numeric,null,YES,null
+profiles,avatar_url,text,null,YES,null
+treatments,id,uuid,null,NO,gen_random_uuid()
+treatments,user_id,uuid,null,NO,null
+treatments,prescription_id,uuid,null,NO,null
+treatments,pharmacy_id,uuid,null,YES,null
+treatments,name,text,null,NO,null
+treatments,pathology,text,null,YES,null
+treatments,start_date,date,null,NO,null
+treatments,end_date,date,null,YES,null
+treatments,notes,text,null,YES,null
+treatments,is_active,boolean,null,YES,true
+treatments,created_at,timestamp with time zone,null,YES,now()
+treatments,updated_at,timestamp with time zone,null,YES,now()
+treatments,description,text,null,YES,null
+user_preferences,id,uuid,null,NO,gen_random_uuid()
+user_preferences,user_id,uuid,null,YES,null
+user_preferences,biometric_enabled,boolean,null,YES,false
+user_preferences,two_factor_enabled,boolean,null,YES,false
+user_preferences,created_at,timestamp with time zone,null,YES,now()
+user_preferences,updated_at,timestamp with time zone,null,YES,now()
+user_roles,id,uuid,null,NO,gen_random_uuid()
+user_roles,user_id,uuid,null,YES,null
+user_roles,role,USER-DEFINED,null,NO,'user'::app_role
+user_roles,created_at,timestamp with time zone,null,YES,now()

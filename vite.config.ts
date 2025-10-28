@@ -10,11 +10,30 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
+  define: {
+    __BUILD_TIMESTAMP__: JSON.stringify(Date.now()),
+  },
   plugins: [
     react(),
     mode === "development" && componentTagger(),
+    // Plugin pour générer version.json automatiquement
+    {
+      name: 'version-generator',
+      generateBundle(_options: any, bundle: any) {
+        const version = {
+          timestamp: Date.now(),
+          date: new Date().toISOString(),
+          version: `v${Date.now()}`
+        };
+        bundle['version.json'] = {
+          type: 'asset',
+          fileName: 'version.json',
+          source: JSON.stringify(version, null, 2)
+        };
+      }
+    },
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'autoUpdate', // Mise à jour automatique au lieu de 'prompt'
       includeAssets: ['icon-192.png', 'icon-512.png'],
       manifest: {
         name: 'MyHealthPlus',
@@ -41,6 +60,9 @@ export default defineConfig(({ mode }) => ({
         ]
       },
       workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true, // Nettoie automatiquement les anciens caches
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3 MB
         runtimeCaching: [
