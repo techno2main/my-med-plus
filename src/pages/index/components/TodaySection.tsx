@@ -1,6 +1,9 @@
 import { forwardRef } from "react"
+import { format } from "date-fns"
+import { fr } from "date-fns/locale"
 import { TreatmentAccordion } from "./TreatmentAccordion"
 import { sortIntakesByTimeAndName } from "@/lib/sortingUtils"
+import { getLocalDateString } from "@/lib/dateUtils"
 import { UpcomingIntake } from "../types"
 
 interface TodaySectionProps {
@@ -14,10 +17,10 @@ interface TodaySectionProps {
 export const TodaySection = forwardRef<HTMLDivElement, TodaySectionProps>(
   ({ intakes, openAccordions, onValueChange, isOverdue, onTakeIntake }, ref) => {
     const today = new Date()
-    const todayDateString = today.toISOString().split('T')[0]
+    const todayDateString = getLocalDateString(today)
     
     const todayIntakes = intakes.filter(intake => {
-      const intakeDateString = intake.date.toISOString().split('T')[0]
+      const intakeDateString = getLocalDateString(intake.date)
       return intakeDateString === todayDateString
     })
     
@@ -44,9 +47,14 @@ export const TodaySection = forwardRef<HTMLDivElement, TodaySectionProps>(
 
     return (
       <div className="space-y-3" ref={ref}>
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          Aujourd'hui
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+            Aujourd'hui
+          </h3>
+          <span className="text-xs text-muted-foreground/60">
+            {format(today, "dd/MM/yyyy", { locale: fr })}
+          </span>
+        </div>
         <TreatmentAccordion
           groups={groupedByTreatment}
           openAccordions={openAccordions}

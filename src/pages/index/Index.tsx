@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
 import { AppLayout } from "@/components/Layout/AppLayout"
 import { Loader2 } from "lucide-react"
@@ -8,6 +8,7 @@ import { useIntakeOverdue } from "@/hooks/useIntakeOverdue"
 import { useDashboardData } from "./hooks/useDashboardData"
 import { useTakeIntake } from "./hooks/useTakeIntake"
 import { useAccordionState } from "./hooks/useAccordionState"
+import { getLocalDateString, isIntakeValidationAllowed } from "@/lib/dateUtils"
 import { ActiveTreatmentsCard } from "./components/ActiveTreatmentsCard"
 import { StockAlertsCard } from "./components/StockAlertsCard"
 import { MissedIntakesCard } from "./components/MissedIntakesCard"
@@ -19,6 +20,7 @@ import { UpcomingIntake } from "./types"
 
 const Index = () => {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { isIntakeOverdue } = useIntakeOverdue()
   const { missedIntakes, totalMissed, loading: missedLoading } = useMissedIntakesDetection()
   
@@ -48,13 +50,12 @@ const Index = () => {
   useEffect(() => {
     if (!loading && upcomingIntakes.length > 0) {
       const today = new Date()
-      today.setHours(0, 0, 0, 0)
+      const todayDateString = getLocalDateString(today)
       
       const todayTreatmentIds = upcomingIntakes
         .filter(intake => {
-          const intakeDate = new Date(intake.date)
-          intakeDate.setHours(0, 0, 0, 0)
-          return intakeDate.getTime() === today.getTime()
+          const intakeDateString = getLocalDateString(intake.date)
+          return intakeDateString === todayDateString
         })
         .map(intake => `today-${intake.treatmentId}`)
       
@@ -64,8 +65,31 @@ const Index = () => {
     }
   }, [loading, upcomingIntakes])
 
+  // Auto-open intake dialog from URL parameter (from calendar)
+  useEffect(() => {
+    const intakeId = searchParams.get('intake')
+    if (intakeId && !loading && upcomingIntakes.length > 0) {
+      const intake = upcomingIntakes.find(i => i.id === intakeId)
+      if (intake) {
+        setSelectedIntake(intake)
+        setShowConfirmDialog(true)
+        // Nettoyer le paramètre de l'URL
+        setSearchParams({})
+      }
+    }
+  }, [searchParams, loading, upcomingIntakes, setSearchParams])
+
   // Handlers
   const handleTakeIntake = (intake: UpcomingIntake) => {
+    // Vérifier si c'est aujourd'hui et si l'heure est autorisée
+    const isToday = getLocalDateString(intake.date) === getLocalDateString(new Date())
+    if (isToday && !isIntakeValidationAllowed()) {
+      toast.error("Validation non disponible", {
+        description: "Les prises d'aujourd'hui sont validables à partir de 06h00"
+      })
+      return
+    }
+    
     setSelectedIntake(intake)
     setShowConfirmDialog(true)
   }

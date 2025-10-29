@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Clock, Pill, CheckCircle2 } from "lucide-react"
 import { format } from "date-fns"
+import { isIntakeValidationAllowed, getLocalDateString } from "@/lib/dateUtils"
 import { UpcomingIntake } from "../types"
 
 interface IntakeCardProps {
@@ -23,7 +24,42 @@ const getStockBgColor = (stock: number, threshold: number) => {
   return "bg-success/10"
 }
 
+const getButtonClasses = (
+  stock: number, 
+  threshold: number, 
+  isOverdue: boolean,
+  isDisabledByTime: boolean,
+  isTomorrowSection: boolean
+) => {
+  // Si désactivé par l'heure ou section demain
+  if (isTomorrowSection || isDisabledByTime) {
+    return "gradient-primary h-8 w-8 p-0 opacity-50 cursor-not-allowed"
+  }
+  
+  // Si en retard
+  if (isOverdue) {
+    return "bg-orange-500 hover:bg-orange-600 text-white h-8 w-8 p-0"
+  }
+  
+  // Couleurs selon le stock
+  if (stock === 0) {
+    return "bg-red-500 hover:bg-red-600 text-white h-8 w-8 p-0"
+  }
+  if (stock <= threshold) {
+    return "bg-orange-500 hover:bg-orange-600 text-white h-8 w-8 p-0"
+  }
+  
+  // OK : garder le bleu (gradient-primary)
+  return "gradient-primary h-8 w-8 p-0"
+}
+
 export const IntakeCard = ({ intake, isOverdue, isTomorrowSection = false, onTake }: IntakeCardProps) => {
+  // Vérifier si c'est aujourd'hui et si l'heure de validation est autorisée
+  const isToday = getLocalDateString(intake.date) === getLocalDateString(new Date())
+  const isValidationAllowed = isIntakeValidationAllowed()
+  const isDisabledByTime = isToday && !isValidationAllowed && !isTomorrowSection
+  const isDisabled = intake.currentStock === 0 || isOverdue || isTomorrowSection || isDisabledByTime
+  
   return (
     <Card className="p-3 surface-elevated hover:shadow-md transition-shadow">
       <div className="flex items-center gap-3">
@@ -53,17 +89,15 @@ export const IntakeCard = ({ intake, isOverdue, isTomorrowSection = false, onTak
           
           <Button 
             size="sm" 
-            className={
+            className={getButtonClasses(
+              intake.currentStock,
+              intake.minThreshold,
+              isOverdue,
+              isDisabledByTime,
               isTomorrowSection
-                ? "gradient-primary h-8 w-8 p-0 opacity-50 cursor-not-allowed"
-                : intake.currentStock === 0 
-                  ? "gradient-primary h-8 w-8 p-0" 
-                  : isOverdue
-                    ? "bg-orange-500 hover:bg-orange-600 text-white h-8 w-8 p-0"
-                    : "gradient-primary h-8 w-8 p-0"
-            }
+            )}
             onClick={() => onTake(intake)}
-            disabled={intake.currentStock === 0 || isOverdue || isTomorrowSection}
+            disabled={isDisabled}
           >
             <CheckCircle2 className="h-3.5 w-3.5" />
           </Button>

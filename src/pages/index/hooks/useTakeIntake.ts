@@ -3,6 +3,21 @@ import { supabase } from "@/integrations/supabase/client"
 import { toast } from "sonner"
 import { convertFrenchToUTC } from "@/lib/dateUtils"
 import { UpcomingIntake } from "../types"
+import { LocalNotifications } from '@capacitor/local-notifications'
+import { Capacitor } from '@capacitor/core'
+
+/**
+ * Génère un ID numérique unique à partir d'une chaîne (même logique que le scheduler)
+ */
+const hashCode = (str: string): number => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return hash;
+};
 
 export const useTakeIntake = (onSuccess: () => void) => {
   const [processing, setProcessing] = useState(false)
@@ -30,6 +45,26 @@ export const useTakeIntake = (onSuccess: () => void) => {
         .eq("id", intake.medicationId)
 
       if (stockError) throw stockError
+
+      // Annuler les notifications associées à cette prise (avant, à l'heure, après)
+      if (Capacitor.isNativePlatform()) {
+        try {
+          const beforeId = Math.abs(hashCode(`${intake.id}_before`));
+          const onTimeId = Math.abs(hashCode(`${intake.id}_ontime`));
+          const afterId = Math.abs(hashCode(`${intake.id}_after`));
+          
+          await LocalNotifications.cancel({ notifications: [
+            { id: beforeId },
+            { id: onTimeId },
+            { id: afterId }
+          ]});
+          
+          console.log(`🔕 Notifications annulées pour la prise ${intake.id}`);
+        } catch (notifError) {
+          console.error("Erreur annulation notifications:", notifError);
+          // Ne pas bloquer la validation de la prise si l'annulation échoue
+        }
+      }
 
       toast.success("Prise enregistrée ✓")
       onSuccess()

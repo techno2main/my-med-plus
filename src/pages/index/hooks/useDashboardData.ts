@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { parseISO } from "date-fns"
 import { supabase } from "@/integrations/supabase/client"
 import { toast } from "sonner"
-import { formatToFrenchTime } from "@/lib/dateUtils"
+import { formatToFrenchTime, getStartOfLocalDay } from "@/lib/dateUtils"
 import { UpcomingIntake, StockAlert, ActiveTreatment } from "../types"
 
 export const useDashboardData = () => {
@@ -81,8 +81,8 @@ export const useDashboardData = () => {
       if (medsError) throw medsError
 
       // SYSTÈME UNIFIÉ : Lire les prises depuis medication_intakes uniquement
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
+      // Utilisation de getStartOfLocalDay pour gérer correctement le changement d'heure été/hiver
+      const today = getStartOfLocalDay()
       const tomorrow = new Date(today)
       tomorrow.setDate(tomorrow.getDate() + 1)
       const dayAfterTomorrow = new Date(today)
