@@ -3,7 +3,7 @@ import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { TreatmentAccordion } from "./TreatmentAccordion"
 import { sortIntakesByTimeAndName } from "@/lib/sortingUtils"
-import { getLocalDateString } from "@/lib/dateUtils"
+import { getLocalDateString, getCurrentDateInParis } from "@/lib/dateUtils"
 import { UpcomingIntake } from "../types"
 
 interface TomorrowSectionProps {
@@ -16,7 +16,8 @@ interface TomorrowSectionProps {
 
 export const TomorrowSection = forwardRef<HTMLDivElement, TomorrowSectionProps>(
   ({ intakes, openAccordions, onValueChange, isOverdue, onTakeIntake }, ref) => {
-    const tomorrow = new Date()
+    // CRITIQUE: Utiliser l'heure de Paris pour éviter bugs sur émulateurs
+    const tomorrow = getCurrentDateInParis()
     tomorrow.setDate(tomorrow.getDate() + 1)
     const tomorrowDateString = getLocalDateString(tomorrow)
     

@@ -46,11 +46,64 @@ export const convertFrenchToUTC = (frenchDate: Date) => {
 };
 
 /**
+ * Obtient la date/heure actuelle en fuseau horaire français (Europe/Paris)
+ * Convertit l'heure UTC vers l'heure de Paris (UTC+1 hiver, UTC+2 été)
+ * 
+ * Cette fonction est CRITIQUE pour éviter les bugs sur émulateurs/téléphones
+ * configurés avec un fuseau horaire différent de Paris.
+ * 
+ * @returns Date avec l'heure de Paris, quel que soit le fuseau local
+ * 
+ * @example
+ * // Émulateur en PST (UTC-8), heure réelle à Paris : 15:00
+ * // new Date() donnerait 06:00 PST
+ * // getCurrentDateInParis() donne 15:00 (heure de Paris)
+ */
+export const getCurrentDateInParis = (): Date => {
+  // Créer un formatter pour le fuseau horaire Europe/Paris
+  const parisFormatter = new Intl.DateTimeFormat('fr-FR', {
+    timeZone: 'Europe/Paris',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+  
+  // Obtenir l'heure actuelle
+  const now = new Date();
+  
+  // Formater en heure de Paris
+  const parts = parisFormatter.formatToParts(now);
+  const partsMap = parts.reduce((acc, part) => {
+    acc[part.type] = part.value;
+    return acc;
+  }, {} as Record<string, string>);
+  
+  // Reconstruire un objet Date avec l'heure de Paris
+  // ATTENTION: On crée une date "locale" mais avec les valeurs de Paris
+  const parisDate = new Date(
+    parseInt(partsMap.year),
+    parseInt(partsMap.month) - 1, // month est 0-indexed
+    parseInt(partsMap.day),
+    parseInt(partsMap.hour),
+    parseInt(partsMap.minute),
+    parseInt(partsMap.second)
+  );
+  
+  return parisDate;
+};
+
+/**
  * Obtient la date actuelle en heure française
+ * @deprecated Utiliser getCurrentDateInParis() pour garantir le bon fuseau
  */
 export const getNowInFrenchTime = () => {
   return new Date(); // Le navigateur gère automatiquement
 };
+
 
 /**
  * Formate une date en heure française pour l'affichage
@@ -63,20 +116,23 @@ export const formatFrenchDate = (date: Date, formatPattern: string = 'dd/MM/yyyy
  * Vérifie si l'heure actuelle est dans la plage autorisée pour valider les prises (06:00-23:59)
  * Entre 00:00 et 05:59, les boutons de validation sont désactivés
  * 
- * @returns true si l'heure actuelle est >= 06:00, false sinon
+ * Utilise l'heure de Paris pour garantir la cohérence sur tous les appareils
+ * 
+ * @returns true si l'heure actuelle (Paris) est >= 06:00, false sinon
  * 
  * @example
- * // À 05:30
+ * // À 05:30 (heure de Paris)
  * isIntakeValidationAllowed(); // false
  * 
- * // À 06:00
+ * // À 06:00 (heure de Paris)
  * isIntakeValidationAllowed(); // true
  * 
- * // À 23:59
+ * // À 23:59 (heure de Paris)
  * isIntakeValidationAllowed(); // true
  */
 export const isIntakeValidationAllowed = (): boolean => {
-  const now = new Date();
+  // CRITIQUE: Utiliser l'heure de Paris pour éviter bugs sur émulateurs
+  const now = getCurrentDateInParis();
   const currentHour = now.getHours();
   return currentHour >= 6; // Autorisé à partir de 06:00
 };
