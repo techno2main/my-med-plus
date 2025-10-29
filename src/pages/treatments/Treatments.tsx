@@ -9,6 +9,15 @@ const Treatments = () => {
   const navigate = useNavigate()
   const { treatments, loading } = useTreatmentsList()
 
+  const activeTreatmentsCount = treatments.filter(t => t.is_active).length
+  
+  // Fonction pour gérer le pluriel
+  const getSubtitle = () => {
+    if (activeTreatmentsCount === 0) return "Aucun traitement actif"
+    if (activeTreatmentsCount === 1) return "1 traitement actif"
+    return `${activeTreatmentsCount} traitements actifs`
+  }
+
   if (loading) {
     return (
       <AppLayout>
@@ -24,7 +33,7 @@ const Treatments = () => {
       <div className="container max-w-2xl mx-auto px-3 md:px-4 py-6 space-y-6">
         <PageHeader 
           title="Traitement(s)"
-          subtitle={`${treatments.filter(t => t.is_active).length} traitement(s) actif(s)`}
+          subtitle={getSubtitle()}
           showAddButton
           onAdd={() => navigate("/treatments/new")}
         />

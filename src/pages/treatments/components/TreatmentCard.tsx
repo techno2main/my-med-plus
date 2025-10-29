@@ -1,7 +1,8 @@
+import { useState, useRef } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Calendar, User, Download, Pill } from "lucide-react"
+import { Calendar, User, Download, Pill, Eye, EyeOff } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
 import { formatToFrenchDate } from "@/lib/dateUtils"
@@ -14,13 +15,42 @@ interface TreatmentCardProps {
 
 export const TreatmentCard = ({ treatment }: TreatmentCardProps) => {
   const navigate = useNavigate()
+  const [showDetails, setShowDetails] = useState(treatment.is_active) // Par défaut : visible si actif, masqué si archivé
+  const detailsRef = useRef<HTMLDivElement>(null)
+
+  const handleToggleDetails = () => {
+    const newShowDetails = !showDetails
+    setShowDetails(newShowDetails)
+    
+    // Si on affiche les détails d'un traitement archivé, scroller vers le contenu
+    if (newShowDetails && !treatment.is_active) {
+      setTimeout(() => {
+        detailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 150)
+    }
+  }
 
   return (
     <Card className="p-4 space-y-3">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
-          <h3 className="font-semibold text-lg">{treatment.name}</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-lg">{treatment.name}</h3>
+            {!treatment.is_active && (
+              <button
+                onClick={handleToggleDetails}
+                className="p-1 hover:bg-muted rounded transition-colors"
+                aria-label={showDetails ? "Masquer les détails" : "Afficher les détails"}
+              >
+                {showDetails ? (
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                )}
+              </button>
+            )}
+          </div>
           {treatment.is_active ? (
             <Badge variant="default" className="mt-1 bg-success text-white">
               Actif
@@ -38,15 +68,17 @@ export const TreatmentCard = ({ treatment }: TreatmentCardProps) => {
         )}
       </div>
 
-      {/* Medications */}
-      <div className="space-y-2">
-        {treatment.medications.map((med, idx) => (
-          <MedicationItem key={idx} medication={med} />
-        ))}
-      </div>
+      {/* Medications - Affichés seulement si showDetails est true */}
+      {showDetails && (
+        <div ref={detailsRef}>
+          <div className="space-y-2">
+            {treatment.medications.map((med, idx) => (
+              <MedicationItem key={idx} medication={med} />
+            ))}
+          </div>
 
-      {/* Metadata Footer */}
-      <div className="pt-2 border-t border-border space-y-1">
+          {/* Metadata Footer */}
+          <div className="pt-2 border-t border-border space-y-1">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Calendar className="h-3 w-3" />
           <span className="whitespace-nowrap">
@@ -97,10 +129,12 @@ export const TreatmentCard = ({ treatment }: TreatmentCardProps) => {
                 <Pill className="h-3 w-3" />
                 <span>Prochain rechargement : {nextVisitDate.toLocaleDateString("fr-FR")}</span>
               </div>
-            );
-          })()
-        )}
-      </div>
+              );
+            })()
+          )}
+        </div>
+        </div>
+      )}
     </Card>
   )
 }
