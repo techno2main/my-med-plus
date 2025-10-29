@@ -1,4 +1,4 @@
-import { Navigation, Database, Bug, Clock } from "lucide-react";
+import { Navigation, Database, Bug, Clock, CalendarSync } from "lucide-react";
 import type { AdminRoute } from "./types";
 
 export const adminRoutes: AdminRoute[] = [
@@ -13,6 +13,12 @@ export const adminRoutes: AdminRoute[] = [
     description: "Gérer les données de référence",
     icon: Database,
     path: "/referentials",
+  },
+  {
+    title: "Synchronisation calendrier",
+    description: "Synchroniser avec le calendrier natif",
+    icon: CalendarSync,
+    path: "/calendar-sync",
   },
   {
     title: "Rattrapage des prises",

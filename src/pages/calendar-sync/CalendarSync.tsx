@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { AppLayout } from '@/components/Layout/AppLayout';
 import { PageHeader } from '@/components/Layout/PageHeader';
 import { useCalendarSync } from './hooks/useCalendarSync';
 import { PermissionBanner } from './components/PermissionBanner';
@@ -42,9 +43,12 @@ export const CalendarSync = () => {
 
   if (!nativeCalendar.isSupported) {
     return (
-      <div className="min-h-screen bg-background pb-20">
-      <PageHeader title="Synchronisation calendrier" />
-        <div className="container mx-auto p-4">
+      <AppLayout>
+        <div className="container max-w-3xl mx-auto px-4 py-6 space-y-6">
+          <PageHeader 
+            title="Synchronisation calendrier" 
+            backTo="/admin"
+          />
           <Alert>
             <InfoIcon className="h-4 w-4" />
             <AlertDescription>
@@ -53,15 +57,18 @@ export const CalendarSync = () => {
             </AlertDescription>
           </Alert>
         </div>
-      </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <PageHeader title="Synchronisation calendrier" />
-      
-      <div className="container mx-auto p-4 space-y-4">
+    <AppLayout>
+      <div className="container max-w-3xl mx-auto px-4 py-6 space-y-6">
+        <PageHeader 
+          title="Synchronisation calendrier" 
+          backTo="/admin"
+        />
+        
         <Alert>
           <InfoIcon className="h-4 w-4" />
           <AlertDescription>
@@ -105,7 +112,7 @@ export const CalendarSync = () => {
           </>
         )}
       </div>
-    </div>
+    </AppLayout>
   );
 };
 
