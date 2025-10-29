@@ -190,17 +190,19 @@ export const useMedicationNotificationScheduler = () => {
         });
       }
 
-      const { data: upcomingIntakes, error } = await supabase
+      const { data: upcomingIntakes, error} = await supabase
         .from("medication_intakes")
         .select(`
           id,
           medication_id,
           scheduled_time,
-          medications (
+          status,
+          medications!inner (
             name,
             treatment_id,
-            treatments (
-              user_id
+            treatments!inner (
+              user_id,
+              is_active
             ),
             medication_catalog (
               strength,
@@ -209,6 +211,7 @@ export const useMedicationNotificationScheduler = () => {
           )
         `)
         .eq("status", "pending")
+        .eq("medications.treatments.is_active", true)
         .gte("scheduled_time", now.toISOString())
         .lte("scheduled_time", next24h.toISOString())
         .order("scheduled_time", { ascending: true });
