@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { calculateExpiryDate, getPrescriptionStatus } from "../utils/prescriptionUtils";
+import { getLocalDateString } from "@/lib/dateUtils";
 
 interface Prescription {
   id: string;
@@ -29,6 +30,7 @@ interface PrescriptionWithDetails extends Prescription {
   treatments: Array<{
     id: string;
     name: string;
+    is_active?: boolean;
   }>;
   medications: Array<{
     id: string;
@@ -36,6 +38,7 @@ interface PrescriptionWithDetails extends Prescription {
     posology: string;
   }>;
   refillVisits: RefillVisit[];
+  hasArchivedTreatment?: boolean;
 }
 
 export function usePrescriptions() {
@@ -84,7 +87,7 @@ export function usePrescriptions() {
           // Charger les traitements liés à cette prescription
           const { data: treatmentsData } = await supabase
             .from("treatments")
-            .select("id, name")
+            .select("id, name, is_active")
             .eq("prescription_id", presc.id);
 
           // Charger tous les médicaments des traitements liés
@@ -134,6 +137,7 @@ export function usePrescriptions() {
             treatments: treatmentsData || [],
             medications: medications || [],
             refillVisits,
+            hasArchivedTreatment: treatmentsData?.some(t => t.is_active === false) || false,
           };
         })
       );

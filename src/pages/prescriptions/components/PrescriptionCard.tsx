@@ -1,9 +1,11 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, CheckCircle2, Circle } from "lucide-react";
+import { FileText, Download, CheckCircle2, Circle, Eye, EyeOff } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { MedicationsList } from "./MedicationsList";
 import { formatDate, formatQSP } from "../utils/prescriptionUtils";
+import { getLocalDateString } from "@/lib/dateUtils";
+import { useState, useRef } from "react";
 
 interface RefillVisit {
   date: string;
@@ -24,15 +26,43 @@ interface PrescriptionCardProps {
     file_path: string | null;
     original_filename: string | null;
     doctor_name: string | null;
-    treatments: Array<{ id: string; name: string }>;
+    treatments: Array<{ id: string; name: string; is_active?: boolean }>;
     medications: Array<{ id: string; name: string; posology: string }>;
     refillVisits: RefillVisit[];
+    hasArchivedTreatment?: boolean;
   };
   onDownload: () => void;
-  onToggleVisit: (treatmentId: string, visitNumber: number, currentStatus: boolean) => void;
+  onToggleVisit: (treatmentId: string, visitNumber: number, currentStatus: boolean, plannedDate: string) => void;
 }
 
 export function PrescriptionCard({ prescription, onDownload, onToggleVisit }: PrescriptionCardProps) {
+  // Vérifier si tous les traitements sont archivés
+  const allTreatmentsArchived = prescription.treatments.every(t => t.is_active === false);
+  
+  // État pour afficher/masquer les détails des ordonnances archivées
+  const [showDetails, setShowDetails] = useState(!allTreatmentsArchived);
+  const detailsRef = useRef<HTMLDivElement>(null);
+  
+  const handleToggleDetails = () => {
+    const newShowDetails = !showDetails;
+    setShowDetails(newShowDetails);
+    
+    // Si on affiche les détails d'une ordonnance archivée, scroller vers le contenu
+    if (newShowDetails && allTreatmentsArchived) {
+      setTimeout(() => {
+        detailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
+    }
+  };
+  
+  // Vérifier si c'est une date unique (pas de refills multiples) et si la date est dépassée
+  const isSingleDatePast = (visit: RefillVisit) => {
+    if (prescription.refillVisits.length !== 1) return false;
+    const today = getLocalDateString(new Date());
+    const visitDate = getLocalDateString(new Date(visit.date));
+    return today > visitDate;
+  };
+  
   return (
     <Card className="p-4">
       <div className="flex items-start justify-between mb-3">
@@ -51,25 +81,47 @@ export function PrescriptionCard({ prescription, onDownload, onToggleVisit }: Pr
             )}
           </div>
         </div>
-        <StatusBadge status={prescription.status} />
+        <div className="flex gap-2 items-center">
+          {allTreatmentsArchived && (
+            <>
+              <span className="px-2 py-1 text-xs font-medium rounded-md bg-muted text-muted-foreground">
+                Archivée
+              </span>
+              <button
+                onClick={handleToggleDetails}
+                className="p-1 hover:bg-muted rounded transition-colors"
+                aria-label={showDetails ? "Masquer les détails" : "Afficher les détails"}
+              >
+                {showDetails ? (
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                )}
+              </button>
+            </>
+          )}
+          {!allTreatmentsArchived && <StatusBadge status={prescription.status} />}
+        </div>
       </div>
 
-      <div className="flex gap-6 text-sm mb-4">
-        <div>
-          <p className="text-muted-foreground mb-1">Date Début</p>
-          <p className="font-medium">{formatDate(prescription.prescription_date)}</p>
-        </div>
-        <div className="h-auto w-px bg-muted"></div>
-        <div>
-          <p className="text-muted-foreground mb-1">Validité</p>
-          <div className="flex items-baseline gap-2">
-            <p className="font-medium">{formatDate(prescription.expiry_date)}</p>
-            <p className="text-xs text-muted-foreground whitespace-nowrap">
-              {formatQSP(prescription.duration_days)}
-            </p>
+      {showDetails && (
+        <div ref={detailsRef}>
+          <div className="flex gap-6 text-sm mb-4">
+            <div>
+              <p className="text-muted-foreground mb-1">Date Début</p>
+              <p className="font-medium">{formatDate(prescription.prescription_date)}</p>
+            </div>
+            <div className="h-auto w-px bg-muted"></div>
+            <div>
+              <p className="text-muted-foreground mb-1">Validité</p>
+              <div className="flex items-baseline gap-2">
+                <p className="font-medium">{formatDate(prescription.expiry_date)}</p>
+                <p className="text-xs text-muted-foreground whitespace-nowrap">
+                  {formatQSP(prescription.duration_days)}
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
       <MedicationsList medications={prescription.medications} />
 
@@ -88,6 +140,10 @@ export function PrescriptionCard({ prescription, onDownload, onToggleVisit }: Pr
               const isPreviousCompleted =
                 index === 0 || prescription.refillVisits[index - 1]?.isCompleted;
               const isClickable = visit.visitNumber !== 1 && isPreviousCompleted;
+              
+              // Si c'est une date unique et qu'elle est dépassée, considérer comme complétée
+              const isAutoChecked = isSingleDatePast(visit);
+              const displayAsCompleted = visit.isCompleted || isAutoChecked;
 
               return (
                 <div
@@ -96,12 +152,12 @@ export function PrescriptionCard({ prescription, onDownload, onToggleVisit }: Pr
                     isClickable ? "cursor-pointer hover:bg-muted/50" : "pointer-events-none opacity-75"
                   }`}
                   {...(isClickable && {
-                    onClick: () => onToggleVisit(visit.treatmentId, visit.visitNumber, visit.isCompleted),
+                    onClick: () => onToggleVisit(visit.treatmentId, visit.visitNumber, visit.isCompleted, visit.date),
                   })}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      {visit.isCompleted ? (
+                      {displayAsCompleted ? (
                         <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
                       ) : (
                         <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -158,6 +214,8 @@ export function PrescriptionCard({ prescription, onDownload, onToggleVisit }: Pr
           </Button>
         </div>
       </div>
+        </div>
+      )}
     </Card>
   );
 }

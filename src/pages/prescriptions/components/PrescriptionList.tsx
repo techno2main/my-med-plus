@@ -27,7 +27,7 @@ interface PrescriptionListProps {
   prescriptions: Prescription[];
   loading: boolean;
   onDownload: (prescription: Prescription) => void;
-  onToggleVisit: (treatmentId: string, visitNumber: number, currentStatus: boolean) => void;
+  onToggleVisit: (treatmentId: string, visitNumber: number, currentStatus: boolean, plannedDate: string) => void;
 }
 
 export function PrescriptionList({ prescriptions, loading, onDownload, onToggleVisit }: PrescriptionListProps) {
