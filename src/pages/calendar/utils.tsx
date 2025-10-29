@@ -1,4 +1,5 @@
 import { isSameDay } from "date-fns";
+import { getLocalDateString } from "@/lib/dateUtils";
 import type { DayIntake } from "./types";
 
 export const getDayIndicator = (
@@ -9,24 +10,21 @@ export const getDayIndicator = (
 ) => {
   const dayData = monthIntakes.find(intake => isSameDay(intake.date, date));
   
-  // Check for special dates
-  const dateOnly = new Date(date);
-  dateOnly.setHours(0, 0, 0, 0);
+  // Check for special dates using local date strings
+  const dateString = getLocalDateString(date);
   
   // Check if it's pharmacy visit
   if (nextPharmacyVisit) {
-    const pharmacyDate = new Date(nextPharmacyVisit);
-    pharmacyDate.setHours(0, 0, 0, 0);
-    if (dateOnly.getTime() === pharmacyDate.getTime()) {
+    const pharmacyDateString = getLocalDateString(nextPharmacyVisit);
+    if (dateString === pharmacyDateString) {
       return <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 text-base">⚕️</div>;
     }
   }
   
   // Check if it's doctor visit
   if (nextDoctorVisit) {
-    const doctorDate = new Date(nextDoctorVisit);
-    doctorDate.setHours(0, 0, 0, 0);
-    if (dateOnly.getTime() === doctorDate.getTime()) {
+    const doctorDateString = getLocalDateString(nextDoctorVisit);
+    if (dateString === doctorDateString) {
       return <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 text-base">🩺</div>;
     }
   }
@@ -34,11 +32,10 @@ export const getDayIndicator = (
   if (!dayData || dayData.total === 0) return null;
 
   const now = new Date();
-  const nowDateOnly = new Date(now);
-  nowDateOnly.setHours(0, 0, 0, 0);
+  const nowDateString = getLocalDateString(now);
 
-  const isPastDay = dateOnly < nowDateOnly;
-  const isToday = dateOnly.getTime() === nowDateOnly.getTime();
+  const isPastDay = dateString < nowDateString;
+  const isToday = dateString === nowDateString;
 
   // Only show green if ALL intakes are taken
   if (dayData.taken === dayData.total) {

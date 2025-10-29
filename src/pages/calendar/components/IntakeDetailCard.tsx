@@ -1,13 +1,35 @@
-import { CheckCircle2, XCircle, Clock, ClockAlert, Pill } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, ClockAlert, Pill, AlertCircle } from "lucide-react";
 import { useIntakeOverdue } from "@/hooks/useIntakeOverdue";
 import type { IntakeDetail } from "../types";
 
 interface IntakeDetailCardProps {
   intake: IntakeDetail;
+  isToday?: boolean;
+  isPastDate?: boolean;
+  onClick?: () => void;
 }
 
-export const IntakeDetailCard = ({ intake }: IntakeDetailCardProps) => {
+export const IntakeDetailCard = ({ intake, isToday = false, isPastDate = false, onClick }: IntakeDetailCardProps) => {
   const { isIntakeOverdue } = useIntakeOverdue();
+
+  // Détermine si la carte est cliquable
+  // - Pour aujourd'hui : uniquement les prises 'upcoming'
+  // - Pour les dates antérieures : toutes les prises
+  const isClickable = onClick && ((isToday && intake.status === 'upcoming') || isPastDate);
+
+  // Détermine si une alerte de stock doit être affichée
+  const hasStockAlert = () => {
+    if (intake.currentStock === undefined || intake.minThreshold === undefined) return false;
+    return intake.currentStock <= intake.minThreshold;
+  };
+
+  const getAlertColor = () => {
+    if (intake.currentStock === 0) return "text-red-500";
+    if (intake.currentStock && intake.minThreshold && intake.currentStock <= intake.minThreshold) {
+      return "text-orange-500";
+    }
+    return "";
+  };
 
   const getStatusIcon = () => {
     // Toujours afficher l'icône pilule blanche, peu importe le statut
@@ -58,7 +80,14 @@ export const IntakeDetailCard = ({ intake }: IntakeDetailCardProps) => {
                     isIntakeOverdue(new Date(intake.scheduledTimestamp));
 
   return (
-    <div className="p-3 rounded-lg border bg-card hover:shadow-sm transition-shadow">
+    <div 
+      className={`p-3 rounded-lg border bg-card transition-shadow ${
+        isClickable 
+          ? 'hover:shadow-md hover:border-primary cursor-pointer' 
+          : 'hover:shadow-sm'
+      }`}
+      onClick={isClickable ? onClick : undefined}
+    >
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2">
           {getStatusIcon()}
@@ -72,6 +101,14 @@ export const IntakeDetailCard = ({ intake }: IntakeDetailCardProps) => {
               </span>
             )}
           </span>
+          {hasStockAlert() && (
+            <div className="flex items-center gap-0.5">
+              <AlertCircle className={`h-4 w-4 ${getAlertColor()}`} />
+              <span className={`text-xs font-semibold ${getAlertColor()}`}>
+                !
+              </span>
+            </div>
+          )}
         </div>
         {getStatusBadge()}
       </div>

@@ -16,6 +16,8 @@ export interface IntakeDetail {
   treatment: string;
   scheduledTimestamp?: string;
   takenAtTimestamp?: string;
+  currentStock?: number;
+  minThreshold?: number;
 }
 
 export interface VisitDates {

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { startOfMonth, endOfMonth, isSameDay } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getLocalDateString } from "@/lib/dateUtils";
 import type { DayIntake } from "../types";
 
 interface UseMonthIntakesProps {
@@ -69,11 +70,9 @@ export const useMonthIntakes = ({ currentMonth }: UseMonthIntakesProps): UseMont
             // Only count as missed if it's a past day (not today)
             if (i.status === 'pending') {
               const scheduledTime = new Date(i.scheduled_time);
-              const scheduledDateOnly = new Date(scheduledTime);
-              scheduledDateOnly.setHours(0, 0, 0, 0);
-              const nowDateOnly = new Date(now);
-              nowDateOnly.setHours(0, 0, 0, 0);
-              return scheduledDateOnly < nowDateOnly;
+              const scheduledDateString = getLocalDateString(scheduledTime);
+              const nowDateString = getLocalDateString(now);
+              return scheduledDateString < nowDateString;
             }
             return false;
           }).length;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { sortIntakesByTimeAndName } from "@/lib/sortingUtils";
-import { formatToFrenchTime } from "@/lib/dateUtils";
+import { formatToFrenchTime, getLocalDateString, getStartOfLocalDay, getEndOfLocalDay } from "@/lib/dateUtils";
 import type { IntakeDetail } from "../types";
 
 interface UseDayDetailsProps {
@@ -28,28 +28,23 @@ export const useDayDetails = ({ selectedDate, treatmentStartDate }: UseDayDetail
       
       // Check if selected date is before treatment start
       if (treatmentStartDate) {
-        const selectedDateOnly = new Date(selectedDate);
-        selectedDateOnly.setHours(0, 0, 0, 0);
-        const treatmentStartDateOnly = new Date(treatmentStartDate);
-        treatmentStartDateOnly.setHours(0, 0, 0, 0);
+        const selectedDateString = getLocalDateString(selectedDate);
+        const treatmentStartDateString = getLocalDateString(treatmentStartDate);
 
-        if (selectedDateOnly < treatmentStartDateOnly) {
+        if (selectedDateString < treatmentStartDateString) {
           setDayDetails([]);
           return;
         }
       }
 
-      // Get start and end of selected day
-      const dayStart = new Date(selectedDate);
-      dayStart.setHours(0, 0, 0, 0);
-      const dayEnd = new Date(selectedDate);
-      dayEnd.setHours(23, 59, 59, 999);
+      // Get start and end of selected day using new utility functions
+      const dayStart = getStartOfLocalDay(selectedDate);
+      const dayEnd = getEndOfLocalDay(selectedDate);
       const now = new Date();
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const selectedDateOnly = new Date(selectedDate);
-      selectedDateOnly.setHours(0, 0, 0, 0);
-      const isPast = selectedDateOnly < today;
+      const today = getStartOfLocalDay();
+      const selectedDateString = getLocalDateString(selectedDate);
+      const todayString = getLocalDateString(today);
+      const isPast = selectedDateString < todayString;
 
       // SYSTÈME UNIFIÉ : Lire UNIQUEMENT depuis medication_intakes
       // Plus de génération dynamique !
@@ -63,6 +58,8 @@ export const useDayDetails = ({ selectedDate, treatmentStartDate }: UseDayDetail
           status,
           medications!inner (
             name,
+            current_stock,
+            min_threshold,
             treatment_id,
             treatments!inner (name, is_active),
             medication_catalog (strength, default_posology)
@@ -110,7 +107,9 @@ export const useDayDetails = ({ selectedDate, treatmentStartDate }: UseDayDetail
           status: status,
           treatment: intake.medications?.treatments?.name || '',
           scheduledTimestamp: intake.scheduled_time,
-          takenAtTimestamp: intake.taken_at || undefined
+          takenAtTimestamp: intake.taken_at || undefined,
+          currentStock: intake.medications?.current_stock || 0,
+          minThreshold: intake.medications?.min_threshold || 10
         });
       });
 
