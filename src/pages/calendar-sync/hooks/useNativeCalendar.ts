@@ -121,6 +121,8 @@ export const useNativeCalendar = () => {
     endDate: Date;
     calendarId: string;
     location?: string;
+    color?: string;
+    alerts?: number[];
   }): Promise<string | null> => {
     if (!isSupported || !permission.granted) {
       console.warn('[Calendar Sync] Cannot create event without permission');
@@ -135,7 +137,9 @@ export const useNativeCalendar = () => {
         endDate: event.endDate.getTime(),
         calendarId: event.calendarId,
         location: event.location,
-        isAllDay: false
+        isAllDay: false,
+        color: event.color,
+        alerts: event.alerts
       });
       
       console.log('[Calendar Sync] Event created:', result.id);
@@ -152,6 +156,8 @@ export const useNativeCalendar = () => {
     startDate?: Date;
     endDate?: Date;
     location?: string;
+    color?: string;
+    alerts?: number[];
   }): Promise<boolean> => {
     if (!isSupported || !permission.granted) {
       console.warn('[Calendar Sync] Cannot update event without permission');
@@ -165,7 +171,9 @@ export const useNativeCalendar = () => {
         description: updates.description,
         startDate: updates.startDate?.getTime(),
         endDate: updates.endDate?.getTime(),
-        location: updates.location
+        location: updates.location,
+        color: updates.color,
+        alerts: updates.alerts
       });
       
       console.log('[Calendar Sync] Event updated:', eventId);

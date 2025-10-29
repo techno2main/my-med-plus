@@ -14,6 +14,8 @@ export interface CalendarEvent {
   endDate: Date;
   location?: string;
   eventType: CalendarEventType;
+  color?: string; // Couleur hex pour Android (ex: #10B981)
+  alerts?: number[]; // Alertes en minutes avant l'événement
   metadata: {
     appId: string;
     status?: IntakeStatus;

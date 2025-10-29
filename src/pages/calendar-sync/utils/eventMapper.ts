@@ -7,6 +7,57 @@ import {
 } from './dateUtils';
 
 /**
+ * Couleurs par type d'événement (format hex Android)
+ */
+const EVENT_COLORS = {
+  intake_on_time: '#10B981',    // green-500 - Prise à l'heure
+  intake_late: '#F59E0B',        // amber-500 - Prise en retard
+  intake_missed: '#EF4444',      // red-500 - Prise manquée
+  intake_upcoming: '#3B82F6',    // blue-500 - Prise à venir
+  doctor_visit: '#8B5CF6',       // violet-500 - RDV médecin
+  pharmacy_visit: '#06B6D4',     // cyan-500 - Visite pharmacie
+  prescription_renewal: '#EC4899' // pink-500 - Renouvellement ordonnance
+};
+
+/**
+ * Calcule les alertes/rappels pour un événement
+ * Retourne un tableau de minutes avant l'événement
+ */
+const getEventAlerts = (eventType: string, status?: IntakeStatus): number[] => {
+  // Pour les prises de médicaments
+  if (eventType === 'intake') {
+    // Si déjà prise ou manquée, pas d'alerte
+    if (status === 'on_time' || status === 'missed') {
+      return [];
+    }
+    // Alerte 15 minutes avant pour les prises à venir
+    return [15];
+  }
+  
+  // Pour les RDV médecin et pharmacie: alerte 24h et 1h avant
+  if (eventType === 'doctor_visit' || eventType === 'pharmacy_visit') {
+    return [1440, 60]; // 24h (1440min) et 1h (60min)
+  }
+  
+  // Pour les renouvellements d'ordonnance: alerte 7 jours et 1 jour avant
+  if (eventType === 'prescription_renewal') {
+    return [10080, 1440]; // 7 jours (10080min) et 1 jour (1440min)
+  }
+  
+  return [];
+};
+
+/**
+ * Détermine la couleur d'un événement selon son type et statut
+ */
+const getEventColor = (eventType: string, status?: IntakeStatus): string => {
+  if (eventType === 'intake' && status) {
+    return EVENT_COLORS[`intake_${status}`] || EVENT_COLORS.intake_upcoming;
+  }
+  return EVENT_COLORS[eventType] || EVENT_COLORS.intake_upcoming;
+};
+
+/**
  * Mappe les prises de médicaments vers des événements calendrier
  */
 export const mapIntakesToEvents = (intakes: any[]): CalendarEvent[] => {
@@ -27,6 +78,8 @@ export const mapIntakesToEvents = (intakes: any[]): CalendarEvent[] => {
       startDate,
       endDate,
       eventType: 'intake' as const,
+      color: getEventColor('intake', status),
+      alerts: getEventAlerts('intake', status),
       metadata: {
         appId: intake.id,
         status,
@@ -57,6 +110,8 @@ export const mapPharmacyVisitsToEvents = (visits: any[]): CalendarEvent[] => {
       endDate,
       location: visit.pharmacies?.address,
       eventType: 'pharmacy_visit' as const,
+      color: getEventColor('pharmacy_visit'),
+      alerts: getEventAlerts('pharmacy_visit'),
       metadata: {
         appId: visit.id,
         treatmentName,
@@ -85,6 +140,8 @@ export const mapDoctorVisitsToEvents = (treatments: any[]): CalendarEvent[] => {
         startDate: endDate,
         endDate: appointmentEnd,
         eventType: 'doctor_visit' as const,
+        color: getEventColor('doctor_visit'),
+        alerts: getEventAlerts('doctor_visit'),
         metadata: {
           appId: treatment.id,
           treatmentName: treatment.name,
@@ -114,6 +171,8 @@ export const mapPrescriptionRenewalsToEvents = (prescriptions: any[]): CalendarE
       startDate: renewalDate,
       endDate: renewalEnd,
       eventType: 'prescription_renewal' as const,
+      color: getEventColor('prescription_renewal'),
+      alerts: getEventAlerts('prescription_renewal'),
       metadata: {
         appId: prescription.id,
         professionalName: doctorName

@@ -171,7 +171,9 @@ export const useCalendarSync = () => {
           startDate: event.startDate,
           endDate: event.endDate,
           calendarId: config.selectedCalendarId,
-          location: event.location
+          location: event.location,
+          color: event.color,
+          alerts: event.alerts
         });
 
         if (eventId) {
