@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { CapacitorCalendar, CalendarPermissionScope } from '@ebarooni/capacitor-calendar';
 import type { NativeCalendar, CalendarPermissionStatus } from '../types';
 
 /**
  * Hook de gestion du calendrier natif
- * Utilise @capacitor-community/calendar pour iOS et Android
+ * Utilise @ebarooni/capacitor-calendar pour iOS et Android
  */
 export const useNativeCalendar = () => {
   const [isSupported, setIsSupported] = useState(false);
@@ -31,13 +32,19 @@ export const useNativeCalendar = () => {
 
   const checkPermission = async () => {
     try {
-      // TODO: Implémenter avec @capacitor-community/calendar
-      // const status = await Calendar.checkPermission();
-      // setPermission(status);
+      // Vérifier les permissions de lecture et écriture
+      const readStatus = await CapacitorCalendar.checkPermission({
+        scope: CalendarPermissionScope.READ_CALENDAR
+      });
+      const writeStatus = await CapacitorCalendar.checkPermission({
+        scope: CalendarPermissionScope.WRITE_CALENDAR
+      });
       
-      // Pour l'instant, simuler
-      console.log('[Calendar Sync] Checking calendar permission...');
-      setPermission({ granted: false, canRequest: true });
+      const granted = readStatus.result === 'granted' && writeStatus.result === 'granted';
+      const canRequest = readStatus.result === 'prompt' || writeStatus.result === 'prompt';
+      
+      console.log('[Calendar Sync] Permission status:', { read: readStatus.result, write: writeStatus.result });
+      setPermission({ granted, canRequest });
     } catch (error) {
       console.error('[Calendar Sync] Error checking permission:', error);
     }
@@ -51,14 +58,23 @@ export const useNativeCalendar = () => {
 
     setLoading(true);
     try {
-      // TODO: Implémenter avec @capacitor-community/calendar
-      // const result = await Calendar.requestPermission();
-      // setPermission(result);
-      // return result.granted;
+      // Demander l'accès complet (lecture + écriture)
+      const result = await CapacitorCalendar.requestFullCalendarAccess();
       
-      console.log('[Calendar Sync] Requesting calendar permission...');
-      // Simuler pour le moment
-      return false;
+      const granted = result.result === 'granted';
+      setPermission({ 
+        granted, 
+        canRequest: result.result === 'prompt'
+      });
+      
+      console.log('[Calendar Sync] Permission request result:', result.result);
+      
+      if (granted) {
+        // Charger les calendriers immédiatement
+        await loadCalendars();
+      }
+      
+      return granted;
     } catch (error) {
       console.error('[Calendar Sync] Error requesting permission:', error);
       return false;
@@ -75,21 +91,21 @@ export const useNativeCalendar = () => {
 
     setLoading(true);
     try {
-      // TODO: Implémenter avec @capacitor-community/calendar
-      // const calendars = await Calendar.listCalendars();
-      // const mapped = calendars.map(cal => ({
-      //   id: cal.id,
-      //   name: cal.name,
-      //   displayName: cal.displayName,
-      //   isPrimary: cal.isPrimary,
-      //   allowsModifications: cal.allowsModifications,
-      //   color: cal.color
-      // }));
-      // setAvailableCalendars(mapped);
-      // return mapped;
+      const result = await CapacitorCalendar.listCalendars();
+      const calendars = result.result;
       
-      console.log('[Calendar Sync] Loading available calendars...');
-      return [];
+      const mapped: NativeCalendar[] = calendars.map(cal => ({
+        id: cal.id,
+        name: cal.title,
+        displayName: cal.title,
+        isPrimary: cal.accountName === cal.ownerAccount, // Android
+        allowsModifications: !cal.isImmutable, // iOS
+        color: cal.color
+      }));
+      
+      console.log('[Calendar Sync] Loaded calendars:', mapped.length);
+      setAvailableCalendars(mapped);
+      return mapped;
     } catch (error) {
       console.error('[Calendar Sync] Error loading calendars:', error);
       return [];
@@ -112,19 +128,18 @@ export const useNativeCalendar = () => {
     }
 
     try {
-      // TODO: Implémenter avec @capacitor-community/calendar
-      // const result = await Calendar.createEvent({
-      //   title: event.title,
-      //   notes: event.description,
-      //   startDate: event.startDate.getTime(),
-      //   endDate: event.endDate.getTime(),
-      //   calendarId: event.calendarId,
-      //   location: event.location
-      // });
-      // return result.id;
+      const result = await CapacitorCalendar.createEvent({
+        title: event.title,
+        description: event.description,
+        startDate: event.startDate.getTime(),
+        endDate: event.endDate.getTime(),
+        calendarId: event.calendarId,
+        location: event.location,
+        isAllDay: false
+      });
       
-      console.log('[Calendar Sync] Creating event:', event.title);
-      return null;
+      console.log('[Calendar Sync] Event created:', result.id);
+      return result.id;
     } catch (error) {
       console.error('[Calendar Sync] Error creating event:', error);
       return null;
@@ -144,17 +159,16 @@ export const useNativeCalendar = () => {
     }
 
     try {
-      // TODO: Implémenter avec @capacitor-community/calendar
-      // await Calendar.updateEvent({
-      //   id: eventId,
-      //   title: updates.title,
-      //   notes: updates.description,
-      //   startDate: updates.startDate?.getTime(),
-      //   endDate: updates.endDate?.getTime(),
-      //   location: updates.location
-      // });
+      await CapacitorCalendar.modifyEvent({
+        id: eventId,
+        title: updates.title,
+        description: updates.description,
+        startDate: updates.startDate?.getTime(),
+        endDate: updates.endDate?.getTime(),
+        location: updates.location
+      });
       
-      console.log('[Calendar Sync] Updating event:', eventId);
+      console.log('[Calendar Sync] Event updated:', eventId);
       return true;
     } catch (error) {
       console.error('[Calendar Sync] Error updating event:', error);
@@ -169,10 +183,9 @@ export const useNativeCalendar = () => {
     }
 
     try {
-      // TODO: Implémenter avec @capacitor-community/calendar
-      // await Calendar.deleteEvent({ id: eventId });
+      await CapacitorCalendar.deleteEvent({ id: eventId });
       
-      console.log('[Calendar Sync] Deleting event:', eventId);
+      console.log('[Calendar Sync] Event deleted:', eventId);
       return true;
     } catch (error) {
       console.error('[Calendar Sync] Error deleting event:', error);
