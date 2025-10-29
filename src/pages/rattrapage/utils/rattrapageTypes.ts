@@ -11,6 +11,7 @@ export interface ConfirmationDialog {
   action: 'taken' | 'skipped' | 'taken_now' | 'pending';
   medicationName: string;
   scheduledTime: string;
+  displayTime: string;
   dayName: string;
 }
 

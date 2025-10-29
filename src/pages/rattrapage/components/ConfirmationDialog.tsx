@@ -7,8 +7,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
-import { fr } from 'date-fns/locale';
 import type { ConfirmationDialog } from "../utils/rattrapageTypes";
 
 interface ConfirmationDialogProps {
@@ -40,18 +38,18 @@ export function RattrapageConfirmationDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Confirmer l'action</DialogTitle>
-          <DialogDescription className="space-y-2">
-            <div className="font-medium text-foreground">
-              {confirmDialog.medicationName}
-            </div>
-            <div className="text-sm">
-              {confirmDialog.dayName} - {format(new Date(confirmDialog.scheduledTime), "dd/MM/yyyy 'à' HH:mm", { locale: fr })}
-            </div>
-            <div className="pt-2">
-              {getConfirmationMessage()}
-            </div>
+          <DialogDescription>
+            {getConfirmationMessage()}
           </DialogDescription>
         </DialogHeader>
+        <div className="space-y-2 py-4">
+          <div className="font-medium text-foreground">
+            {confirmDialog.medicationName}
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {confirmDialog.dayName} - {confirmDialog.displayTime}
+          </div>
+        </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
             Annuler
