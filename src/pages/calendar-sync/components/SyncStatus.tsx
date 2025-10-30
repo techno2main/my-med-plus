@@ -12,6 +12,7 @@ interface SyncStatusProps {
   lastSyncResult: SyncResult | null;
   syncing: boolean;
   onSync: () => void;
+  onClearAndResync?: () => void;
   canSync: boolean;
 }
 
@@ -20,6 +21,7 @@ export const SyncStatus = ({
   lastSyncResult,
   syncing,
   onSync,
+  onClearAndResync,
   canSync
 }: SyncStatusProps) => {
   return (
@@ -107,6 +109,27 @@ export const SyncStatus = ({
             </>
           )}
         </Button>
+
+        {onClearAndResync && (
+          <Button
+            onClick={onClearAndResync}
+            disabled={!canSync || syncing}
+            variant="destructive"
+            className="w-full"
+          >
+            {syncing ? (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                Réinitialisation...
+              </>
+            ) : (
+              <>
+                <XCircle className="h-4 w-4 mr-2" />
+                Réinitialiser et resynchroniser
+              </>
+            )}
+          </Button>
+        )}
 
         {!canSync && (
           <Alert>

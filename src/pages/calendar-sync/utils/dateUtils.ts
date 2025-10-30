@@ -50,33 +50,39 @@ export const filterEventsFromStartDate = <T extends { scheduled_time?: string; v
 
 /**
  * Détermine le statut d'une prise de médicament
- * CRITIQUE: Utilise l'heure de Paris pour éviter bugs fuseau horaire
+ * CRITIQUE: Utilise le statut de la BDD, pas un calcul côté client
  */
 export const determineIntakeStatus = (scheduledTime: string, status: string): 'on_time' | 'late' | 'missed' | 'upcoming' => {
-  const now = getCurrentDateInParis(); // CRITIQUE: Utiliser l'heure de Paris au lieu de new Date()
+  const now = getCurrentDateInParis();
   const scheduled = new Date(scheduledTime);
   const timeDiff = now.getTime() - scheduled.getTime();
   const minutesDiff = timeDiff / (1000 * 60);
 
+  // STATUS BDD: 'taken', 'pending', 'missed', 'skipped'
+  
   if (status === 'taken') {
-    // Pris dans les 30min suivant l'heure prévue = à l'heure
-    return minutesDiff <= 30 ? 'on_time' : 'late';
+    // La prise a été validée dans l'app -> toujours "à l'heure"
+    return 'on_time';
   }
 
-  if (status === 'skipped') {
+  if (status === 'missed' || status === 'skipped') {
+    // Explicitement manquée ou sautée dans l'app
     return 'missed';
   }
 
-  // Status = 'pending'
+  // Status = 'pending' (en attente)
   if (scheduled > now) {
+    // Heure pas encore atteinte
     return 'upcoming';
   }
 
-  // En retard si > 30min après l'heure prévue
+  // Heure dépassée mais pas encore validée
   if (minutesDiff > 30) {
+    // Plus de 30min de retard
     return 'late';
   }
 
+  // Dans la fenêtre de 30min
   return 'upcoming';
 };
 

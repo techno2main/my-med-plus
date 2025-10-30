@@ -266,6 +266,31 @@ export const useCalendarSync = () => {
     return result;
   };
 
+  /**
+   * Supprime TOUS les événements synchronisés du calendrier natif
+   * Utile pour forcer une resynchronisation complète
+   */
+  const clearAllSyncedEvents = async (): Promise<{ success: boolean; deletedCount: number }> => {
+    const syncedEvents = config.syncedEvents || {};
+    const eventIds = Object.values(syncedEvents);
+    let deletedCount = 0;
+
+    console.log(`[Calendar Sync] Clearing ${eventIds.length} synced events...`);
+
+    for (const nativeEventId of eventIds) {
+      const deleted = await nativeCalendar.deleteEvent(nativeEventId);
+      if (deleted) {
+        deletedCount++;
+      }
+    }
+
+    // Réinitialiser le mapping
+    updateConfig({ syncedEvents: {} });
+
+    console.log(`[Calendar Sync] Cleared ${deletedCount}/${eventIds.length} events`);
+    return { success: true, deletedCount };
+  };
+
   return {
     config,
     updateConfig,
@@ -273,6 +298,7 @@ export const useCalendarSync = () => {
     syncing,
     lastSyncResult,
     loadAppEvents,
-    syncToNativeCalendar
+    syncToNativeCalendar,
+    clearAllSyncedEvents
   };
 };

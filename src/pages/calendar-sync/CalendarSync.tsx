@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { PageHeader } from '@/components/Layout/PageHeader';
 import { useCalendarSync } from './hooks/useCalendarSync';
@@ -7,6 +7,16 @@ import { CalendarSelector } from './components/CalendarSelector';
 import { SyncOptions } from './components/SyncOptions';
 import { SyncStatus } from './components/SyncStatus';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { InfoIcon } from 'lucide-react';
 
 export const CalendarSync = () => {
@@ -16,8 +26,11 @@ export const CalendarSync = () => {
     nativeCalendar,
     syncing,
     lastSyncResult,
-    syncToNativeCalendar
+    syncToNativeCalendar,
+    clearAllSyncedEvents
   } = useCalendarSync();
+
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   useEffect(() => {
     // Charger les calendriers disponibles au montage si permission accordée
@@ -40,6 +53,12 @@ export const CalendarSync = () => {
   const canSync = 
     config.selectedCalendarId !== null &&
     (config.syncIntakes || config.syncDoctorVisits || config.syncPharmacyVisits || config.syncPrescriptionRenewals);
+
+  const handleClearAndResync = async () => {
+    setShowClearConfirm(false);
+    await clearAllSyncedEvents();
+    await syncToNativeCalendar();
+  };
 
   if (!nativeCalendar.isSupported) {
     return (
@@ -107,10 +126,34 @@ export const CalendarSync = () => {
               lastSyncResult={lastSyncResult}
               syncing={syncing}
               onSync={syncToNativeCalendar}
+              onClearAndResync={() => setShowClearConfirm(true)}
               canSync={canSync}
             />
           </>
         )}
+
+        <AlertDialog open={showClearConfirm} onOpenChange={setShowClearConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Réinitialiser la synchronisation ?</AlertDialogTitle>
+              <AlertDialogDescription className="space-y-2">
+                <p>
+                  Cette action va supprimer <strong>uniquement les événements créés par MyHealthPlus</strong> de votre calendrier Samsung, puis les recréer avec les statuts à jour.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  ✓ Vos autres événements personnels ne seront PAS touchés<br/>
+                  ✓ Seuls les événements de prises, visites pharmacies et renouvellements seront supprimés et recréés
+                </p>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogAction onClick={handleClearAndResync}>
+                Réinitialiser et resynchroniser
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   );
