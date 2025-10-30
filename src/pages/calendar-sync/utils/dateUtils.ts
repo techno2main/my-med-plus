@@ -50,9 +50,9 @@ export const filterEventsFromStartDate = <T extends { scheduled_time?: string; v
 
 /**
  * Détermine le statut d'une prise de médicament
- * CRITIQUE: Utilise le statut de la BDD, pas un calcul côté client
+ * CRITIQUE: Utilise le statut de la BDD + taken_at pour calculer retard
  */
-export const determineIntakeStatus = (scheduledTime: string, status: string): 'on_time' | 'late' | 'missed' | 'upcoming' => {
+export const determineIntakeStatus = (scheduledTime: string, status: string, takenAt?: string | null): 'on_time' | 'late' | 'missed' | 'upcoming' => {
   const now = getCurrentDateInParis();
   const scheduled = new Date(scheduledTime);
   const timeDiff = now.getTime() - scheduled.getTime();
@@ -61,7 +61,17 @@ export const determineIntakeStatus = (scheduledTime: string, status: string): 'o
   // STATUS BDD: 'taken', 'pending', 'missed', 'skipped'
   
   if (status === 'taken') {
-    // La prise a été validée dans l'app -> toujours "à l'heure"
+    // La prise a été validée - vérifier si elle était à l'heure ou en retard
+    if (takenAt) {
+      const actualTime = new Date(takenAt);
+      const delayMinutes = (actualTime.getTime() - scheduled.getTime()) / (1000 * 60);
+      
+      // Si prise plus de 30min après l'heure prévue = en retard
+      if (delayMinutes > 30) {
+        return 'late';
+      }
+    }
+    // Prise à l'heure (ou pas d'info taken_at)
     return 'on_time';
   }
 

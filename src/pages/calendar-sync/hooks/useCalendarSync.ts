@@ -31,6 +31,7 @@ export const useCalendarSync = () => {
           .select(`
             id,
             scheduled_time,
+            taken_at,
             status,
             medications!inner (
               name,

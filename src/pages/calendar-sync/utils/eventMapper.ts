@@ -64,7 +64,7 @@ export const mapIntakesToEvents = (intakes: any[]): CalendarEvent[] => {
   return intakes.map(intake => {
     const startDate = getUTCDateFromDB(intake.scheduled_time);
     const endDate = createEndDate(startDate, 30);
-    const status = determineIntakeStatus(intake.scheduled_time, intake.status);
+    const status = determineIntakeStatus(intake.scheduled_time, intake.status, intake.taken_at);
     const statusText = formatStatusForTitle(status);
 
     const medicationName = intake.medications?.name || 'Médicament';
