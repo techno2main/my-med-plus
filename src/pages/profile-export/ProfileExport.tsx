@@ -6,12 +6,16 @@ import { PeriodSelector } from "./components/PeriodSelector";
 import { ExportActions } from "./components/ExportActions";
 import { generatePDF } from "./utils/pdfGenerator";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 
 export default function ProfileExport() {
   const { config, updateConfig, loading: configLoading } = useExportConfig();
   const { fetchExportData, loading: exportLoading } = useExportData();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleExportPDF = async () => {
     try {
@@ -54,7 +58,7 @@ export default function ProfileExport() {
   if (configLoading) {
     return (
       <AppLayout>
-        <div className="container py-6">
+        <div className="container max-w-2xl mx-auto px-3 md:px-4 py-6">
           <p className="text-center text-muted-foreground">Chargement...</p>
         </div>
       </AppLayout>
@@ -63,12 +67,17 @@ export default function ProfileExport() {
 
   return (
     <AppLayout>
-      <div className="container py-6 space-y-6">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold">Exporter vos données médicales</h1>
-          <p className="text-muted-foreground">
-            Personnalisez et téléchargez un export complet de vos informations de santé
-          </p>
+      <div className="container max-w-2xl mx-auto px-3 md:px-4 py-6 space-y-6">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold">Exporter vos données</h1>
+            <p className="text-muted-foreground">
+              Personnaliser un export complet
+            </p>
+          </div>
         </div>
 
         <ExportConfigSection 

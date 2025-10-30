@@ -26,6 +26,7 @@ export function ExportActions({ onExportPDF, onExportJSON, loading }: ExportActi
           )}
           Exporter en PDF
         </Button>
+        {/* Bouton JSON temporairement masqué
         <Button
           onClick={onExportJSON}
           disabled={loading}
@@ -40,6 +41,7 @@ export function ExportActions({ onExportPDF, onExportJSON, loading }: ExportActi
           )}
           Exporter en JSON
         </Button>
+        */}
       </div>
       <p className="text-sm text-muted-foreground mt-3">
         Le fichier sera téléchargé sur votre appareil
