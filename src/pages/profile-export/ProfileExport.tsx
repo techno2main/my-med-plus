@@ -1,4 +1,4 @@
-import { PageHeader } from "@/components/Layout/PageHeader";
+import { AppLayout } from "@/components/Layout/AppLayout";
 import { useExportConfig } from "./hooks/useExportConfig";
 import { useExportData } from "./hooks/useExportData";
 import { ExportConfigSection } from "./components/ExportConfig";
@@ -14,12 +14,21 @@ export default function ProfileExport() {
   const { toast } = useToast();
 
   const handleExportPDF = async () => {
-    const data = await fetchExportData(config);
-    if (data) {
-      generatePDF(data);
+    try {
+      const data = await fetchExportData(config);
+      if (data) {
+        await generatePDF(data);
+        toast({
+          title: "Export réussi",
+          description: "Votre fichier PDF a été sauvegardé dans Documents",
+        });
+      }
+    } catch (error) {
+      console.error('Erreur export PDF:', error);
       toast({
-        title: "Export réussi",
-        description: "Votre fichier PDF a été téléchargé",
+        title: "Erreur",
+        description: "Impossible de générer le PDF",
+        variant: "destructive",
       });
     }
   };
@@ -44,19 +53,16 @@ export default function ProfileExport() {
 
   if (configLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <PageHeader title="Export de données" />
+      <AppLayout>
         <div className="container py-6">
           <p className="text-center text-muted-foreground">Chargement...</p>
         </div>
-      </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <PageHeader title="Export de données" />
-      
+    <AppLayout>
       <div className="container py-6 space-y-6">
         <div className="space-y-2">
           <h1 className="text-2xl font-bold">Exporter vos données médicales</h1>
@@ -81,6 +87,6 @@ export default function ProfileExport() {
           loading={exportLoading}
         />
       </div>
-    </div>
+    </AppLayout>
   );
 }

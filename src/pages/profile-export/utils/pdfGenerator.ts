@@ -3,8 +3,10 @@ import autoTable from 'jspdf-autotable';
 import { ExportData } from '../types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
 
-export const generatePDF = (data: ExportData): void => {
+export const generatePDF = async (data: ExportData): Promise<void> => {
   const doc = new jsPDF();
   let yPosition = 20;
 
@@ -261,9 +263,34 @@ export const generatePDF = (data: ExportData): void => {
     doc.text(`MyHealth+ - Page ${i}/${pageCount}`, 105, 290, { align: 'center' });
   }
 
-  // Save
+  // Save - différent comportement selon la plateforme
   const fileName = `MyHealthPlus_Export_${format(new Date(), 'yyyyMMdd_HHmmss')}.pdf`;
-  doc.save(fileName);
+  
+  if (Capacitor.isNativePlatform()) {
+    // Sur Android/iOS : utiliser Capacitor Filesystem
+    try {
+      const pdfOutput = doc.output('dataurlstring');
+      const base64Data = pdfOutput.split(',')[1];
+      
+      const result = await Filesystem.writeFile({
+        path: fileName,
+        data: base64Data,
+        directory: Directory.Documents,
+      });
+      
+      console.log('PDF sauvegardé:', result.uri);
+      
+      // Optionnel : ouvrir le fichier avec l'app par défaut
+      // Note: nécessiterait le plugin @capacitor/file-opener
+      
+    } catch (error) {
+      console.error('Erreur sauvegarde PDF:', error);
+      throw error;
+    }
+  } else {
+    // Sur Web : téléchargement classique
+    doc.save(fileName);
+  }
 };
 
 const checkPageBreak = (doc: jsPDF, currentY: number, requiredSpace: number): number => {
