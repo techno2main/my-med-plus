@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Calendar, User, Download, Pill, Eye, EyeOff } from "lucide-react"
 import { useNavigate } from "react-router-dom"
-import { supabase } from "@/integrations/supabase/client"
 import { formatToFrenchDate } from "@/lib/dateUtils"
 import { MedicationItem } from "./MedicationItem"
+import { usePrescriptionDownload } from "@/hooks/usePrescriptionDownload"
 import type { Treatment } from "../types"
 
 interface TreatmentCardProps {
@@ -17,6 +17,7 @@ export const TreatmentCard = ({ treatment }: TreatmentCardProps) => {
   const navigate = useNavigate()
   const [showDetails, setShowDetails] = useState(treatment.is_active) // Par défaut : visible si actif, masqué si archivé
   const detailsRef = useRef<HTMLDivElement>(null)
+  const { downloadPrescription } = usePrescriptionDownload()
 
   const handleToggleDetails = () => {
     const newShowDetails = !showDetails
@@ -27,6 +28,13 @@ export const TreatmentCard = ({ treatment }: TreatmentCardProps) => {
       setTimeout(() => {
         detailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }, 150)
+    }
+  }
+
+  const handleDownloadPrescription = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (treatment.prescription?.file_path) {
+      downloadPrescription(treatment.prescription.file_path, treatment.prescription.original_filename)
     }
   }
 
@@ -100,14 +108,12 @@ export const TreatmentCard = ({ treatment }: TreatmentCardProps) => {
         {treatment.prescription?.file_path && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Download className="h-3 w-3" />
-            <a 
-              href={supabase.storage.from('prescriptions').getPublicUrl(treatment.prescription.file_path).data.publicUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-primary underline"
+            <button 
+              onClick={handleDownloadPrescription}
+              className="hover:text-primary underline cursor-pointer"
             >
               Voir l'ordonnance
-            </a>
+            </button>
           </div>
         )}
         {treatment.next_pharmacy_visit && treatment.end_date && (
