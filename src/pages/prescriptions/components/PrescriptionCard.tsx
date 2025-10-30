@@ -31,7 +31,7 @@ interface PrescriptionCardProps {
     refillVisits: RefillVisit[];
     hasArchivedTreatment?: boolean;
   };
-  onDownload: () => void;
+  onDownload: () => void; // Déjà bindée avec la prescription dans PrescriptionList
   onToggleVisit: (treatmentId: string, visitNumber: number, currentStatus: boolean, plannedDate: string) => void;
 }
 

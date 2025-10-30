@@ -1,3 +1,5 @@
+import { getCurrentDateInParis } from "@/lib/dateUtils";
+
 const TOLERANCE_RULES = {
   morning: { start: 6, end: 12, toleranceHours: 1 },
   afternoon: { start: 12, end: 18, toleranceHours: 1 },
@@ -6,7 +8,8 @@ const TOLERANCE_RULES = {
 
 export const useIntakeOverdue = () => {
   const isIntakeOverdue = (intakeDate: Date) => {
-    const now = new Date();
+    // CRITIQUE: Utiliser l'heure de Paris pour éviter bugs sur tous devices
+    const now = getCurrentDateInParis();
     const scheduledHour = intakeDate.getHours();
     
     let timeSlot: keyof typeof TOLERANCE_RULES;

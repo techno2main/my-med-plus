@@ -3,8 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Clock, CheckCircle2, XCircle, Pill } from "lucide-react";
-import { format } from "date-fns";
-import { fr } from 'date-fns/locale';
 import { IntakeAction } from "../utils/rattrapageTypes";
 
 interface MissedIntake {
@@ -68,7 +66,7 @@ export function IntakeCard({
               {intake.dayName}
             </Badge>
             <span className="text-sm text-muted-foreground">
-              {format(new Date(intake.scheduledTime), "dd/MM/yyyy", { locale: fr })}
+              {intake.dayName}
             </span>
           </div>
           <div className="flex items-center gap-1">

@@ -28,6 +28,8 @@ import About from "./pages/about/About";
 import StockDetails from "./pages/stocks/StockDetails";
 import TreatmentEdit from "./pages/treatment-edit/TreatmentEdit";
 import NotificationSettings from "./pages/notification-settings/NotificationSettings";
+import CalendarSync from "./pages/calendar-sync/CalendarSync";
+import ProfileExport from "./pages/profile-export/ProfileExport";
 import NotificationDebug from "./pages/admin/NotificationDebug";
 import NavigationManager from "./pages/admin/NavigationManager";
 import Admin from "./pages/admin/dashboard/AdminDashboard";
@@ -57,6 +59,8 @@ const App = () => {
           <Route path="/stocks/new" element={<ProtectedRoute><StockForm /></ProtectedRoute>} />
           <Route path="/stocks/adjust" element={<ProtectedRoute><StockForm /></ProtectedRoute>} />
           <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+          <Route path="/calendar-sync" element={<ProtectedRoute><CalendarSync /></ProtectedRoute>} />
+          <Route path="/profile-export" element={<ProtectedRoute><ProfileExport /></ProtectedRoute>} />
           <Route path="/prescriptions" element={<ProtectedRoute><Prescriptions /></ProtectedRoute>} />
           <Route path="/medications" element={<ProtectedRoute><MedicationCatalog /></ProtectedRoute>} />
           <Route path="/referentials" element={<ProtectedRoute><Referentials /></ProtectedRoute>} />

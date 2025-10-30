@@ -8,7 +8,7 @@ import { useIntakeOverdue } from "@/hooks/useIntakeOverdue"
 import { useDashboardData } from "./hooks/useDashboardData"
 import { useTakeIntake } from "./hooks/useTakeIntake"
 import { useAccordionState } from "./hooks/useAccordionState"
-import { getLocalDateString, isIntakeValidationAllowed } from "@/lib/dateUtils"
+import { getLocalDateString, isIntakeValidationAllowed, getCurrentDateInParis } from "@/lib/dateUtils"
 import { ActiveTreatmentsCard } from "./components/ActiveTreatmentsCard"
 import { StockAlertsCard } from "./components/StockAlertsCard"
 import { MissedIntakesCard } from "./components/MissedIntakesCard"
@@ -49,7 +49,8 @@ const Index = () => {
   // Auto-open today's accordions on load
   useEffect(() => {
     if (!loading && upcomingIntakes.length > 0) {
-      const today = new Date()
+      // CRITIQUE: Utiliser l'heure de Paris pour éviter bugs sur émulateurs
+      const today = getCurrentDateInParis()
       const todayDateString = getLocalDateString(today)
       
       const todayTreatmentIds = upcomingIntakes
@@ -82,7 +83,8 @@ const Index = () => {
   // Handlers
   const handleTakeIntake = (intake: UpcomingIntake) => {
     // Vérifier si c'est aujourd'hui et si l'heure est autorisée
-    const isToday = getLocalDateString(intake.date) === getLocalDateString(new Date())
+    // CRITIQUE: Utiliser l'heure de Paris pour éviter bugs sur émulateurs
+    const isToday = getLocalDateString(intake.date) === getLocalDateString(getCurrentDateInParis())
     if (isToday && !isIntakeValidationAllowed()) {
       toast.error("Validation non disponible", {
         description: "Les prises d'aujourd'hui sont validables à partir de 06h00"

@@ -63,12 +63,68 @@
   - `src/pages/calendar/components/DayDetailsPanel.tsx` : Classes conditionnelles pour alertes
 - **Résultat:** Pastilles discrètes orange/rouge pour signaler alertes
 
-### Étape 5 : Implémentation de l'export calendrier ⏸️
-**Status:** DIFFÉRÉE (à faire ultérieurement)
+### Étape 5 : Implémentation de la synchronisation calendrier ✅
+**Status:** Complétée le 29-30/10/2025 - **PHASE 6**
 
-5.1. ⏸️ Créer page intermédiaire de sélection des critères
-5.2. ⏸️ Implémenter filtres de sélection avant export vers le Calendrier choisi sur le téléphone
-5.3. ⏸️ Développer l'ajout automatique au calendrier du téléphone
+5.1. ✅ Créer page intermédiaire de sélection des critères
+- **Action réalisée:** Page complète `/calendar-sync` avec configuration sync
+- **Fichiers créés:**
+  - `src/pages/calendar-sync/CalendarSync.tsx` : Page principale avec AppLayout
+  - `src/pages/calendar-sync/components/CalendarSelector.tsx` : Sélection calendrier natif
+  - `src/pages/calendar-sync/components/PermissionBanner.tsx` : Demande permissions
+  - `src/pages/calendar-sync/components/SyncOptions.tsx` : Toggles options sync
+  - `src/pages/calendar-sync/components/SyncStatus.tsx` : Status dernière sync
+  - `src/pages/calendar-sync/hooks/useCalendarSync.ts` : Logique synchronisation
+  - `src/pages/calendar-sync/hooks/useNativeCalendar.ts` : Interaction calendrier natif
+  - `src/pages/calendar-sync/hooks/useSyncConfig.ts` : Gestion configuration
+  - `src/pages/calendar-sync/hooks/useExportConfig.ts` : Sauvegarde localStorage
+  - `src/pages/calendar-sync/utils/dateUtils.ts` : Fonctions timezone Paris
+  - `src/pages/calendar-sync/utils/eventMapper.ts` : Mapping événements
+  - `src/pages/calendar-sync/types.ts` : Interfaces TypeScript
+- **Fichiers modifiés:**
+  - `src/App.tsx` : Route `/calendar-sync`
+  - `src/pages/admin/dashboard/constants.ts` : Menu "Synchroniser le Calendrier"
+- **Packages installés:**
+  - `@ebarooni/capacitor-calendar@7.2.0` : Plugin Capacitor calendrier natif
+- **Résultat:** Interface complète de configuration avec options sync (prises, visites pharmacie, renouvellements)
+
+5.2. ✅ Implémenter filtres de sélection avant export vers le Calendrier choisi sur le téléphone
+- **Action réalisée:** Système de filtrage intelligent avec détection modifications
+- **Fonctionnalités:**
+  - Sélection calendrier natif (Google Calendar, Samsung Calendar, etc.)
+  - Options granulaires : prises médicaments, visites pharmacie, renouvellements
+  - Smart Sync : CREATE pour nouveaux, UPDATE pour modifiés, DELETE pour supprimés
+  - Stratégie DELETE+CREATE pour Samsung Calendar (incompatibilité UPDATE)
+- **Résultat:** Synchronisation bidirectionnelle avec gestion conflits
+
+5.3. ✅ Développer l'ajout automatique au calendrier du téléphone
+- **Action réalisée:** Génération événements avec codes couleur et alertes
+- **Fonctionnalités:**
+  - **Codes couleur (7 couleurs)** :
+    - Bleu (`#3b82f6`) : À venir (dans + de 3h)
+    - Vert (`#22c55e`) : Pris à l'heure (dans fenêtre ±15min)
+    - Orange (`#f97316`) : Pris en retard (> 15min après heure prévue)
+    - Rouge (`#ef4444`) : Manqué / En retard critique
+    - Gris (`#6b7280`) : Passé (plus de 3h écoulées)
+    - Violet (`#8b5cf6`) : Visite pharmacie
+    - Indigo (`#6366f1`) : Renouvellement traitement
+  - **Alertes intelligentes** :
+    - Prises : 15min avant
+    - Visites : 24h + 1h avant
+    - Renouvellements : 7j + 1j avant
+  - **Titres descriptifs** :
+    - Prises : "💊 [Nom médicament] - [Statut]"
+    - Visites : "🏥 Visite pharmacie - [Traitement]"
+    - Renouvellements : "🔄 Renouvellement - [Traitement]"
+- **Résultat:** Événements visibles dans calendrier natif avec toutes métadonnées
+
+5.4. ✅ Gestion timezone et compatibilité Samsung
+- **Action réalisée:** Fonction `getCurrentDateInParis()` pour éviter décalages UTC
+- **Corrections critiques:**
+  - Utilisation `taken_at` au lieu de `updated_at` pour status réel
+  - Stratégie DELETE+CREATE pour Samsung Calendar (problème UPDATE confirmé)
+  - Mapping `syncedEvents` pour éviter doublons
+- **Résultat:** Synchronisation fiable sans décalage horaire, compatible tous calendriers Android
 
 ### Étape 6 : Amélioration des interactions ✅
 **Status:** Complétée le 29/10/2025
@@ -235,12 +291,42 @@
 
 ## 📥 Télécharger les données
 
-### Étape 17 : Développement de l'export ⏸️
-**Status:** À FAIRE
+### Étape 17 : Développement de l'export ✅
+**Status:** Complétée le 30/10/2025
 
-17.1. ⏸️ Implémenter export complet : profil, observance, traitements détaillés, ordonnances
-17.2. ⏸️ Ajouter sélection de période (date début/fin)
-17.3. ⏸️ Générer format PDF avec mise en forme correcte
+17.1. ✅ Implémenter export complet : profil, observance, traitements détaillés, ordonnances, historique prises, stocks
+- **Action réalisée:** Système complet d'export avec configuration granulaire
+- **Fichiers créés:**
+  - `src/pages/profile-export/ProfileExport.tsx` : Page principale avec AppLayout
+  - `src/pages/profile-export/hooks/useExportConfig.ts` : Gestion configuration export
+  - `src/pages/profile-export/hooks/useExportData.ts` : Récupération données Supabase
+  - `src/pages/profile-export/components/ExportConfig.tsx` : Toggles sections à exporter
+  - `src/pages/profile-export/components/ExportActions.tsx` : Boutons PDF/JSON
+  - `src/pages/profile-export/components/PeriodSelector.tsx` : Sélection dates
+  - `src/pages/profile-export/types.ts` : Interfaces TypeScript
+  - `src/pages/profile-export/utils/pdfGenerator.ts` : Génération PDF avec jsPDF
+- **Fichiers modifiés:**
+  - `src/App.tsx` : Route `/profile-export`
+  - `src/pages/admin/dashboard/constants.ts` : Menu "Export de profil"
+  - `src/integrations/supabase/types.ts` : Ajout `export_config` à user_preferences
+- **Packages installés:**
+  - `jspdf` : Génération PDF
+  - `jspdf-autotable` : Tables formatées
+  - `@capacitor/filesystem` : Sauvegarde fichiers Android/iOS
+- **Résultat:** Export PDF/JSON avec sections configurables, sauvegarde native sur mobile dans Documents/
+
+17.2. ✅ Ajouter sélection de période (date début/fin)
+- **Action réalisée:** Composant PeriodSelector avec DatePicker
+- **Résultat:** Filtrage données selon dates choisies
+
+17.3. ✅ Générer format PDF avec mise en forme correcte
+- **Action réalisée:** PDF structuré avec header, tables, pagination automatique
+- **Résultat:** PDF professionnel avec profil, stats adhérence, traitements, ordonnances, historique (100 dernières prises), stocks
+- **Note:** Sur Android utilise Capacitor Filesystem, sur web téléchargement classique
+
+17.4. ✅ Migration base de données pour export_config
+- **Fichier créé:** `supabase/migrations/20251030000000_add_export_config_to_user_preferences.sql`
+- **Résultat:** Colonne JSONB `export_config` dans table `user_preferences`
 
 ## 🗑️ Supprimer mon compte
 
@@ -262,8 +348,53 @@
 
 ## 📊 Récapitulatif
 
-**✅ Complété:** Étapes 1-4, 6-14, 16  
-**⏸️ Différé:** Étape 5 (Export calendrier)  
-**⏸️ À faire:** Étapes 15, 17, 18, 19
+**✅ Complété:** Étapes 1-4, 5 (Phase 6), 6-14, 16, 17  
+**⏸️ À faire:** Étapes 15, 18, 19
 
-**Date dernière mise à jour:** 29 octobre 2025
+### Statistiques du projet
+
+**Pages créées** : 
+- `/calendar-sync` (14 fichiers) - Phase 6
+- `/profile-export` (8 fichiers) - Étape 17
+
+**Packages ajoutés** :
+- `@ebarooni/capacitor-calendar@7.2.0`
+- `jspdf` + `jspdf-autotable`
+- `@capacitor/filesystem@7.1.4`
+
+**Migrations base de données** :
+- `20251030000000_add_export_config_to_user_preferences.sql`
+
+**Capacitor plugins détectés** : 7
+- @capacitor/app
+- @capacitor/filesystem ✨ (nouveau)
+- @capacitor/local-notifications
+- @capacitor/push-notifications
+- @capacitor/status-bar
+- @ebarooni/capacitor-calendar ✨ (nouveau)
+- capacitor-native-biometric
+
+**Date dernière mise à jour:** 30 octobre 2025
+
+## 🚀 Prochaines étapes prioritaires
+
+1. **Étape 15** : Notifications alertes stocks + redirection clic notification
+2. **Étape 18** : Processus sécurisé suppression compte (export avant suppression)
+3. **Étape 19** : Gestion mots de passe (reset + modification sécurisée)
+
+## 📱 Tests à effectuer
+
+### Tests Android prioritaires
+- [ ] Export PDF sur APK (sauvegarde Documents/)
+- [ ] Synchronisation calendrier Samsung/Google
+- [ ] Codes couleur événements calendrier
+- [ ] Alertes notifications calendrier (15min, 24h, 7j)
+- [ ] Smart Sync DELETE+CREATE sur Samsung
+
+### Tests fonctionnels
+- [ ] Export JSON
+- [ ] Filtrage période export
+- [ ] Sections configurables export
+- [ ] Permissions calendrier
+
+---

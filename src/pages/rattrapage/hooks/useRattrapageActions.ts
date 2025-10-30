@@ -24,6 +24,7 @@ export function useRattrapageActions(missedIntakes: MissedIntake[]) {
     action: 'pending',
     medicationName: '',
     scheduledTime: '',
+    displayTime: '',
     dayName: '',
   });
   const [saving, setSaving] = useState(false);
@@ -53,6 +54,7 @@ export function useRattrapageActions(missedIntakes: MissedIntake[]) {
       action,
       medicationName: intake.medication,
       scheduledTime: intake.scheduledTime,
+      displayTime: intake.displayTime,
       dayName: intake.dayName,
     });
   };

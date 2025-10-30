@@ -4,10 +4,12 @@ CREATE TABLE public.user_preferences (
   biometric_enabled BOOLEAN DEFAULT false,
   two_factor_enabled BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  export_config JSONB DEFAULT NULL
 );
 
 COMMENT ON TABLE public.user_preferences IS 'Préférences de sécurité et d''interface utilisateur';
+COMMENT ON COLUMN public.user_preferences.export_config IS 'Configuration des exports de profil (format, dates, sections incluses)';
 
 ALTER TABLE public.user_preferences ENABLE ROW LEVEL SECURITY;
 
