@@ -27,11 +27,11 @@ export const SyncStatus = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <RefreshCw className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-base">
+          <RefreshCw className="h-4 w-4" />
           État de la synchronisation
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs">
           Synchronisez vos événements de santé avec votre calendrier
         </CardDescription>
       </CardHeader>
