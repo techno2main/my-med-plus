@@ -6,6 +6,40 @@ export type CalendarEventType = 'intake' | 'doctor_visit' | 'pharmacy_visit' | '
 
 export type IntakeStatus = 'on_time' | 'late' | 'missed' | 'upcoming';
 
+export type SyncPeriodType = 'days' | 'weeks' | 'months';
+
+export interface SyncPeriod {
+  value: number;
+  type: SyncPeriodType;
+}
+
+export interface HistoryOptions {
+  keepHistory: boolean;
+  deleteHistory: boolean;
+  period?: SyncPeriod;
+}
+
+export interface FutureOptions {
+  syncFuture: boolean;
+  doNotSync: boolean;
+  period?: SyncPeriod;
+}
+
+export interface IntakeSyncConfig {
+  enabled: boolean;
+  history: HistoryOptions;
+  future: FutureOptions;
+}
+
+export interface AppointmentSyncConfig {
+  enabled: boolean;
+  syncDoctorVisits: boolean;
+  syncLabVisits: boolean;
+  syncPharmacyVisits: boolean;
+  history: HistoryOptions;
+  future: FutureOptions;
+}
+
 export interface CalendarEvent {
   id: string;
   title: string;
@@ -14,8 +48,9 @@ export interface CalendarEvent {
   endDate: Date;
   location?: string;
   eventType: CalendarEventType;
-  color?: string; // Couleur hex pour Android (ex: #10B981)
-  alerts?: number[]; // Alertes en minutes avant l'événement
+  color?: string;
+  alerts?: number[];
+  isReminder?: boolean; // TRUE = style rappel (court, 15min), FALSE = style événement (long, 1h)
   metadata: {
     appId: string;
     status?: IntakeStatus;
@@ -38,13 +73,10 @@ export interface NativeCalendar {
 export interface SyncConfig {
   selectedCalendarId: string | null;
   syncEnabled: boolean;
-  syncIntakes: boolean;
-  syncDoctorVisits: boolean;
-  syncPharmacyVisits: boolean;
-  syncPrescriptionRenewals: boolean;
+  intakes: IntakeSyncConfig;
+  appointments: AppointmentSyncConfig;
   lastSyncDate: string | null;
   syncedEvents: Record<string, string>; // app_event_id -> native_event_id mapping
-  calendarEventsMigrated: boolean; // Flag pour savoir si les anciens événements calendrier ont été migrés vers rappels
 }
 
 export interface SyncResult {
@@ -53,9 +85,27 @@ export interface SyncResult {
   eventsUpdated: number;
   eventsDeleted: number;
   errors: string[];
+  details?: {
+    intakesCreated: number;
+    intakesUpdated: number;
+    intakesDeleted: number;
+    appointmentsCreated: number;
+    appointmentsUpdated: number;
+    appointmentsDeleted: number;
+  };
 }
 
 export interface CalendarPermissionStatus {
   granted: boolean;
   canRequest: boolean;
+}
+
+export interface SyncSummary {
+  totalEvents: number;
+  intakesCount: number;
+  appointmentsCount: number;
+  periodStart: Date;
+  periodEnd: Date;
+  historyDays: number;
+  futureDays: number;
 }

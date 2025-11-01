@@ -5,6 +5,21 @@ import type { Database } from './types';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+// Intercepter les erreurs de console pour masquer les erreurs de refresh token attendues
+const originalConsoleError = console.error;
+console.error = (...args: any[]) => {
+  const message = args[0]?.toString() || '';
+  // Ignorer les erreurs de refresh token connues (elles sont gérées silencieusement)
+  if (
+    message.includes('Invalid Refresh Token') ||
+    message.includes('refresh_token_not_found') ||
+    message.includes('AuthApiError')
+  ) {
+    return; // Ne pas afficher ces erreurs
+  }
+  originalConsoleError.apply(console, args);
+};
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 

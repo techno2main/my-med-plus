@@ -20,6 +20,7 @@ interface Treatment {
   } | null
   prescription?: {
     file_path: string | null
+    original_filename?: string | null
   } | null
   next_pharmacy_visit?: {
     visit_date: string

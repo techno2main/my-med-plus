@@ -23,12 +23,12 @@ export const CalendarSelector = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Calendar className="h-4 w-4" />
           Sélection du calendrier
         </CardTitle>
-        <CardDescription>
-          Choisissez le calendrier où synchroniser vos événements de santé
+        <CardDescription className="text-xs">
+          Choisissez le calendrier natif où synchroniser vos événements de santé
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

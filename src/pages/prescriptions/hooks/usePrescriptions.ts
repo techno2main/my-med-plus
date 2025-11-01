@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { calculateExpiryDate, getPrescriptionStatus } from "../utils/prescriptionUtils";
 import { getLocalDateString } from "@/lib/dateUtils";
+import { usePrescriptionDownload } from "@/hooks/usePrescriptionDownload";
 
 interface Prescription {
   id: string;
@@ -44,6 +45,7 @@ interface PrescriptionWithDetails extends Prescription {
 export function usePrescriptions() {
   const [prescriptions, setPrescriptions] = useState<PrescriptionWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
+  const { downloadPrescription } = usePrescriptionDownload();
 
   useEffect(() => {
     loadPrescriptions();
@@ -192,33 +194,7 @@ export function usePrescriptions() {
   };
 
   const handleDownload = async (prescription: PrescriptionWithDetails) => {
-    if (!prescription.file_path) {
-      toast.error("Aucun fichier disponible");
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase.storage.from("prescriptions").download(prescription.file_path);
-
-      if (error) throw error;
-
-      // Créer un lien de téléchargement avec le nom original
-      const url = URL.createObjectURL(data);
-      const a = document.createElement("a");
-      a.href = url;
-      // Utiliser le nom de fichier original s'il existe, sinon utiliser le nom du fichier dans le storage
-      a.download =
-        prescription.original_filename || prescription.file_path.split("/").pop() || "prescription.pdf";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      toast.success("Téléchargement réussi");
-    } catch (error) {
-      console.error("Error downloading prescription:", error);
-      toast.error("Erreur lors du téléchargement");
-    }
+    await downloadPrescription(prescription.file_path!, prescription.original_filename);
   };
 
   return {

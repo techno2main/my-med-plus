@@ -9,7 +9,7 @@ import {
   mapDoctorVisitsToEvents,
   mapPrescriptionRenewalsToEvents
 } from '../utils/eventMapper';
-import type { SyncResult, CalendarEvent } from '../types';
+import type { SyncResult, CalendarEvent, SyncSummary } from '../types';
 
 /**
  * Hook principal de synchronisation calendrier
@@ -19,13 +19,14 @@ export const useCalendarSync = () => {
   const nativeCalendar = useNativeCalendar();
   const [syncing, setSyncing] = useState(false);
   const [lastSyncResult, setLastSyncResult] = useState<SyncResult | null>(null);
+  const [syncSummary, setSyncSummary] = useState<SyncSummary | null>(null);
 
   const loadAppEvents = async (): Promise<CalendarEvent[]> => {
     const allEvents: CalendarEvent[] = [];
 
     try {
       // 1. Charger les prises de médicaments si activé
-      if (config.syncIntakes) {
+      if (config.intakes.enabled && config.intakes.future.syncFuture) {
         const { data: intakes } = await supabase
           .from('medication_intakes')
           .select(`
@@ -52,7 +53,7 @@ export const useCalendarSync = () => {
       }
 
       // 2. Charger les visites pharmacie si activé
-      if (config.syncPharmacyVisits) {
+      if (config.appointments.enabled && config.appointments.syncPharmacyVisits && config.appointments.future.syncFuture) {
         const { data: visits } = await supabase
           .from('pharmacy_visits')
           .select(`
@@ -76,7 +77,7 @@ export const useCalendarSync = () => {
       }
 
       // 3. Charger les RDV médecin (fin de traitement) si activé
-      if (config.syncDoctorVisits) {
+      if (config.appointments.enabled && config.appointments.syncDoctorVisits && config.appointments.future.syncFuture) {
         const { data: treatments } = await supabase
           .from('treatments')
           .select(`
@@ -100,8 +101,8 @@ export const useCalendarSync = () => {
         }
       }
 
-      // 4. Charger les renouvellements ordonnance si activé
-      if (config.syncPrescriptionRenewals) {
+      // 4. Charger les renouvellements ordonnance si activé (désactivé pour l'instant)
+      if (false) {
         const { data: prescriptions } = await supabase
           .from('prescriptions')
           .select(`
@@ -152,30 +153,6 @@ export const useCalendarSync = () => {
     }
 
     setSyncing(true);
-    
-    // ========== MIGRATION DES ANCIENS ÉVÉNEMENTS CALENDRIER ==========
-    // Si c'est la première synchro après la mise à jour, supprimer les anciens événements calendrier
-    if (!config.calendarEventsMigrated && Object.keys(config.syncedEvents || {}).length > 0) {
-      console.log('[Calendar Sync] Starting migration: cleaning up old calendar events');
-      try {
-        const eventIdsToDelete = Object.values(config.syncedEvents);
-        const deletedCount = await nativeCalendar.migrateCalendarEventsToReminders(eventIdsToDelete);
-        
-        console.log(`[Calendar Sync] Migration complete: ${deletedCount} old events deleted`);
-        
-        // Marquer la migration comme effectuée et vider le mapping
-        updateConfig({ 
-          calendarEventsMigrated: true,
-          syncedEvents: {} // Reset pour repartir de zéro avec les rappels
-        });
-      } catch (error) {
-        console.error('[Calendar Sync] Migration error:', error);
-        // Continuer quand même la synchro, marquer comme migré pour ne pas re-tenter
-        updateConfig({ calendarEventsMigrated: true });
-      }
-    }
-    // ==================================================================
-    
     const result: SyncResult = {
       success: true,
       eventsCreated: 0,
@@ -316,14 +293,43 @@ export const useCalendarSync = () => {
     return { success: true, deletedCount };
   };
 
+  const generateSyncSummary = async () => {
+    const events = await loadAppEvents();
+    
+    const intakes = events.filter(e => e.eventType === 'intake');
+    const appointments = events.filter(e => 
+      e.eventType === 'doctor_visit' || 
+      e.eventType === 'pharmacy_visit'
+    );
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const futureEvents = events.filter(e => e.startDate >= today);
+    
+    const summary: SyncSummary = {
+      totalEvents: futureEvents.length,
+      intakesCount: intakes.length,
+      appointmentsCount: appointments.length,
+      periodStart: futureEvents.length > 0 ? new Date(Math.min(...futureEvents.map(e => e.startDate.getTime()))) : new Date(),
+      periodEnd: futureEvents.length > 0 ? new Date(Math.max(...futureEvents.map(e => e.startDate.getTime()))) : new Date(),
+      historyDays: 0,
+      futureDays: config.intakes.future.period?.value || 7
+    };
+
+    setSyncSummary(summary);
+  };
+
   return {
     config,
     updateConfig,
     nativeCalendar,
     syncing,
     lastSyncResult,
+    syncSummary,
     loadAppEvents,
     syncToNativeCalendar,
-    clearAllSyncedEvents
+    clearAllSyncedEvents,
+    generateSyncSummary
   };
 };

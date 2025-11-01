@@ -46,7 +46,7 @@ export const useTreatmentsList = () => {
           if (treatment.prescription_id) {
             const { data: prescriptionData } = await supabase
               .from("prescriptions")
-              .select("file_path, prescribing_doctor_id, duration_days")
+              .select("file_path, original_filename, prescribing_doctor_id, duration_days")
               .eq("id", treatment.prescription_id)
               .maybeSingle()
             
