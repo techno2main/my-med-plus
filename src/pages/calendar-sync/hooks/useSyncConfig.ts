@@ -6,17 +6,42 @@ const STORAGE_KEY = 'calendar_sync_config';
 const DEFAULT_CONFIG: SyncConfig = {
   selectedCalendarId: null,
   syncEnabled: false,
-  syncIntakes: true,
-  syncDoctorVisits: false, // DÉSACTIVÉ : Pas de table doctor_visits dans la BDD
-  syncPharmacyVisits: true,
-  syncPrescriptionRenewals: true,
+  intakes: {
+    enabled: true,
+    history: {
+      keepHistory: false,
+      deleteHistory: false,
+      period: { value: 7, type: 'days' }
+    },
+    future: {
+      syncFuture: true,
+      doNotSync: false,
+      period: { value: 7, type: 'days' }
+    }
+  },
+  appointments: {
+    enabled: true,
+    syncDoctorVisits: true,
+    syncLabVisits: false,
+    syncPharmacyVisits: true,
+    history: {
+      keepHistory: false,
+      deleteHistory: false,
+      period: { value: 30, type: 'days' }
+    },
+    future: {
+      syncFuture: true,
+      doNotSync: false,
+      period: { value: 90, type: 'days' }
+    }
+  },
   lastSyncDate: null,
-  syncedEvents: {}, // Mapping app_event_id -> native_event_id
-  calendarEventsMigrated: false // Par défaut, la migration n'a pas encore été effectuée
+  syncedEvents: {}
 };
 
 /**
  * Hook de gestion de la configuration de synchronisation
+ * Version mise à jour avec nouvelle structure
  */
 export const useSyncConfig = () => {
   const [config, setConfig] = useState<SyncConfig>(DEFAULT_CONFIG);
@@ -30,8 +55,33 @@ export const useSyncConfig = () => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored) as SyncConfig;
-        setConfig(parsed);
+        const parsed = JSON.parse(stored) as any;
+        
+        // Migration depuis ancienne structure si nécessaire
+        if ('syncIntakes' in parsed) {
+          console.log('[Calendar Sync] Migrating old config format...');
+          const migratedConfig: SyncConfig = {
+            ...DEFAULT_CONFIG,
+            selectedCalendarId: parsed.selectedCalendarId,
+            syncEnabled: parsed.syncEnabled,
+            lastSyncDate: parsed.lastSyncDate,
+            syncedEvents: parsed.syncedEvents || {},
+            intakes: {
+              ...DEFAULT_CONFIG.intakes,
+              enabled: parsed.syncIntakes
+            },
+            appointments: {
+              ...DEFAULT_CONFIG.appointments,
+              syncDoctorVisits: parsed.syncDoctorVisits,
+              syncPharmacyVisits: parsed.syncPharmacyVisits
+            }
+          };
+          setConfig(migratedConfig);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(migratedConfig));
+        } else {
+          // Nouvelle structure
+          setConfig({ ...DEFAULT_CONFIG, ...parsed });
+        }
       }
     } catch (error) {
       console.error('[Calendar Sync] Error loading config:', error);
