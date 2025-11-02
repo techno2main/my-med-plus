@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useUserRole } from "@/hooks/useUserRole";
 import { 
   Trash2, ChevronUp, ChevronDown, Pencil, ArrowLeft,
   Home, Pill, Package, Calendar, Settings,
@@ -62,9 +63,10 @@ interface SortableItemProps {
   onMoveDown: (id: string) => void;
   isFirst: boolean;
   isLast: boolean;
+  isAdmin: boolean;
 }
 
-function SortableItem({ item, onEdit, onDelete, onMoveUp, onMoveDown, isFirst, isLast }: SortableItemProps) {
+function SortableItem({ item, onEdit, onDelete, onMoveUp, onMoveDown, isFirst, isLast, isAdmin }: SortableItemProps) {
   const {
     attributes,
     listeners,
@@ -150,34 +152,38 @@ function SortableItem({ item, onEdit, onDelete, onMoveUp, onMoveDown, isFirst, i
                 </span>
               )}
             </div>
-            <p className="text-sm text-muted-foreground">{item.path}</p>
+            {isAdmin && (
+              <p className="text-sm text-muted-foreground">{item.path}</p>
+            )}
           </div>
         </div>
 
-        <div className="flex gap-2" onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(item);
-            }}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (confirm("Êtes-vous sûr de vouloir supprimer cet item ?")) {
-                onDelete(item.id);
-              }
-            }}
-          >
-            <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
-        </div>
+        {isAdmin && (
+          <div className="flex gap-2" onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(item);
+              }}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (confirm("Êtes-vous sûr de vouloir supprimer cet item ?")) {
+                  onDelete(item.id);
+                }
+              }}
+            >
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          </div>
+        )}
       </div>
     </Card>
   );
@@ -187,6 +193,7 @@ export default function NavigationManager() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isAdmin } = useUserRole();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -407,7 +414,7 @@ export default function NavigationManager() {
           title="Navigation"
           subtitle="Configurer la navigation"
           backTo="/settings"
-          showAddButton
+          showAddButton={isAdmin}
           onAdd={() => setIsDialogOpen(true)}
         />
 
@@ -440,6 +447,7 @@ export default function NavigationManager() {
                     onMoveDown={handleMoveDown}
                     isFirst={index === 0}
                     isLast={index === navItems.length - 1}
+                    isAdmin={isAdmin}
                   />
                 ))
               )}
@@ -448,11 +456,12 @@ export default function NavigationManager() {
         </DndContext>
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={(open) => {
-        setIsDialogOpen(open);
-        if (!open) resetForm();
-      }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0">
+      {isAdmin && (
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) resetForm();
+        }}>
+          <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0">
           <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
             <div className="flex items-center gap-3">
               <Button 
@@ -566,6 +575,7 @@ export default function NavigationManager() {
           </div>
         </DialogContent>
       </Dialog>
+      )}
     </AppLayout>
   );
 }
