@@ -330,32 +330,219 @@
 
 ## 🗑️ Supprimer mon compte
 
-### Étape 18 : Processus sécurisé de suppression ⏸️
+### Étape 18 : Processus sécurisé de suppression ✅
+**Status:** Complétée le 01/11/2025
+
+18.1. ✅ Implémenter proposition d'export PDF avant première confirmation
+- **Action réalisée:** Dialogue en 3 étapes avec proposition d'export intégrée
+- **Fichiers créés:**
+  - `src/pages/privacy/components/DeleteAccountDialog.tsx` : Orchestrateur 3 étapes (116 lignes)
+  - `src/pages/privacy/components/DeleteAccountSteps/ExportStep.tsx` : Proposition export (67 lignes)
+  - `src/pages/privacy/components/DeleteAccountSteps/WarningStep.tsx` : Avertissement perte données (79 lignes)
+  - `src/pages/privacy/components/DeleteAccountSteps/ConfirmationStep.tsx` : Confirmation finale avec auth (123 lignes)
+  - `src/pages/privacy/components/ExportDialog.tsx` : Modal export overlay (125 lignes)
+- **Résultat:** Export proposé en première étape, modal s'ouvre par-dessus sans quitter le workflow de suppression
+
+18.2. ✅ Créer première confirmation
+- **Action réalisée:** Étape 2 avec liste détaillée des pertes de données
+- **Fonctionnalités:**
+  - Énumération 6 catégories de données perdues (traitements, ordonnances, historique, stocks, profil, notifications)
+  - Badge rouge "IRRÉVERSIBLE"
+  - Texte justifié pour meilleure lisibilité
+- **Résultat:** Utilisateur clairement averti des conséquences
+
+18.3. ✅ Développer confirmation finale avec mot de passe/empreinte obligatoire
+- **Action réalisée:** Étape 3 avec validation authentification selon type de compte
+- **Fonctionnalités:**
+  - **Compte email** : Demande mot de passe actuel (min 6 caractères)
+  - **Compte Google** : Info que suppression immédiate après confirmation
+  - **Biométrie activée** : Propose authentification par empreinte/Face ID
+  - Vérification via `signInWithPassword` ou `NativeBiometric.verifyIdentity`
+- **Fichiers modifiés:**
+  - `src/pages/privacy/hooks/usePrivacySettings.ts` : Fonction `handleDeleteAccount(password)` avec validations
+- **Résultat:** Sécurité maximale, authentification obligatoire avant suppression
+
+18.4. ✅ Ajouter case à cocher "J'ai bien compris que..."
+- **Action réalisée:** Checkbox obligatoire dans étape 3
+- **Texte:** "J'ai bien compris que cette action est irréversible et que toutes mes données seront définitivement supprimées sans possibilité de récupération."
+- **Résultat:** Bouton "Supprimer" désactivé tant que checkbox non cochée
+
+**Notes techniques:**
+- **MODE TEST actif** : Suppression réelle désactivée pour validation workflow
+- **Refactorisation** : 3 composants atomiques (ExportStep, WarningStep, ConfirmationStep) pour maintenabilité
+- **Architecture** : DeleteAccountDialog orchestre les 3 étapes, total 385 lignes réparties sur 4 fichiers
+- **Commit:** `cf99695` sur branche `feat/secure-account-deletion`, mergé dans `dev` le 02/11/2025
+
+### Étape 19 : Gestion des mots de passe ✅
+**Status:** Complétée le 02/11/2025
+
+19.1. ✅ Implémenter "mot de passe oublié" avec mail
+- **Action réalisée:** Système complet de réinitialisation avec sécurité biométrique
+- **Fichiers créés:**
+  - `src/pages/privacy/components/ForgotPasswordDialog.tsx` : Dialog réinitialisation (116 lignes)
+  - `src/pages/privacy/hooks/usePasswordManagement.ts` : Logique mots de passe (164 lignes)
+- **Fonctionnalités:**
+  - Saisie email uniquement
+  - Validation email (correspond au compte connecté)
+  - Envoi lien réinitialisation via `supabase.auth.resetPasswordForEmail`
+  - **Désactivation automatique biométrie** si activée (sécurité)
+  - Flag `biometric_was_enabled` pour proposer réactivation ultérieure
+  - Avertissement visible si biométrie active
+  - Double notification (email envoyé + biométrie désactivée)
+- **Résultat:** Réinitialisation sécurisée avec gestion intelligente de la biométrie
+
+19.2. ✅ Demander mot de passe actuel pour modifications
+- **Action réalisée:** Validation mot de passe actuel avant changement
+- **Fichiers créés:**
+  - `src/pages/privacy/components/ChangePasswordDialog.tsx` : Dialog changement MDP (173 lignes)
+- **Fonctionnalités:**
+  - 3 champs : mot de passe actuel, nouveau, confirmation
+  - Validation temps réel (min 6 caractères, mots de passe identiques)
+  - Vérification mot de passe actuel via `signInWithPassword` avant update
+  - Messages d'erreur précis ("Mot de passe incorrect", "Les mots de passe ne correspondent pas")
+  - Lien "Mot de passe oublié ?" qui ouvre ForgotPasswordDialog
+- **Fichiers modifiés:**
+  - `src/pages/privacy/hooks/usePasswordManagement.ts` : Fonction `handlePasswordChange(currentPassword, newPassword)`
+- **Résultat:** Utilisateur DOIT connaître son mot de passe actuel pour le changer (même avec biométrie)
+
+19.3. ✅ Adapter interface pour Google OAuth
+- **Action réalisée:** Désactivation bouton changement mot de passe pour comptes Google
+- **Fichiers modifiés:**
+  - `src/pages/privacy/components/SecurityCard.tsx` : Bouton désactivé avec tooltip explicatif
+- **Fonctionnalités:**
+  - Bouton grisé (opacity-50, cursor-not-allowed)
+  - Tooltip au survol : "Votre compte est lié à Google. Le mot de passe est géré par votre compte Google."
+  - Mention lien myaccount.google.com
+- **Résultat:** UX claire, utilisateur comprend pourquoi fonction indisponible
+
+19.4. ✅ Refactorisation hooks pour maintenabilité
+- **Action réalisée:** Découpage usePrivacySettings (491 lignes) en 4 hooks spécialisés
+- **Fichiers créés:**
+  - `src/pages/privacy/hooks/usePasswordManagement.ts` : Gestion mots de passe (164 lignes)
+  - `src/pages/privacy/hooks/useBiometricSettings.ts` : Gestion biométrie (128 lignes)
+  - `src/pages/privacy/hooks/useAccountActions.ts` : Export + suppression + 2FA (181 lignes)
+- **Fichiers modifiés:**
+  - `src/pages/privacy/hooks/usePrivacySettings.ts` : Orchestrateur simple (86 lignes)
+- **Résultat:** Code modulaire, 559 lignes réparties sur 4 fichiers au lieu de 491 dans un seul
+
+**Architecture finale:**
+```
+Privacy.tsx (page principale)
+├── SecurityCard.tsx (boutons + toggles)
+├── ChangePasswordDialog.tsx (changement MDP)
+├── ForgotPasswordDialog.tsx (réinitialisation)
+├── usePrivacySettings.ts (orchestrateur - 86 lignes)
+│   ├── usePasswordManagement.ts (164 lignes)
+│   ├── useBiometricSettings.ts (128 lignes)
+│   └── useAccountActions.ts (181 lignes)
+```
+
+**Tests nécessaires:**
+- [ ] Changement mot de passe avec compte email classique
+- [ ] Mot de passe oublié avec/sans biométrie activée
+- [ ] Vérification bouton désactivé pour Google OAuth
+- [ ] Réactivation biométrie après réinitialisation MDP
+
+**Commit:** À venir sur branche `feat/password-management` après validation tests
+
+### Étape 20 : Réactivation inscription ⏸️
+**Status:** À FAIRE - PRIORITAIRE
+
+20.1. ⏸️ Réactiver fonction d'inscription email/mot de passe
+- **Objectif:** Permettre création compte test pour validation workflow suppression réelle
+- **Actions:**
+  - Vérifier si signup désactivé dans Auth.tsx
+  - Réactiver formulaire inscription
+  - Valider création profil automatique
+  - Tester flow complet inscription → connexion
+
+20.2. ⏸️ Tester inscription Google OAuth
+- **Objectif:** Valider que Google Sign-In fonctionne correctement
+- **Actions:**
+  - Vérifier configuration Google OAuth dans Supabase
+  - Tester connexion Google sur mobile
+  - Valider création profil automatique
+
+20.3. ⏸️ Créer 2 comptes de test
+- **Compte 1 - Email classique:**
+  - Email: `test.deletion@myhealthplus.com`
+  - Mot de passe: `Test1234!`
+  - Usage: Tests suppression compte réelle + workflow mot de passe
+  
+- **Compte 2 - Google OAuth:**
+  - Compte Google existant
+  - Usage: Validation comportement Google (boutons désactivés, etc.)
+
+### Étape 21 : Tests en conditions réelles ⏸️
 **Status:** À FAIRE
 
-18.1. ⏸️ Implémenter proposition d'export PDF avant première confirmation
-18.2. ⏸️ Créer première confirmation
-18.3. ⏸️ Développer confirmation finale avec mot de passe/empreinte obligatoire
-18.4. ⏸️ Ajouter case à cocher "J'ai bien compris que..."
+21.1. ⏸️ Tests workflow mot de passe (Compte email)
+- [ ] Changer mot de passe avec mot de passe actuel correct
+- [ ] Tenter changement avec mot de passe actuel incorrect
+- [ ] Vérifier validation 6 caractères minimum
+- [ ] Vérifier validation mots de passe identiques
+- [ ] Tester "Mot de passe oublié" avec email
+- [ ] Vérifier réception email réinitialisation
+- [ ] Valider désactivation biométrie si activée
+- [ ] Tester réactivation biométrie après changement MDP
 
-### Étape 19 : Gestion des mots de passe ⏸️
+21.2. ⏸️ Tests Google OAuth (Compte Google)
+- [ ] Vérifier bouton "Changer mot de passe" désactivé
+- [ ] Valider tooltip explicatif visible
+- [ ] Vérifier absence option "Mot de passe oublié"
+
+21.3. ⏸️ Tests suppression compte (Compte email test)
+- [ ] Workflow complet 3 étapes
+- [ ] Export PDF avant suppression
+- [ ] Validation authentification (mot de passe ou biométrie)
+- [ ] **Suppression réelle** (désactiver MODE TEST)
+- [ ] Vérification suppression complète données Supabase
+- [ ] Vérification déconnexion automatique
+- [ ] Validation impossibilité reconnexion
+
+### Étape 22 : Nettoyage et documentation ⏸️
 **Status:** À FAIRE
 
-19.1. ⏸️ Implémenter "mot de passe oublié" avec mail
-19.2. ⏸️ Demander mot de passe actuel pour modifications
+22.1. ⏸️ Activer suppression réelle en production
+- **Action:** Décommenter code suppression dans `useAccountActions.ts`
+- **Fichier:** `src/pages/privacy/hooks/useAccountActions.ts`
+- **Lignes:** 105-125 (actuellement en MODE TEST)
+
+22.2. ⏸️ Documenter processus inscription/suppression
+- **Actions:**
+  - Ajouter README sécurité dans `/docs`
+  - Documenter workflow suppression
+  - Lister données supprimées (cascade RLS)
+
+22.3. ⏸️ Mise à jour base de données
+- **Actions:**
+  - Vérifier triggers cascade suppression
+  - Ajouter colonne `biometric_was_enabled` si manquante
+  - Documenter schéma RLS
 
 ---
 
 ## 📊 Récapitulatif
 
-**✅ Complété:** Étapes 1-4, 5 (Phase 6), 6-14, 16, 17  
-**⏸️ À faire:** Étapes 15, 18, 19
+**✅ Complété:** Étapes 1-4, 5 (Phase 6), 6-14, 16-19  
+**⏸️ À faire:** Étapes 15, 20-22
 
 ### Statistiques du projet
 
 **Pages créées** : 
 - `/calendar-sync` (14 fichiers) - Phase 6
 - `/profile-export` (8 fichiers) - Étape 17
+
+**Composants sécurité créés** :
+- `DeleteAccountDialog.tsx` + 3 steps (Étape 18)
+- `ChangePasswordDialog.tsx` (Étape 19)
+- `ForgotPasswordDialog.tsx` (Étape 19)
+
+**Hooks refactorisés** :
+- `usePrivacySettings.ts` : 491 → 86 lignes (orchestrateur)
+- `usePasswordManagement.ts` : 164 lignes (nouveau)
+- `useBiometricSettings.ts` : 128 lignes (nouveau)
+- `useAccountActions.ts` : 181 lignes (nouveau)
 
 **Packages ajoutés** :
 - `@ebarooni/capacitor-calendar@7.2.0`
@@ -374,13 +561,14 @@
 - @ebarooni/capacitor-calendar ✨ (nouveau)
 - capacitor-native-biometric
 
-**Date dernière mise à jour:** 30 octobre 2025
+**Date dernière mise à jour:** 02 novembre 2025
 
 ## 🚀 Prochaines étapes prioritaires
 
-1. **Étape 15** : Notifications alertes stocks + redirection clic notification
-2. **Étape 18** : Processus sécurisé suppression compte (export avant suppression)
-3. **Étape 19** : Gestion mots de passe (reset + modification sécurisée)
+1. **Étape 20** : Réactivation inscription (email + Google OAuth) - **CRITIQUE pour tests**
+2. **Étape 21** : Tests en conditions réelles (2 comptes test)
+3. **Étape 22** : Nettoyage et activation suppression réelle
+4. **Étape 15** : Notifications alertes stocks + redirection clic notification
 
 ## 📱 Tests à effectuer
 
@@ -390,6 +578,15 @@
 - [ ] Codes couleur événements calendrier
 - [ ] Alertes notifications calendrier (15min, 24h, 7j)
 - [ ] Smart Sync DELETE+CREATE sur Samsung
+
+### Tests sécurité (Étapes 18-19)
+- [ ] Workflow suppression 3 étapes
+- [ ] Export avant suppression
+- [ ] Authentification mot de passe/biométrie
+- [ ] Changement mot de passe (validation actuel)
+- [ ] Mot de passe oublié (email + désactivation biométrie)
+- [ ] Google OAuth (boutons désactivés)
+- [ ] Suppression réelle compte test
 
 ### Tests fonctionnels
 - [ ] Export JSON
