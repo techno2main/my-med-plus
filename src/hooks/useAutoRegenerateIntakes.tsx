@@ -21,6 +21,13 @@ export function useAutoRegenerateIntakes() {
     if (isRegenerating.current) return;
     if (!shouldRegenerate()) return;
 
+    // Vérifier qu'une session existe avant de faire l'appel
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.log('Pas de session active, régénération annulée');
+      return;
+    }
+
     isRegenerating.current = true;
 
     try {

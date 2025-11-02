@@ -3,9 +3,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { filterByType, TabType, mapTypeToDb, ProfessionalType } from "./utils/professionalUtils";
-import { useHealthProfessionals } from "./hooks/useHealthProfessionals";
-import { useProfessionalDialog } from "./hooks/useProfessionalDialog";
+import { filterByType, TabType, mapTypeToDb, ProfessionalType, type HealthProfessional, type HealthProfessionalFormData } from "./utils/professionalUtils";
+import { useEntityCrud } from "@/hooks/generic/useEntityCrud";
+import { useEntityDialog } from "@/hooks/generic/useEntityDialog";
 import { ProfessionalTabs } from "./components/ProfessionalTabs";
 import { ProfessionalDialog } from "./components/ProfessionalDialog";
 import { ProfessionalDeleteAlert } from "./components/ProfessionalDeleteAlert";
@@ -16,14 +16,21 @@ const HealthProfessionals = () => {
   const [activeTab, setActiveTab] = useState<TabType>("medecins");
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // Hook générique CRUD
   const {
-    professionals,
+    items: professionals,
     isLoading,
-    createProfessional,
-    updateProfessional,
-    deleteProfessional,
-  } = useHealthProfessionals();
+    create: createProfessional,
+    update: updateProfessional,
+    deleteEntity: deleteProfessional,
+  } = useEntityCrud<HealthProfessional, HealthProfessionalFormData>({
+    tableName: "health_professionals",
+    queryKey: ["health-professionals"],
+    entityName: "Professionnel",
+    orderBy: "name"
+  });
 
+  // Hook générique Dialog
   const {
     showDialog,
     editingItem,
@@ -31,7 +38,17 @@ const HealthProfessionals = () => {
     setFormData,
     openDialog,
     closeDialog,
-  } = useProfessionalDialog();
+  } = useEntityDialog<HealthProfessional, HealthProfessionalFormData>({
+    name: "",
+    type: "doctor",
+    specialty: "",
+    phone: "",
+    email: "",
+    street_address: "",
+    postal_code: "",
+    city: "",
+    is_primary_doctor: false,
+  });
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -40,11 +57,13 @@ const HealthProfessionals = () => {
 
   const handleAdd = (type: "medecin" | "pharmacie" | "laboratoire") => {
     const dbType = mapTypeToDb(type === "medecin" ? "medecins" : type === "pharmacie" ? "pharmacies" : "laboratoires") as ProfessionalType;
-    openDialog(dbType);
+    // Ouvrir le dialog vide mais avec le type prédéfini
+    setFormData(prev => ({ ...prev, type: dbType }));
+    openDialog();
   };
 
-  const handleEdit = (item: any) => {
-    openDialog(item.type, item);
+  const handleEdit = (item: HealthProfessional) => {
+    openDialog(item);
   };
 
   const handleDelete = (id: string) => {
@@ -52,12 +71,11 @@ const HealthProfessionals = () => {
   };
 
   const handleSubmit = async () => {
-    if (editingItem) {
-      await updateProfessional(editingItem.id, formData);
-    } else {
-      await createProfessional(formData);
-    }
-    closeDialog();
+    const success = editingItem
+      ? await updateProfessional(editingItem.id, formData)
+      : await createProfessional(formData);
+    
+    if (success) closeDialog();
   };
 
   const confirmDelete = async () => {

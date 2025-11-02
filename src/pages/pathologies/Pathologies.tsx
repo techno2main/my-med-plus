@@ -8,19 +8,42 @@ import { PathologySearch } from "./components/PathologySearch";
 import { PathologyList } from "./components/PathologyList";
 import { PathologyDialog } from "./components/PathologyDialog";
 import { PathologyDeleteAlert } from "./components/PathologyDeleteAlert";
-import { usePathologies } from "./hooks/usePathologies";
-import { usePathologyDialog } from "./hooks/usePathologyDialog";
-import { filterPathologies } from "./utils/pathologyUtils";
+import { useEntityCrud } from "@/hooks/generic/useEntityCrud";
+import { useEntityDialog } from "@/hooks/generic/useEntityDialog";
+import { filterPathologies, type Pathology, type PathologyFormData } from "./utils/pathologyUtils";
 
 const Pathologies = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const { pathologies, isLoading, createPathology, updatePathology, deletePathology } =
-    usePathologies();
-  const { showDialog, editingItem, formData, setFormData, openDialog, closeDialog } =
-    usePathologyDialog();
+  // Hook générique CRUD
+  const { 
+    items: pathologies, 
+    isLoading, 
+    create: createPathology, 
+    update: updatePathology, 
+    deleteEntity: deletePathology 
+  } = useEntityCrud<Pathology, PathologyFormData>({
+    tableName: "pathologies",
+    queryKey: ["pathologies"],
+    entityName: "Pathologie",
+    orderBy: "name",
+    addUserId: false // Référentiel admin, pas de user_id
+  });
+
+  // Hook générique Dialog
+  const { 
+    showDialog, 
+    editingItem, 
+    formData, 
+    setFormData, 
+    openDialog, 
+    closeDialog 
+  } = useEntityDialog<Pathology, PathologyFormData>({
+    name: "",
+    description: ""
+  });
 
   const filteredPathologies = filterPathologies(pathologies, searchTerm);
 
@@ -31,8 +54,8 @@ const Pathologies = () => {
     }
 
     const success = editingItem
-      ? await updatePathology(editingItem.id, formData.name, formData.description)
-      : await createPathology(formData.name, formData.description);
+      ? await updatePathology(editingItem.id, formData)
+      : await createPathology(formData);
 
     if (success) closeDialog();
   };

@@ -1,5 +1,6 @@
 export interface HealthProfessional {
   id: string;
+  user_id: string;
   name: string;
   type: string;
   specialty: string | null;
@@ -9,8 +10,11 @@ export interface HealthProfessional {
   postal_code: string | null;
   city: string | null;
   is_primary_doctor: boolean | null;
-  user_id: string;
+  created_at?: string;
+  updated_at?: string;
 }
+
+export type HealthProfessionalFormData = Omit<HealthProfessional, 'id' | 'user_id' | 'created_at' | 'updated_at'>;
 
 export type ProfessionalType = "doctor" | "pharmacy" | "laboratory";
 export type TabType = "medecins" | "pharmacies" | "laboratoires";

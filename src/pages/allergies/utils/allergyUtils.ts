@@ -1,9 +1,14 @@
 export interface Allergy {
   id: string;
+  user_id: string;
   name: string;
   severity: string | null;
   description: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
+
+export type AllergyFormData = Omit<Allergy, 'id' | 'user_id' | 'created_at' | 'updated_at'>;
 
 export type SeverityLevel = "Légère" | "Modérée" | "Sévère";
 

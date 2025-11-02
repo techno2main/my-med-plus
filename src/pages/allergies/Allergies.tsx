@@ -8,18 +8,43 @@ import { AllergySearch } from "./components/AllergySearch";
 import { AllergyList } from "./components/AllergyList";
 import { AllergyDialog } from "./components/AllergyDialog";
 import { AllergyDeleteAlert } from "./components/AllergyDeleteAlert";
-import { useAllergies } from "./hooks/useAllergies";
-import { useAllergyDialog } from "./hooks/useAllergyDialog";
-import { filterAllergies } from "./utils/allergyUtils";
+import { useEntityCrud } from "@/hooks/generic/useEntityCrud";
+import { useEntityDialog } from "@/hooks/generic/useEntityDialog";
+import { filterAllergies, type Allergy, type AllergyFormData } from "./utils/allergyUtils";
 
 const Allergies = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const { allergies, isLoading, createAllergy, updateAllergy, deleteAllergy } = useAllergies();
-  const { showDialog, editingItem, formData, setFormData, openDialog, closeDialog } =
-    useAllergyDialog();
+  // Hook générique CRUD
+  const { 
+    items: allergies, 
+    isLoading, 
+    create: createAllergy, 
+    update: updateAllergy, 
+    deleteEntity: deleteAllergy 
+  } = useEntityCrud<Allergy, AllergyFormData>({
+    tableName: "allergies",
+    queryKey: ["allergies"],
+    entityName: "Allergie",
+    orderBy: "name",
+    addUserId: false // Référentiel admin, pas de user_id
+  });
+
+  // Hook générique Dialog
+  const { 
+    showDialog, 
+    editingItem, 
+    formData, 
+    setFormData, 
+    openDialog, 
+    closeDialog 
+  } = useEntityDialog<Allergy, AllergyFormData>({
+    name: "",
+    severity: "",
+    description: ""
+  });
 
   const filteredAllergies = filterAllergies(allergies, searchTerm);
 
@@ -30,8 +55,8 @@ const Allergies = () => {
     }
 
     const success = editingItem
-      ? await updateAllergy(editingItem.id, formData.name, formData.severity, formData.description)
-      : await createAllergy(formData.name, formData.severity, formData.description);
+      ? await updateAllergy(editingItem.id, formData)
+      : await createAllergy(formData);
 
     if (success) closeDialog();
   };
