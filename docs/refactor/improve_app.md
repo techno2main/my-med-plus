@@ -465,8 +465,8 @@ Privacy.tsx (page principale)
 
 20.3. ⏸️ Créer 2 comptes de test
 - **Compte 1 - Email classique:**
-  - Email: `test.deletion@myhealthplus.com`
-  - Mot de passe: `Test1234!`
+  - Email: `antonymasson.dev@gmail.com`
+  - Mot de passe: `abc123DEF!TEST`
   - Usage: Tests suppression compte réelle + workflow mot de passe
   
 - **Compte 2 - Google OAuth:**
