@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { PageHeader } from '@/components/Layout/PageHeader';
 import { useCalendarSync } from './hooks/useCalendarSync';
@@ -10,9 +11,10 @@ import { SyncConfirmation } from './components/SyncConfirmation';
 import { SyncReport } from './components/SyncReport';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { InfoIcon, RefreshCw } from 'lucide-react';
+import { InfoIcon, RefreshCw, ArrowLeft } from 'lucide-react';
 
 export const CalendarSync = () => {
+  const navigate = useNavigate();
   const {
     config,
     updateConfig,
@@ -96,6 +98,19 @@ export const CalendarSync = () => {
             loading={nativeCalendar.loading}
           />
         )}
+
+        {/* Lien retour vers Calendrier */}
+        <div className="flex justify-start">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/calendar")}
+            className="gap-2 text-muted-foreground hover:text-foreground -ml-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="text-xs">Retour vers Calendrier</span>
+          </Button>
+        </div>
 
         {/* Toujours afficher la sélection du calendrier pour visualisation */}
         {(isWebPreview || nativeCalendar.permission.granted) && (

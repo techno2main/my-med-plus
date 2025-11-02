@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
+import { RefreshCw } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { getDayIndicator } from "../utils";
 import type { DayIntake } from "../types";
 
@@ -27,6 +29,8 @@ export const CalendarView = ({
   nextPharmacyVisit,
   nextDoctorVisit
 }: CalendarViewProps) => {
+  const navigate = useNavigate();
+  
   const getDayIntake = (date: Date) => {
     return monthIntakes.find(intake => isSameDay(intake.date, date));
   };
@@ -131,6 +135,19 @@ export const CalendarView = ({
             <span>🩺</span>
             <span className="text-muted-foreground">Médecin</span>
           </div>
+        </div>
+
+        {/* Sync Button */}
+        <div className="flex justify-end">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/calendar-sync")}
+            className="gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <RefreshCw className="h-4 w-4" />
+            <span className="text-xs">Synchroniser</span>
+          </Button>
         </div>
       </div>
     </Card>
