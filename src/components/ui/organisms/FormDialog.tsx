@@ -93,9 +93,9 @@ export function FormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 gap-0">
         {/* Header */}
-        <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b flex-shrink-0">
           <div className="flex items-center gap-3">
             {showBackButton && (
               <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
@@ -112,14 +112,14 @@ export function FormDialog({
         </DialogHeader>
 
         {/* Scrollable Content */}
-        <ScrollArea className="flex-1 px-6">
-          <form onSubmit={handleSubmit} className="py-4">
+        <ScrollArea className="flex-1 min-h-0">
+          <form onSubmit={handleSubmit} className="px-6 py-4">
             {children}
           </form>
         </ScrollArea>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t shrink-0 bg-background">
+        <div className="px-6 py-4 border-t flex-shrink-0 bg-background">
           {customFooter || (
             <div className="flex gap-2">
               <Button variant="outline" onClick={onClose} className="flex-1 h-9" type="button">

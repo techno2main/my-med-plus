@@ -1,12 +1,4 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { FormDialog } from "@/components/ui/organisms/FormDialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -31,35 +23,26 @@ export function BiometricPasswordDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Activer l'authentification biométrique</DialogTitle>
-          <DialogDescription>
-            Entrez votre mot de passe actuel pour activer la biométrie
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div>
-            <Label htmlFor="biometric-password">Mot de passe</Label>
-            <Input
-              id="biometric-password"
-              type="password"
-              value={password}
-              onChange={(e) => onPasswordChange(e.target.value)}
-              placeholder="••••••••"
-            />
-          </div>
+    <FormDialog
+      open={open}
+      onClose={handleClose}
+      title="Activer l'authentification biométrique"
+      description="Entrez votre mot de passe actuel pour activer la biométrie"
+      onSubmit={onSubmit}
+      submitLabel="Confirmer"
+    >
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="biometric-password">Mot de passe</Label>
+          <Input
+            id="biometric-password"
+            type="password"
+            value={password}
+            onChange={(e) => onPasswordChange(e.target.value)}
+            placeholder="••••••••"
+          />
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>
-            Annuler
-          </Button>
-          <Button onClick={onSubmit}>
-            Confirmer
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </FormDialog>
   );
 }

@@ -19,7 +19,7 @@ export function AppLayout({ children, className, showBottomNav = true, showHeade
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {showHeader && <AppHeader />}
-      <main className={cn("flex-1 pb-20", className)}>
+      <main className={cn("flex-1 pb-24", className)}>
         {children}
       </main>
       {showBottomNav && <BottomNavigation />}

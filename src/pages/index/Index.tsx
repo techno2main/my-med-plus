@@ -135,7 +135,7 @@ const Index = () => {
 
   return (
     <AppLayout>
-      <div className="container max-w-2xl mx-auto px-3 md:px-4 py-6 pb-14 space-y-6">
+      <div className="container max-w-2xl mx-auto px-3 md:px-4 py-6 space-y-6">
         <ActiveTreatmentsCard
           treatments={activeTreatments}
           onViewAll={() => navigate("/treatments")}

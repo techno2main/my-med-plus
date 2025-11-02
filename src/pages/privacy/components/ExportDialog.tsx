@@ -95,30 +95,32 @@ export function ExportDialog({ open, onOpenChange, onExportComplete }: ExportDia
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 gap-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b flex-shrink-0">
           <DialogTitle>Télécharger les données</DialogTitle>
           <DialogDescription>
             Sélectionnez les données à inclure dans votre export et choisissez le format souhaité.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          <PeriodSelector
-            config={config}
-            onConfigChange={updateConfig}
-          />
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
+          <div className="space-y-6">
+            <PeriodSelector
+              config={config}
+              onConfigChange={updateConfig}
+            />
 
-          <ExportConfigSection
-            config={config}
-            onConfigChange={updateConfig}
-          />
+            <ExportConfigSection
+              config={config}
+              onConfigChange={updateConfig}
+            />
 
-          <ExportActions
-            onExportPDF={handleExportPDF}
-            onExportJSON={handleExportJSON}
-            loading={configLoading || exportLoading || isExporting}
-          />
+            <ExportActions
+              onExportPDF={handleExportPDF}
+              onExportJSON={handleExportJSON}
+              loading={configLoading || exportLoading || isExporting}
+            />
+          </div>
         </div>
       </DialogContent>
     </Dialog>
