@@ -98,13 +98,14 @@ export const determineIntakeStatus = (scheduledTime: string, status: string, tak
 
 /**
  * Formate le statut pour affichage dans le titre de l'événement
+ * Retourne uniquement l'icône (sans texte)
  */
 export const formatStatusForTitle = (status: 'on_time' | 'late' | 'missed' | 'upcoming'): string => {
   const statusMap = {
-    on_time: '✓ À l\'heure',
-    late: '⚠ En retard',
-    missed: '✗ Manquée',
-    upcoming: '⏰ À venir'
+    on_time: '⊚',      // Circle check - À l'heure
+    late: '⏰',         // Clock alert - En retard
+    missed: '⊗',       // Circle X - Manquée
+    upcoming: '○'      // Circle - À venir
   };
   return statusMap[status];
 };

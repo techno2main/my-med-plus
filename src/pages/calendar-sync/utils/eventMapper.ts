@@ -80,19 +80,56 @@ const getEventColor = (eventType: string, status?: IntakeStatus): string => {
  */
 export const mapIntakesToEvents = (intakes: any[]): CalendarEvent[] => {
   return intakes.map(intake => {
-    const startDate = getUTCDateFromDB(intake.scheduled_time);
-    const endDate = createEndDate(startDate, EVENT_DURATIONS.intake); // 15 min
+    const scheduledDate = getUTCDateFromDB(intake.scheduled_time);
     const status = determineIntakeStatus(intake.scheduled_time, intake.status, intake.taken_at);
-    const statusText = formatStatusForTitle(status);
+    const statusIcon = formatStatusForTitle(status);
+    
+    // Heure de début : toujours l'heure prévue
+    const startDate = scheduledDate;
+    
+    // Heure de fin : 
+    // - Si prise effectuée (taken_at existe), utiliser cette heure
+    // - Sinon (manquée ou à venir), même heure que le début
+    let endDate: Date;
+    if (intake.taken_at && status !== 'missed') {
+      endDate = getUTCDateFromDB(intake.taken_at);
+    } else {
+      endDate = new Date(startDate);
+    }
 
     const medicationName = intake.medications?.name || 'Médicament';
     const treatmentName = intake.medications?.treatments?.name || '';
     const dosage = intake.medications?.medication_catalog?.form || '';
+    
+    // Formater les heures pour l'affichage
+    const formatTime = (date: Date) => {
+      return date.toLocaleTimeString('fr-FR', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        timeZone: 'Europe/Paris'
+      });
+    };
+    
+    const scheduledTime = formatTime(startDate);
+    const actualTime = intake.taken_at ? formatTime(getUTCDateFromDB(intake.taken_at)) : scheduledTime;
+    
+    // Statut avec icône et texte pour la description
+    const statusText = {
+      on_time: '⊚ À l\'heure',
+      late: '⏰ En retard',
+      missed: '⊗ Manquée',
+      upcoming: '○ À venir'
+    }[status];
 
     return {
       id: `intake_${intake.id}`,
-      title: `💊 ${statusText} - ${medicationName}`,
-      description: `[RAPPEL PRISE]\nTraitement: ${treatmentName}\nDosage: ${dosage}\nStatut: ${statusText}`,
+      title: `${statusIcon} ${medicationName}`,
+      description: `DETAILS
+Traitement : ${treatmentName}
+Médicament : ${medicationName} ${dosage}
+Heure de prise prévue : ${scheduledTime}
+Heure de prise réelle : ${actualTime}
+Statut : ${statusText}`,
       startDate,
       endDate,
       eventType: 'intake' as const,
