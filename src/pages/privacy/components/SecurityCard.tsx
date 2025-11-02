@@ -3,6 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Lock } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface SecurityCardProps {
   authProvider: string | null;
@@ -28,8 +34,8 @@ export function SecurityCard({
         <h3 className="font-semibold">Sécurité du compte</h3>
       </div>
       <div className="space-y-4">
-        {/* Changement de mot de passe - uniquement pour auth email */}
-        {authProvider === 'email' && (
+        {/* Changement de mot de passe */}
+        {authProvider === 'email' ? (
           <Button 
             variant="outline" 
             className="w-full justify-start"
@@ -37,7 +43,34 @@ export function SecurityCard({
           >
             Changer le mot de passe
           </Button>
-        )}
+        ) : authProvider === 'google' ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="w-full">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start opacity-50 cursor-not-allowed"
+                    disabled
+                  >
+                    Changer le mot de passe
+                  </Button>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <div className="space-y-2">
+                  <p className="font-medium">Compte Google</p>
+                  <p className="text-sm">
+                    Votre compte est lié à Google. Le mot de passe est géré par votre compte Google.
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Pour modifier votre mot de passe, rendez-vous sur myaccount.google.com
+                  </p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : null}
         
         {/* Biométrie */}
         <div className="flex items-center justify-between">

@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { PageHeader } from "@/components/Layout/PageHeader";
 import { SecurityCard } from "./components/SecurityCard";
 import { DataManagementCard } from "./components/DataManagementCard";
-import { PasswordChangeDialog } from "./components/PasswordChangeDialog";
+import { ChangePasswordDialog } from "./components/ChangePasswordDialog";
+import { ForgotPasswordDialog } from "./components/ForgotPasswordDialog";
 import { BiometricPasswordDialog } from "./components/BiometricPasswordDialog";
 import { ConfirmationAlerts } from "./components/ConfirmationAlerts";
 import { DeleteAccountDialog } from "./components/DeleteAccountDialog";
@@ -16,6 +18,7 @@ export default function Privacy() {
     twoFactorEnabled,
     loading,
     handlePasswordChange,
+    handleForgotPassword,
     handleBiometricToggle,
     handleBiometricPasswordConfirm,
     handleTwoFactorToggle,
@@ -46,9 +49,29 @@ export default function Privacy() {
     setPendingTwoFactorChange,
   } = usePrivacyDialogs();
 
+  // States pour les nouveaux dialogs
+  const [showChangePasswordDialog, setShowChangePasswordDialog] = useState(false);
+  const [showForgotPasswordDialog, setShowForgotPasswordDialog] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isSendingResetEmail, setIsSendingResetEmail] = useState(false);
+
   const onPasswordSubmit = async () => {
     const success = await handlePasswordChange(newPassword, confirmPassword);
     if (success) closePasswordDialog();
+  };
+
+  const onChangePasswordConfirm = async (currentPassword: string, newPassword: string) => {
+    setIsChangingPassword(true);
+    const success = await handlePasswordChange(currentPassword, newPassword);
+    setIsChangingPassword(false);
+    return success;
+  };
+
+  const onForgotPasswordConfirm = async (email: string) => {
+    setIsSendingResetEmail(true);
+    const success = await handleForgotPassword(email);
+    setIsSendingResetEmail(false);
+    return success;
   };
 
   const onBiometricToggle = () => {
@@ -114,7 +137,7 @@ export default function Privacy() {
           authProvider={authProvider}
           biometricEnabled={biometricEnabled}
           twoFactorEnabled={twoFactorEnabled}
-          onPasswordChange={openPasswordDialog}
+          onPasswordChange={() => setShowChangePasswordDialog(true)}
           onBiometricToggle={onBiometricToggle}
           onTwoFactorToggle={onTwoFactorToggle}
         />
@@ -123,14 +146,20 @@ export default function Privacy() {
           onDeleteAccount={() => setShowDeleteDialog(true)}
         />
 
-        <PasswordChangeDialog
-          open={showPasswordDialog}
-          onOpenChange={closePasswordDialog}
-          newPassword={newPassword}
-          confirmPassword={confirmPassword}
-          onNewPasswordChange={setNewPassword}
-          onConfirmPasswordChange={setConfirmPassword}
-          onSubmit={onPasswordSubmit}
+        <ChangePasswordDialog
+          open={showChangePasswordDialog}
+          onOpenChange={setShowChangePasswordDialog}
+          onConfirm={onChangePasswordConfirm}
+          onForgotPassword={() => setShowForgotPasswordDialog(true)}
+          isChanging={isChangingPassword}
+        />
+
+        <ForgotPasswordDialog
+          open={showForgotPasswordDialog}
+          onOpenChange={setShowForgotPasswordDialog}
+          onConfirm={onForgotPasswordConfirm}
+          biometricEnabled={biometricEnabled}
+          isSending={isSendingResetEmail}
         />
 
         <BiometricPasswordDialog
