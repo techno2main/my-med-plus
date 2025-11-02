@@ -29,11 +29,12 @@ const getButtonClasses = (
   threshold: number, 
   isOverdue: boolean,
   isDisabledByTime: boolean,
-  isTomorrowSection: boolean
+  isTomorrowSection: boolean,
+  isTaken: boolean
 ) => {
-  // Si désactivé par l'heure ou section demain
-  if (isTomorrowSection || isDisabledByTime) {
-    return "gradient-primary h-8 w-8 p-0 opacity-50 cursor-not-allowed"
+  // Si pris ou désactivé par l'heure ou section demain - utiliser bg solide au lieu de gradient pour meilleure visibilité
+  if (isTaken || isTomorrowSection || isDisabledByTime) {
+    return "bg-primary/60 text-white h-8 w-8 p-0 cursor-not-allowed"
   }
   
   // Si en retard
@@ -58,14 +59,18 @@ export const IntakeCard = ({ intake, isOverdue, isTomorrowSection = false, onTak
   const isToday = getLocalDateString(intake.date) === getLocalDateString(new Date())
   const isValidationAllowed = isIntakeValidationAllowed()
   const isDisabledByTime = isToday && !isValidationAllowed && !isTomorrowSection
-  const isDisabled = intake.currentStock === 0 || isOverdue || isTomorrowSection || isDisabledByTime
+  const isTaken = intake.status === 'taken'
+  const isDisabled = intake.currentStock === 0 || isOverdue || isTomorrowSection || isDisabledByTime || isTaken
+  
+  // Badge horaire : orange uniquement pour rattrapage (isOverdue et pas encore pris)
+  const shouldShowOrangeBadge = isOverdue && !isTaken
   
   return (
     <Card className="p-3 surface-elevated hover:shadow-md transition-shadow">
       <div className="flex items-center gap-3">
-        <div className={`flex flex-col items-center justify-center min-w-[60px] p-1.5 rounded-lg ${isOverdue ? 'bg-orange-100' : 'bg-primary/10'}`}>
-          <Clock className={`h-3.5 w-3.5 mb-0.5 ${isOverdue ? 'text-orange-600' : 'text-primary'}`} />
-          <span className={`text-xs font-semibold ${isOverdue ? 'text-orange-700' : 'text-primary'}`}>{intake.time}</span>
+        <div className={`flex flex-col items-center justify-center min-w-[60px] p-1.5 rounded-lg ${shouldShowOrangeBadge ? 'bg-orange-100' : 'bg-primary/10'}`}>
+          <Clock className={`h-3.5 w-3.5 mb-0.5 ${shouldShowOrangeBadge ? 'text-orange-600' : 'text-primary'}`} />
+          <span className={`text-xs font-semibold ${shouldShowOrangeBadge ? 'text-orange-700' : 'text-primary'}`}>{intake.time}</span>
           <span className="text-[10px] text-muted-foreground">{format(intake.date, "dd/MM")}</span>
         </div>
         
@@ -94,12 +99,13 @@ export const IntakeCard = ({ intake, isOverdue, isTomorrowSection = false, onTak
               intake.minThreshold,
               isOverdue,
               isDisabledByTime,
-              isTomorrowSection
+              isTomorrowSection,
+              isTaken
             )}
             onClick={() => onTake(intake)}
             disabled={isDisabled}
           >
-            <CheckCircle2 className="h-3.5 w-3.5" />
+            <CheckCircle2 className="h-4 w-4" />
           </Button>
         </div>
       </div>

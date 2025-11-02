@@ -12,6 +12,7 @@ export interface UpcomingIntake {
   minThreshold: number
   treatmentQspDays?: number | null
   treatmentEndDate?: string | null
+  status: 'pending' | 'taken' | 'missed' | 'skipped'
 }
 
 export interface StockAlert {

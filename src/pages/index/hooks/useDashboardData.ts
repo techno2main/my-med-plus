@@ -88,7 +88,8 @@ export const useDashboardData = () => {
       const dayAfterTomorrow = new Date(today)
       dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2)
 
-      const { data: upcomingIntakesData, error: intakesError } = await supabase
+      // Charger les prises d'aujourd'hui (pending + taken pour éviter un vide avant minuit)
+      const { data: todayIntakesData, error: todayIntakesError } = await supabase
         .from("medication_intakes")
         .select(`
           id,
@@ -114,17 +115,54 @@ export const useDashboardData = () => {
           )
         `)
         .gte("scheduled_time", today.toISOString())
+        .lt("scheduled_time", tomorrow.toISOString())
+        .in("status", ["pending", "taken"])
+        .eq("medications.treatments.is_active", true)
+        .order("scheduled_time", { ascending: true })
+
+      if (todayIntakesError) throw todayIntakesError
+
+      // Charger les prises de demain (pending uniquement)
+      const { data: tomorrowIntakesData, error: tomorrowIntakesError } = await supabase
+        .from("medication_intakes")
+        .select(`
+          id,
+          medication_id,
+          scheduled_time,
+          status,
+          medications!inner (
+            id,
+            name,
+            current_stock,
+            min_threshold,
+            treatment_id,
+            treatments!inner (name, is_active),
+            medication_catalog (
+              pathology_id,
+              strength,
+              default_posology,
+              pathologies (
+                id,
+                name
+              )
+            )
+          )
+        `)
+        .gte("scheduled_time", tomorrow.toISOString())
         .lt("scheduled_time", dayAfterTomorrow.toISOString())
         .eq("status", "pending")
         .eq("medications.treatments.is_active", true)
         .order("scheduled_time", { ascending: true })
 
-      if (intakesError) throw intakesError
+      if (tomorrowIntakesError) throw tomorrowIntakesError
 
       const intakes: UpcomingIntake[] = [];
 
-      (upcomingIntakesData || []).forEach((intake: any) => {
-        // Afficher toutes les prises pending (aujourd'hui + demain)
+      // Combiner les prises d'aujourd'hui et de demain
+      const allIntakesData = [...(todayIntakesData || []), ...(tomorrowIntakesData || [])]
+
+      allIntakesData.forEach((intake: any) => {
+        // Afficher toutes les prises (aujourd'hui: pending + taken, demain: pending)
         const treatmentInfo = treatmentsMap.get(intake.medications.treatment_id)
         const catalogDosage = intake.medications?.medication_catalog?.strength || 
                              intake.medications?.medication_catalog?.default_posology || ""
@@ -148,7 +186,8 @@ export const useDashboardData = () => {
           currentStock: intake.medications.current_stock || 0,
           minThreshold: intake.medications.min_threshold || 10,
           treatmentQspDays: treatmentInfo?.qspDays || null,
-          treatmentEndDate: treatmentInfo?.endDate || null
+          treatmentEndDate: treatmentInfo?.endDate || null,
+          status: intake.status
         })
       })
 
