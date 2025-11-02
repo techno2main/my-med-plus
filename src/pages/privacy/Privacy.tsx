@@ -2,7 +2,6 @@ import { useState } from "react";
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { PageHeader } from "@/components/Layout/PageHeader";
 import { SecurityCard } from "./components/SecurityCard";
-import { DataManagementCard } from "./components/DataManagementCard";
 import { ChangePasswordDialog } from "./components/ChangePasswordDialog";
 import { ForgotPasswordDialog } from "./components/ForgotPasswordDialog";
 import { BiometricPasswordDialog } from "./components/BiometricPasswordDialog";
@@ -140,9 +139,6 @@ export default function Privacy() {
           onPasswordChange={() => setShowChangePasswordDialog(true)}
           onBiometricToggle={onBiometricToggle}
           onTwoFactorToggle={onTwoFactorToggle}
-        />
-
-        <DataManagementCard
           onDeleteAccount={() => setShowDeleteDialog(true)}
         />
 

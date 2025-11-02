@@ -14,13 +14,13 @@ export function ExportConfigSection({ config, onConfigChange }: ExportConfigProp
     {
       key: 'includeProfile' as keyof ExportConfig,
       label: 'Profil patient',
-      description: 'Informations personnelles et médicales',
+      description: 'Informations personnelles',
       icon: FileText,
     },
     {
       key: 'includeAdherence' as keyof ExportConfig,
       label: 'Statistiques d\'observance',
-      description: 'Taux d\'observance et compteurs',
+      description: 'Taux d\'observance',
       icon: Activity,
     },
     {

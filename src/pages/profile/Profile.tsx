@@ -9,6 +9,7 @@ import { ProfileHeader } from "./components/ProfileHeader";
 import { ProfileFormEdit } from "./components/ProfileFormEdit";
 import { ProfileFormView } from "./components/ProfileFormView";
 import { ProfileActions } from "./components/ProfileActions";
+import { ExportDataCard } from "./components/ExportDataCard";
 import { LogoutButton } from "./components/LogoutButton";
 
 export default function Profile() {
@@ -119,6 +120,8 @@ export default function Profile() {
             onSave={handleSave}
           />
         </Card>
+
+        <ExportDataCard />
 
         <LogoutButton onLogout={handleLogout} />
       </div>

@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Lock } from "lucide-react";
+import { Lock, Trash2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -17,6 +17,7 @@ interface SecurityCardProps {
   onPasswordChange: () => void;
   onBiometricToggle: () => void;
   onTwoFactorToggle: () => void;
+  onDeleteAccount: () => void;
 }
 
 export function SecurityCard({
@@ -26,6 +27,7 @@ export function SecurityCard({
   onPasswordChange,
   onBiometricToggle,
   onTwoFactorToggle,
+  onDeleteAccount,
 }: SecurityCardProps) {
   return (
     <Card className="p-6">
@@ -96,6 +98,18 @@ export function SecurityCard({
             checked={twoFactorEnabled}
             onCheckedChange={onTwoFactorToggle}
           />
+        </div>
+
+        {/* Supprimer le compte */}
+        <div className="pt-2 border-t">
+          <Button 
+            variant="outline" 
+            className="w-full justify-start text-danger hover:bg-danger hover:text-white border-danger"
+            onClick={onDeleteAccount}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Supprimer mon compte
+          </Button>
         </div>
       </div>
     </Card>

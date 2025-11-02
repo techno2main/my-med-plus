@@ -38,7 +38,7 @@ export default function Rattrapage() {
         <PageHeader
           title="Rattrapage des prises"
           subtitle={totalMissed === 0 ? "Aucune prise à rattraper" : `${totalMissed} prise${totalMissed > 1 ? 's' : ''} manquée${totalMissed > 1 ? 's' : ''} à traiter`}
-          backTo="/admin"
+          backTo="/settings"
         />
 
         {totalMissed === 0 ? (

@@ -76,9 +76,9 @@ export default function ProfileExport() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold">Exporter vos données</h1>
+            <h1 className="text-2xl font-bold">Télécharger les données</h1>
             <p className="text-muted-foreground">
-              Personnaliser un export complet
+              Choisir les éléments à exporter
             </p>
           </div>
         </div>

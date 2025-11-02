@@ -48,14 +48,19 @@ const AdminDashboard = () => {
         {/* Section Navigation */}
         <div className="space-y-3">
           <h3 className="text-sm font-medium text-muted-foreground px-1">Navigation</h3>
-          
-          {adminRoutes.map((route) => (
-            <QuickAccessCard
-              key={route.path}
-              route={route}
-              onClick={() => navigate(route.path)}
-            />
-          ))}
+          <QuickAccessCard
+            route={adminRoutes[0]}
+            onClick={() => navigate(adminRoutes[0].path)}
+          />
+        </div>
+
+        {/* Section Diagnostics */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-muted-foreground px-1">Diagnostics</h3>
+          <QuickAccessCard
+            route={adminRoutes[1]}
+            onClick={() => navigate(adminRoutes[1].path)}
+          />
         </div>
       </div>
     </AppLayout>

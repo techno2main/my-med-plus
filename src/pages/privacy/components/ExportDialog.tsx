@@ -97,7 +97,7 @@ export function ExportDialog({ open, onOpenChange, onExportComplete }: ExportDia
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Exporter vos données</DialogTitle>
+          <DialogTitle>Télécharger les données</DialogTitle>
           <DialogDescription>
             Sélectionnez les données à inclure dans votre export et choisissez le format souhaité.
           </DialogDescription>

@@ -60,7 +60,7 @@ export const CalendarSync = () => {
       <div className="container max-w-3xl mx-auto px-4 py-6 space-y-6">
         <PageHeader 
           title="Synchronisation calendrier" 
-          backTo="/admin"
+          backTo="/settings"
         />
         
         {isWebPreview && (
