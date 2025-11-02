@@ -406,7 +406,7 @@ export default function NavigationManager() {
         <PageHeader 
           title="Navigation"
           subtitle="Configurer la navigation"
-          backTo="/admin"
+          backTo="/settings"
           showAddButton
           onAdd={() => setIsDialogOpen(true)}
         />

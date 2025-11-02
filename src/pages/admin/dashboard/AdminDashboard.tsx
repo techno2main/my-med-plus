@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card } from "@/components/ui/card";
-import { Loader2, ShieldAlert } from "lucide-react";
+import { Loader2, ShieldAlert, Info } from "lucide-react";
 import { useAdminAccess } from "./hooks/useAdminAccess";
 import { QuickAccessCard } from "./components/QuickAccessCard";
 import { adminRoutes } from "./constants";
@@ -45,21 +45,29 @@ const AdminDashboard = () => {
           subtitle="Gérer les paramètres avancés"
         />
 
-        {/* Section Navigation */}
-        <div className="space-y-3">
-          <h3 className="text-sm font-medium text-muted-foreground px-1">Navigation</h3>
-          <QuickAccessCard
-            route={adminRoutes[0]}
-            onClick={() => navigate(adminRoutes[0].path)}
-          />
-        </div>
+        {/* Bannière d'information */}
+        <Card className="p-4 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+          <div className="flex gap-3">
+            <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <h3 className="font-semibold text-blue-900 dark:text-blue-100">
+                Zone réservée aux administrateurs
+              </h3>
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                Cette section contient des outils de diagnostic et de gestion avancés. 
+                Utilisez ces fonctionnalités avec précaution. Survolez les icônes 
+                <Info className="h-3 w-3 inline mx-1" /> pour obtenir plus d'informations.
+              </p>
+            </div>
+          </div>
+        </Card>
 
         {/* Section Diagnostics */}
         <div className="space-y-3">
           <h3 className="text-sm font-medium text-muted-foreground px-1">Diagnostics</h3>
           <QuickAccessCard
-            route={adminRoutes[1]}
-            onClick={() => navigate(adminRoutes[1].path)}
+            route={adminRoutes[0]}
+            onClick={() => navigate(adminRoutes[0].path)}
           />
         </div>
       </div>
