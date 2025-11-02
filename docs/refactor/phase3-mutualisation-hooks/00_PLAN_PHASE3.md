@@ -159,7 +159,7 @@ const useDeletion = () => {
 
 - Phase 1 ✅ Complétée
 - Phase 2 ✅ Complétée
-- Phase 3 🎯 **PROCHAINE ÉTAPE**
+- Phase 3 ✅ Complétée
 
 ---
 
