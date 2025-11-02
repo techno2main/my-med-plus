@@ -27,6 +27,7 @@ interface MedicationIntake {
     treatment_id: string;
     treatments: {
       user_id: string;
+      is_active: boolean;
     };
   };
 }
@@ -66,7 +67,8 @@ export default function NotificationDebug() {
               name,
               treatment_id,
               treatments (
-                user_id
+                user_id,
+                is_active
               )
             )
           `)
@@ -75,9 +77,13 @@ export default function NotificationDebug() {
           .lte("scheduled_time", next24h.toISOString())
           .order("scheduled_time", { ascending: true });
 
-        const userIntakes = data?.filter((intake: any) => 
-          intake.medications?.treatments?.user_id === user.id
-        ) || [];
+        const userIntakes = data?.filter((intake: any) => {
+          const treatment = intake.medications?.treatments;
+          if (!treatment || treatment.user_id !== user.id) return false;
+          
+          // Filtrer uniquement les traitements actifs
+          return treatment.is_active === true;
+        }) || [];
         
         setIntakes(userIntakes);
         console.log("💊 Prises BDD:", userIntakes);
