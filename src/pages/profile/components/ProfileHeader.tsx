@@ -31,7 +31,7 @@ export function ProfileHeader({
           src={avatarUrl || undefined}
           alt="Avatar"
           fallback={
-            <span className="bg-primary/10 text-base sm:text-lg font-medium h-full w-full flex items-center justify-center">
+            <span className="bg-gradient-to-br from-green-400 to-green-600 text-white text-base sm:text-lg font-semibold h-full w-full flex items-center justify-center">
               {getInitials(firstName, lastName)}
             </span>
           }

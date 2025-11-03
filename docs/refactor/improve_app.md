@@ -466,15 +466,21 @@ Privacy.tsx (page principale)
 20.2. ✅ Tester inscription Google OAuth
 - **Note:** Déjà fonctionnel, configuration existante validée
 
-20.3. ✅ Créer 2 comptes de test
-- **Compte 1 - Email classique:**
-  - Email: `antonymasson.dev@gmail.com`
-  - Mot de passe: `abc123DEF!TEST`
-  - Usage: Tests suppression compte réelle + workflow mot de passe
-  
-- **Compte 2 - Google OAuth:**
-  - Compte Google existant
-  - Usage: Validation comportement Google (boutons désactivés, etc.)
+20.3. ✅ Implémenter récupération avatar Google OAuth
+- **Action réalisée:** Triple approche pour maximiser les chances de récupération
+- **Fichiers créés:**
+  - `supabase/migrations/20251103_fix_google_avatar.sql` : Migration amélioration trigger
+- **Fichiers modifiés:**
+  - `src/components/Layout/AppHeader.tsx` : Récupération avatar depuis user_metadata + sauvegarde BDD
+  - `src/pages/profile/hooks/useProfileData.ts` : Idem avec gestion fallback picture/avatar_url
+- **Stratégie 3 niveaux:**
+  1. **Trigger BDD** : Lors création compte, récupère `raw_user_meta_data->>'avatar_url'` ou `picture`
+  2. **AppHeader** : Au chargement header, vérifie `user_metadata` si pas d'avatar en BDD
+  3. **Profile** : Au chargement profil, vérifie `user_metadata` et enregistre en BDD
+- **Logs ajoutés:**
+  - `[AppHeader] Avatar Google enregistré: URL`
+  - `[Profile] Avatar Google enregistré: URL`
+- **Résultat:** Avatar Google automatiquement récupéré et persisté en BDD si disponible dans OAuth metadata
 
 ### Étape 21 : Tests en conditions réelles ⏸️
 **Status:** À FAIRE

@@ -46,9 +46,7 @@ export const useProfileData = () => {
         setBloodType(data.blood_type || "");
         setHeight(data.height?.toString() || "");
         setWeight(data.weight?.toString() || "");
-        setAvatarUrl(data.avatar_url || user?.user_metadata?.avatar_url || "");
-      } else if (user?.user_metadata?.avatar_url) {
-        setAvatarUrl(user.user_metadata.avatar_url);
+        setAvatarUrl(data.avatar_url || "");
       }
     } catch (error) {
       console.error("Error loading profile:", error);

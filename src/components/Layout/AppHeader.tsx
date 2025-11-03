@@ -17,6 +17,7 @@ export function AppHeader() {
   const currentDate = format(new Date(), "EEEE d MMMM yyyy", { locale: fr })
   const currentTime = format(new Date(), "HH:mm")
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [userInitials, setUserInitials] = useState<string>("")
 
   useEffect(() => {
     loadUserProfile()
@@ -32,12 +33,22 @@ export function AppHeader() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("avatar_url")
+        .select("avatar_url, first_name, last_name")
         .eq("id", user.id)
         .maybeSingle()
       
       if (profile?.avatar_url) {
         setAvatarUrl(profile.avatar_url)
+      }
+      
+      // Générer les initiales
+      if (profile?.first_name && profile?.last_name) {
+        const initials = `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}`.toUpperCase()
+        setUserInitials(initials)
+      } else if (user.email) {
+        // Fallback sur email si pas de nom/prénom
+        const emailPart = user.email.split('@')[0]
+        setUserInitials(emailPart.substring(0, 2).toUpperCase())
       }
     } catch (error) {
       console.error("[AppHeader] Error loading profile:", error)
@@ -67,7 +78,11 @@ export function AppHeader() {
             <AvatarWithBadge
               src={avatarUrl || undefined}
               alt="Avatar utilisateur"
-              fallback={<User className="h-5 w-5" />}
+              fallback={
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-green-400 to-green-600 text-white font-semibold text-sm">
+                  {userInitials || <User className="h-5 w-5" />}
+                </div>
+              }
               isAdmin={isAdmin}
               className="cursor-pointer"
               onClick={() => navigate("/profile")}
