@@ -21,12 +21,16 @@ export function useAllergies() {
 
   const createAllergy = async (name: string, severity: string, description: string) => {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      
       const { error } = await supabase
         .from("allergies")
         .insert({
           name,
           severity: severity || null,
           description: description || null,
+          created_by: userData?.user?.id,
+          is_approved: false,
         });
 
       if (error) throw error;

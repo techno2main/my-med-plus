@@ -56,10 +56,19 @@ const HealthProfessionals = () => {
   };
 
   const handleAdd = (type: "medecin" | "pharmacie" | "laboratoire") => {
-    const dbType = mapTypeToDb(type === "medecin" ? "medecins" : type === "pharmacie" ? "pharmacies" : "laboratoires") as ProfessionalType;
-    // Ouvrir le dialog vide mais avec le type prédéfini
-    setFormData(prev => ({ ...prev, type: dbType }));
-    openDialog();
+    const dbType = mapTypeToDb(type) as ProfessionalType;
+    const customFormData: HealthProfessionalFormData = { 
+      name: "",
+      type: dbType,
+      specialty: "",
+      phone: "",
+      email: "",
+      street_address: "",
+      postal_code: "",
+      city: "",
+      is_primary_doctor: false,
+    };
+    openDialog(undefined, customFormData);
   };
 
   const handleEdit = (item: HealthProfessional) => {
@@ -91,42 +100,45 @@ const HealthProfessionals = () => {
     laboratoires: filterByType(professionals, "laboratoires", searchTerm),
   };
 
+  const totalCount = professionals.length;
+
   return (
     <AppLayout>
-      <div className="container mx-auto py-8 px-4">
-        <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/referentials")}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <h1 className="text-2xl font-bold">Professionnels de santé</h1>
-          </div>
-
-          <ProfessionalTabs
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            professionals={filteredData}
-            isLoading={isLoading}
-            onAdd={handleAdd}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-
-          <ProfessionalDialog
-            open={showDialog}
-            onClose={closeDialog}
-            editingItem={editingItem}
-            formData={formData}
-            onFormChange={setFormData}
-            onSubmit={handleSubmit}
-          />
-
-          <ProfessionalDeleteAlert
-            open={!!deletingId}
-            onClose={() => setDeletingId(null)}
-            onConfirm={confirmDelete}
-          />
+      <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/referentials")}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <header className="flex-1">
+            <h1 className="text-xl font-bold">Professionnels de santé</h1>
+            <p className="text-sm text-muted-foreground">{totalCount} professionnel(s)</p>
+          </header>
         </div>
+
+        <ProfessionalTabs
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          professionals={filteredData}
+          isLoading={isLoading}
+          onAdd={handleAdd}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+
+        <ProfessionalDialog
+          open={showDialog}
+          onClose={closeDialog}
+          editingItem={editingItem}
+          formData={formData}
+          onFormChange={setFormData}
+          onSubmit={handleSubmit}
+        />
+
+        <ProfessionalDeleteAlert
+          open={!!deletingId}
+          onClose={() => setDeletingId(null)}
+          onConfirm={confirmDelete}
+        />
       </div>
     </AppLayout>
   );

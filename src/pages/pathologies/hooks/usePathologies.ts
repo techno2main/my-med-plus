@@ -21,11 +21,15 @@ export function usePathologies() {
 
   const createPathology = async (name: string, description: string) => {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      
       const { error } = await supabase
         .from("pathologies")
         .insert({
           name,
           description: description || null,
+          created_by: userData?.user?.id,
+          is_approved: false,
         });
 
       if (error) throw error;

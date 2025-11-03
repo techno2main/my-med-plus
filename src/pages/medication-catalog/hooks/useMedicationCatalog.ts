@@ -161,6 +161,8 @@ export function useMedicationCatalog() {
         if (error) throw error;
         toast.success("Médicament modifié avec succès");
       } else {
+        const { data: userData } = await supabase.auth.getUser();
+        
         const { error } = await supabase.from("medication_catalog").insert({
           name: formData.name,
           pathology_id: formData.pathology_id || null,
@@ -170,6 +172,8 @@ export function useMedicationCatalog() {
           initial_stock: parseInt(formData.initial_stock) || 0,
           min_threshold: parseInt(formData.min_threshold) || 10,
           default_times: formData.default_times.length > 0 ? formData.default_times : null,
+          created_by: userData?.user?.id,
+          is_approved: false,
         });
 
         if (error) throw error;

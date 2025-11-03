@@ -36,8 +36,9 @@ export function useEntityDialog<T extends { id: string }, F = Omit<T, 'id' | 'us
   /**
    * Ouvre le dialogue
    * @param item - Si fourni, ouvre en mode édition avec les données de l'item
+   * @param customFormData - Données personnalisées pour le formulaire (mode création uniquement)
    */
-  const openDialog = (item?: T) => {
+  const openDialog = (item?: T, customFormData?: F) => {
     if (item) {
       setEditingItem(item);
       // Extraire les données sans id et user_id
@@ -49,7 +50,7 @@ export function useEntityDialog<T extends { id: string }, F = Omit<T, 'id' | 'us
       setFormData(cleanedData);
     } else {
       setEditingItem(null);
-      setFormData(initialFormData);
+      setFormData(customFormData || initialFormData);
     }
     setShowDialog(true);
   };
