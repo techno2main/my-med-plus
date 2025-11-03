@@ -28,7 +28,7 @@ export function useUserRole() {
   });
 
   const isAdmin = roles?.includes('admin') ?? false;
-  const isModerator = roles?.includes('moderator') ?? false;
+  const isModerator = roles?.includes('user') ?? false; // 'moderator' n'existe pas dans app_role enum
 
   return {
     roles: roles ?? [],
