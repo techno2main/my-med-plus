@@ -580,6 +580,182 @@ CREATE POLICY "pathologies_remove" ON public.pathologies FOR DELETE TO authentic
 
 ---
 
+## 🚀 7. Optimisation des Performances RLS (03/11/2025)
+
+### 7.1 Problème Détecté
+
+Suite à l'implémentation, **12 warnings de performance** ont été détectés par le linter Supabase :
+
+**Tables concernées :** `pathologies`, `medication_catalog`, `allergies`  
+**Policies affectées :** `_read`, `_create`, `_modify`, `_remove` pour chaque table
+
+**Nature du problème :**
+- Les appels à `auth.uid()` et `has_role()` étaient réévalués pour **chaque ligne** retournée
+- Impact sur les performances à grande échelle
+- Warning : `auth_rls_initplan`
+
+**Extrait du warning Supabase :**
+```
+Table `public.pathologies` has a row level security policy `pathologies_read` 
+that re-evaluates current_setting() or auth.<function>() for each row. 
+This produces suboptimal query performance at scale.
+```
+
+### 7.2 Solution Appliquée
+
+**Migration SQL créée :** `supabase/migrations/[timestamp]_fix_rls_performance.sql`
+
+**Principe :** Remplacer les appels directs à `auth.uid()` par des sous-requêtes `(SELECT auth.uid())` pour forcer l'évaluation **une seule fois** au lieu d'une fois par ligne.
+
+**Changements appliqués :**
+- `auth.uid()` → `(SELECT auth.uid())`
+- `has_role(auth.uid(), 'admin'::app_role)` → `has_role((SELECT auth.uid()), 'admin'::app_role)`
+
+### 7.3 Scripts SQL d'Optimisation
+
+#### 7.3.1 Table `pathologies`
+
+```sql
+-- Drop et recréation des policies avec optimisation
+DROP POLICY IF EXISTS "pathologies_read" ON public.pathologies;
+DROP POLICY IF EXISTS "pathologies_create" ON public.pathologies;
+DROP POLICY IF EXISTS "pathologies_modify" ON public.pathologies;
+DROP POLICY IF EXISTS "pathologies_remove" ON public.pathologies;
+
+CREATE POLICY "pathologies_read" 
+ON public.pathologies 
+FOR SELECT 
+USING (
+  created_by = (SELECT auth.uid()) 
+  OR is_approved = true 
+  OR has_role((SELECT auth.uid()), 'admin'::app_role)
+);
+
+CREATE POLICY "pathologies_create" 
+ON public.pathologies 
+FOR INSERT 
+WITH CHECK ((SELECT auth.uid()) IS NOT NULL);
+
+CREATE POLICY "pathologies_modify" 
+ON public.pathologies 
+FOR UPDATE 
+USING (
+  created_by = (SELECT auth.uid()) 
+  OR has_role((SELECT auth.uid()), 'admin'::app_role)
+);
+
+CREATE POLICY "pathologies_remove" 
+ON public.pathologies 
+FOR DELETE 
+USING (
+  created_by = (SELECT auth.uid()) 
+  OR has_role((SELECT auth.uid()), 'admin'::app_role)
+);
+```
+
+#### 7.3.2 Table `medication_catalog`
+
+```sql
+DROP POLICY IF EXISTS "medication_catalog_read" ON public.medication_catalog;
+DROP POLICY IF EXISTS "medication_catalog_create" ON public.medication_catalog;
+DROP POLICY IF EXISTS "medication_catalog_modify" ON public.medication_catalog;
+DROP POLICY IF EXISTS "medication_catalog_remove" ON public.medication_catalog;
+
+CREATE POLICY "medication_catalog_read" 
+ON public.medication_catalog 
+FOR SELECT 
+USING (
+  created_by = (SELECT auth.uid()) 
+  OR is_approved = true 
+  OR has_role((SELECT auth.uid()), 'admin'::app_role)
+);
+
+CREATE POLICY "medication_catalog_create" 
+ON public.medication_catalog 
+FOR INSERT 
+WITH CHECK ((SELECT auth.uid()) IS NOT NULL);
+
+CREATE POLICY "medication_catalog_modify" 
+ON public.medication_catalog 
+FOR UPDATE 
+USING (
+  created_by = (SELECT auth.uid()) 
+  OR has_role((SELECT auth.uid()), 'admin'::app_role)
+);
+
+CREATE POLICY "medication_catalog_remove" 
+ON public.medication_catalog 
+FOR DELETE 
+USING (
+  created_by = (SELECT auth.uid()) 
+  OR has_role((SELECT auth.uid()), 'admin'::app_role)
+);
+```
+
+#### 7.3.3 Table `allergies`
+
+```sql
+DROP POLICY IF EXISTS "allergies_read" ON public.allergies;
+DROP POLICY IF EXISTS "allergies_create" ON public.allergies;
+DROP POLICY IF EXISTS "allergies_modify" ON public.allergies;
+DROP POLICY IF EXISTS "allergies_remove" ON public.allergies;
+
+CREATE POLICY "allergies_read" 
+ON public.allergies 
+FOR SELECT 
+USING (
+  created_by = (SELECT auth.uid()) 
+  OR is_approved = true 
+  OR has_role((SELECT auth.uid()), 'admin'::app_role)
+);
+
+CREATE POLICY "allergies_create" 
+ON public.allergies 
+FOR INSERT 
+WITH CHECK ((SELECT auth.uid()) IS NOT NULL);
+
+CREATE POLICY "allergies_modify" 
+ON public.allergies 
+FOR UPDATE 
+USING (
+  created_by = (SELECT auth.uid()) 
+  OR has_role((SELECT auth.uid()), 'admin'::app_role)
+);
+
+CREATE POLICY "allergies_remove" 
+ON public.allergies 
+FOR DELETE 
+USING (
+  created_by = (SELECT auth.uid()) 
+  OR has_role((SELECT auth.uid()), 'admin'::app_role)
+);
+```
+
+### 7.4 Résultat de l'Optimisation
+
+✅ **Les 12 warnings de performance RLS ont été résolus**  
+✅ **Les policies sont maintenant optimisées** pour de meilleures performances à grande échelle  
+✅ **La fonctionnalité reste identique**, seule la performance d'exécution est améliorée  
+✅ **Aucun changement de code frontend nécessaire**  
+
+### 7.5 Impact Performance
+
+**Avant optimisation :**
+```
+SELECT * FROM pathologies WHERE created_by = auth.uid()
+→ auth.uid() appelé N fois (N = nombre de lignes)
+```
+
+**Après optimisation :**
+```
+SELECT * FROM pathologies WHERE created_by = (SELECT auth.uid())
+→ auth.uid() appelé 1 seule fois, résultat mis en cache
+```
+
+**Gain de performance :** Proportionnel au nombre de lignes retournées (critique sur de grandes tables)
+
+---
+
 ## 📌 Conclusion
 
 La phase 7 d'implémentation du système multi-utilisateurs pour les référentiels est **complétée avec succès**. 
