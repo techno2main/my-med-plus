@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthenticatedUser } from "@/lib/auth-guard";
 import { toast } from "sonner";
 import { calculateExpiryDate, getPrescriptionStatus } from "../utils/prescriptionUtils";
 import { getLocalDateString } from "@/lib/dateUtils";
@@ -53,10 +54,11 @@ export function usePrescriptions() {
 
   const loadPrescriptions = async () => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: user, error } = await getAuthenticatedUser();
+      if (error || !user) {
+        console.warn('[usePrescriptions] Utilisateur non authentifié:', error?.message);
+        return;
+      }
 
       // Charger les prescriptions
       const { data: prescriptionsData, error: prescError } = await supabase

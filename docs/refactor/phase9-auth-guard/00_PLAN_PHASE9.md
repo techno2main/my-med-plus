@@ -3,7 +3,7 @@
 **Date de début** : 3 novembre 2025  
 **Branche** : `fix/auth-guard-migration`  
 **Objectif** : Sécuriser TOUS les appels `supabase.auth.getUser()` avec AuthGuard  
-**Statut** : ✅ Phase 2 terminée - 13/20 fichiers corrigés (65%)
+**Statut** : ✅✅✅ MIGRATION COMPLÈTE - 20/20 fichiers corrigés (100%)
 
 ---
 
@@ -26,14 +26,14 @@
 | 11 | `src/pages/privacy/hooks/usePasswordManagement.ts` | 2 | 🟠 HAUTE | ✅ FAIT |
 | 12 | `src/pages/privacy/hooks/useBiometricSettings.ts` | 2 | 🟠 HAUTE | ✅ FAIT |
 | 13 | `src/pages/privacy/hooks/useAccountActions.ts` | 3 | 🟠 HAUTE | ✅ FAIT |
-| 14 | `src/pages/prescriptions/hooks/usePrescriptions.ts` | 1 | 🟡 MOYENNE | ⏳ À faire |
-| 15 | `src/pages/pathologies/hooks/usePathologies.ts` | 1 | 🟡 MOYENNE | ⏳ À faire |
-| 16 | `src/pages/medication-catalog/hooks/useMedicationCatalog.ts` | 1 | 🟡 MOYENNE | ⏳ À faire |
-| 17 | `src/pages/health-professionals/hooks/useHealthProfessionals.ts` | 1 | 🟡 MOYENNE | ⏳ À faire |
-| 18 | `src/pages/allergies/hooks/useAllergies.ts` | 1 | 🟡 MOYENNE | ⏳ À faire |
-| 19 | `src/hooks/useSettingsSectionOrder.tsx` | 2 | 🟡 MOYENNE | ⏳ À faire |
-| 20 | `src/hooks/generic/useEntityCrud.ts` | 1 | 🟡 MOYENNE | ⏳ À faire |
-| 21 | `src/pages/admin/NotificationDebug.tsx` | 1 | 🔵 BASSE | ⏳ À faire |
+| 14 | `src/pages/prescriptions/hooks/usePrescriptions.ts` | 1 | 🟡 MOYENNE | ✅ FAIT |
+| 15 | `src/pages/pathologies/hooks/usePathologies.ts` | 1 | 🟡 MOYENNE | ✅ FAIT |
+| 16 | `src/pages/medication-catalog/hooks/useMedicationCatalog.ts` | 1 | 🟡 MOYENNE | ✅ FAIT |
+| 17 | `src/pages/health-professionals/hooks/useHealthProfessionals.ts` | 1 | 🟡 MOYENNE | ✅ FAIT |
+| 18 | `src/pages/allergies/hooks/useAllergies.ts` | 1 | 🟡 MOYENNE | ✅ FAIT |
+| 19 | `src/hooks/useSettingsSectionOrder.tsx` | 2 | 🟡 MOYENNE | ✅ FAIT |
+| 20 | `src/hooks/generic/useEntityCrud.ts` | 1 | 🟡 MOYENNE | ✅ FAIT |
+| 21 | `src/pages/admin/NotificationDebug.tsx` | 1 | 🔵 BASSE | ✅ FAIT |
 
 **Total** : 25 occurrences à migrer (27 - 2 déjà faits dans auth-guard.ts)
 
@@ -109,17 +109,17 @@ if (error || !user) {
 - [x] `useBiometricSettings.ts` (2 occurrences) - Biométrie
 - [x] `useAccountActions.ts` (3 occurrences) - Actions compte
 
-### Phase 3 : MOYENNE & BASSE (Fichiers 14-21) - 1h30
+### Phase 3 : MOYENNE & BASSE (Fichiers 14-21) - ✅ TERMINÉE
 **Impact** : Référentiels et fonctionnalités secondaires
 
-- [ ] `usePrescriptions.ts` - Prescriptions
-- [ ] `usePathologies.ts` - Pathologies
-- [ ] `useMedicationCatalog.ts` - Catalogue médicaments
-- [ ] `useHealthProfessionals.ts` - Professionnels santé
-- [ ] `useAllergies.ts` - Allergies
-- [ ] `useSettingsSectionOrder.tsx` (2 occurrences) - Ordre sections
-- [ ] `useEntityCrud.ts` - CRUD générique
-- [ ] `NotificationDebug.tsx` - Debug notifications (admin)
+- [x] `usePrescriptions.ts` - Prescriptions
+- [x] `usePathologies.ts` - Pathologies
+- [x] `useMedicationCatalog.ts` - Catalogue médicaments
+- [x] `useHealthProfessionals.ts` - Professionnels santé
+- [x] `useAllergies.ts` - Allergies
+- [x] `useSettingsSectionOrder.tsx` (2 occurrences) - Ordre sections
+- [x] `useEntityCrud.ts` - CRUD générique
+- [x] `NotificationDebug.tsx` - Debug notifications (admin)
 
 **Durée totale estimée** : 3h30
 

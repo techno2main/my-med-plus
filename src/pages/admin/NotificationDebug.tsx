@@ -8,6 +8,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthenticatedUser } from "@/lib/auth-guard";
 import { Badge } from "@/components/ui/badge";
 import { useMedicationNotificationScheduler } from "@/hooks/useMedicationNotificationScheduler";
 
@@ -52,42 +53,46 @@ export default function NotificationDebug() {
       }
 
       // 2. Prises BDD
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const now = new Date();
-        const next24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-
-        const { data } = await supabase
-          .from("medication_intakes")
-          .select(`
-            id,
-            scheduled_time,
-            status,
-            medications (
-              name,
-              treatment_id,
-              treatments (
-                user_id,
-                is_active
-              )
-            )
-          `)
-          .eq("status", "pending")
-          .gte("scheduled_time", now.toISOString())
-          .lte("scheduled_time", next24h.toISOString())
-          .order("scheduled_time", { ascending: true });
-
-        const userIntakes = data?.filter((intake: any) => {
-          const treatment = intake.medications?.treatments;
-          if (!treatment || treatment.user_id !== user.id) return false;
-          
-          // Filtrer uniquement les traitements actifs
-          return treatment.is_active === true;
-        }) || [];
-        
-        setIntakes(userIntakes);
-        console.log("💊 Prises BDD:", userIntakes);
+      const { data: user, error } = await getAuthenticatedUser();
+      if (error || !user) {
+        console.warn('[NotificationDebug] Utilisateur non authentifié:', error?.message);
+        setLoading(false);
+        return;
       }
+      
+      const now = new Date();
+      const next24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+      const { data } = await supabase
+        .from("medication_intakes")
+        .select(`
+          id,
+          scheduled_time,
+          status,
+          medications (
+            name,
+            treatment_id,
+            treatments (
+              user_id,
+              is_active
+            )
+          )
+        `)
+        .eq("status", "pending")
+        .gte("scheduled_time", now.toISOString())
+        .lte("scheduled_time", next24h.toISOString())
+        .order("scheduled_time", { ascending: true });
+
+      const userIntakes = data?.filter((intake: any) => {
+        const treatment = intake.medications?.treatments;
+        if (!treatment || treatment.user_id !== user.id) return false;
+        
+        // Filtrer uniquement les traitements actifs
+        return treatment.is_active === true;
+      }) || [];
+      
+      setIntakes(userIntakes);
+      console.log("💊 Prises BDD:", userIntakes);
 
       // 3. Préférences localStorage
       const saved = localStorage.getItem("notificationPreferences");
