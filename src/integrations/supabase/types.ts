@@ -650,6 +650,10 @@ export type Database = {
         Args: { med_id: string }
         Returns: undefined
       }
+      sync_google_avatar_to_profile: {
+        Args: { user_uuid: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "user" | "moderator"

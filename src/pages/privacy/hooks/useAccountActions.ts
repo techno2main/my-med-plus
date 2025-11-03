@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthenticatedUser } from "@/lib/auth-guard";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { NativeBiometric } from "capacitor-native-biometric";
@@ -12,8 +13,11 @@ export const useAccountActions = (
 
   const handleTwoFactorToggle = async (enabled: boolean) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
+      const { data: user, error: authError } = await getAuthenticatedUser();
+      if (authError || !user) {
+        console.warn('[useAccountActions] Utilisateur non authentifié:', authError?.message);
+        return false;
+      }
 
       const { error } = await supabase
         .from('user_preferences')
@@ -41,8 +45,11 @@ export const useAccountActions = (
 
   const handleExportData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
+      const { data: user, error } = await getAuthenticatedUser();
+      if (error || !user) {
+        console.warn('[useAccountActions] Utilisateur non authentifié:', error?.message);
+        return false;
+      }
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -87,8 +94,11 @@ export const useAccountActions = (
 
   const handleDeleteAccount = async (password: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
+      const { data: user, error } = await getAuthenticatedUser();
+      if (error || !user) {
+        console.warn('[useAccountActions] Utilisateur non authentifié:', error?.message);
+        return false;
+      }
 
       // Vérifier l'authentification selon le provider
       const provider = user.app_metadata.provider || 'email';

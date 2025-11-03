@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthenticatedUser } from "@/lib/auth-guard";
 import { useToast } from "@/hooks/use-toast";
 import { NativeBiometric } from "capacitor-native-biometric";
 
@@ -10,8 +11,11 @@ export const useBiometricSettings = (
 
   const handleBiometricToggle = async (enabled: boolean) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return { success: false, needsPassword: false };
+      const { data: user, error } = await getAuthenticatedUser();
+      if (error || !user) {
+        console.warn('[useBiometricSettings] Utilisateur non authentifié:', error?.message);
+        return { success: false, needsPassword: false };
+      }
 
       if (enabled) {
         const biometryResult = await NativeBiometric.isAvailable();
@@ -59,8 +63,11 @@ export const useBiometricSettings = (
 
   const handleBiometricPasswordConfirm = async (password: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !user.email) return false;
+      const { data: user, error } = await getAuthenticatedUser();
+      if (error || !user || !user.email) {
+        console.warn('[useBiometricSettings] Utilisateur non authentifié:', error?.message);
+        return false;
+      }
 
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: user.email,

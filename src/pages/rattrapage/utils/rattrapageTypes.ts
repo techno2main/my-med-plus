@@ -3,6 +3,7 @@ export interface IntakeAction {
   action: 'taken' | 'skipped' | 'taken_now' | 'pending';
   takenAt?: string;
   scheduledTime?: string;
+  actualTakenTime?: string;
 }
 
 export interface ConfirmationDialog {
@@ -13,6 +14,7 @@ export interface ConfirmationDialog {
   scheduledTime: string;
   displayTime: string;
   dayName: string;
+  actualTakenTime?: string;
 }
 
 export const getActionIcon = (action: 'taken' | 'skipped' | 'taken_now' | 'pending') => {

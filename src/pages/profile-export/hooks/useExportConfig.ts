@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ExportConfig } from "../types";
+import { getAuthenticatedUser } from "@/lib/auth-guard";
 
 // Dates par défaut : début 13/10/2025, fin = date du jour
 const getDefaultDates = () => {
@@ -37,8 +38,12 @@ export const useExportConfig = () => {
 
   const loadConfig = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: user, error } = await getAuthenticatedUser();
+      if (error || !user) {
+        console.warn('[useExportConfig] Utilisateur non authentifié:', error?.message);
+        setLoading(false);
+        return;
+      }
 
       const { data: prefs } = await supabase
         .from('user_preferences')
@@ -50,7 +55,7 @@ export const useExportConfig = () => {
         setConfig({ ...DEFAULT_CONFIG, ...(prefs.export_config as object) });
       }
     } catch (error) {
-      console.error("Error loading export config:", error);
+      console.error("[useExportConfig] Error loading export config:", error);
     } finally {
       setLoading(false);
     }
@@ -61,15 +66,18 @@ export const useExportConfig = () => {
     setConfig(updatedConfig);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: user, error } = await getAuthenticatedUser();
+      if (error || !user) {
+        console.warn('[useExportConfig] Utilisateur non authentifié pour update:', error?.message);
+        return;
+      }
 
       await supabase
         .from('user_preferences')
         .update({ export_config: updatedConfig })
         .eq('user_id', user.id);
     } catch (error) {
-      console.error("Error saving export config:", error);
+      console.error("[useExportConfig] Error saving export config:", error);
     }
   };
 

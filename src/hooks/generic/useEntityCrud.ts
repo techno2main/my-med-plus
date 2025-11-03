@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthenticatedUser } from "@/lib/auth-guard";
 import { toast } from "sonner";
 
 type SupabaseTable = "pathologies" | "allergies" | "health_professionals" | "medications" | "treatments" | "prescriptions";
@@ -112,8 +113,9 @@ export function useEntityCrud<
       // Ajouter user_id si nécessaire (tables user-owned)
       let dataToInsert = cleanData;
       if (addUserId) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
+        const { data: user, error } = await getAuthenticatedUser();
+        if (error || !user) {
+          console.warn('[useEntityCrud] Utilisateur non authentifié:', error?.message);
           toast.error("Session expirée, veuillez vous reconnecter");
           return false;
         }

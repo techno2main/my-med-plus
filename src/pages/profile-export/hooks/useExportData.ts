@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthenticatedUser } from "@/lib/auth-guard";
 import { useToast } from "@/hooks/use-toast";
 import { ExportConfig, ExportData, ProfileData, AdherenceData, TreatmentData, PrescriptionData, IntakeHistoryData, StockData } from "../types";
 import { useAdherenceStats } from "@/hooks/useAdherenceStats";
@@ -13,8 +14,17 @@ export const useExportData = () => {
   const fetchExportData = async (config: ExportConfig): Promise<ExportData | null> => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
+      const { data: user, error } = await getAuthenticatedUser();
+      if (error || !user) {
+        console.warn('[useExportData] Utilisateur non authentifié:', error?.message);
+        toast({
+          title: "Erreur d'authentification",
+          description: "Vous devez être connecté pour exporter vos données.",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return null;
+      }
 
       const exportData: ExportData = {
         exportDate: new Date().toISOString(),

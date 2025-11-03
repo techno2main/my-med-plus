@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,6 +8,31 @@ const STORAGE_KEY = 'last_intakes_regeneration';
 
 export function useAutoRegenerateIntakes() {
   const isRegenerating = useRef(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Vérifier l'état d'authentification au chargement
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setIsAuthenticated(!!session);
+      } catch (error) {
+        // En cas d'erreur, considérer comme non authentifié
+        setIsAuthenticated(false);
+      }
+    };
+
+    checkAuth();
+
+    // Écouter les changements d'authentification
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const shouldRegenerate = (): boolean => {
     const lastRegeneration = localStorage.getItem(STORAGE_KEY);
@@ -20,13 +45,7 @@ export function useAutoRegenerateIntakes() {
   const regenerateAllIntakes = async () => {
     if (isRegenerating.current) return;
     if (!shouldRegenerate()) return;
-
-    // Vérifier qu'une session existe avant de faire l'appel
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      console.log('Pas de session active, régénération annulée');
-      return;
-    }
+    if (!isAuthenticated) return; // Ne rien faire si pas authentifié
 
     isRegenerating.current = true;
 
@@ -68,6 +87,8 @@ export function useAutoRegenerateIntakes() {
   useEffect(() => {
     // Ne fonctionner que sur plateforme native
     if (!Capacitor.isNativePlatform()) return;
+    // Ne rien faire si pas authentifié
+    if (!isAuthenticated) return;
 
     // Régénérer au lancement de l'app
     regenerateAllIntakes();
@@ -88,5 +109,5 @@ export function useAutoRegenerateIntakes() {
         stateListener.remove();
       }
     };
-  }, []);
+  }, [isAuthenticated]); // Ajouter isAuthenticated dans les dépendances
 }

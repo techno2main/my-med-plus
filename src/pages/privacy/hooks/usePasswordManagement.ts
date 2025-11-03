@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthenticatedUser } from "@/lib/auth-guard";
 import { useToast } from "@/hooks/use-toast";
 import { NativeBiometric } from "capacitor-native-biometric";
 
@@ -10,8 +11,9 @@ export const usePasswordManagement = (
 
   const handlePasswordChange = async (currentPassword: string, newPassword: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !user.email) {
+      const { data: user, error } = await getAuthenticatedUser();
+      if (error || !user || !user.email) {
+        console.warn('[usePasswordManagement] Utilisateur non authentifié:', error?.message);
         toast({
           title: "Erreur",
           description: "Utilisateur non connecté",
@@ -79,7 +81,10 @@ export const usePasswordManagement = (
 
   const handleForgotPassword = async (email: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: user, error: authError } = await getAuthenticatedUser();
+      if (authError) {
+        console.warn('[usePasswordManagement] Vérification auth impossible:', authError.message);
+      }
       
       // Vérifier si l'email correspond à l'utilisateur connecté
       if (user && user.email && user.email.toLowerCase() !== email.toLowerCase()) {

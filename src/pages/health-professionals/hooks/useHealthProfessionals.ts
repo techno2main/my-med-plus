@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthenticatedUser } from "@/lib/auth-guard";
 import { toast } from "sonner";
 import type { HealthProfessional } from "../utils/professionalUtils";
 
@@ -21,8 +22,11 @@ export function useHealthProfessionals() {
 
   const createProfessional = async (formData: Omit<HealthProfessional, "id" | "user_id">) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not found");
+      const { data: user, error: authError } = await getAuthenticatedUser();
+      if (authError || !user) {
+        console.warn('[useHealthProfessionals] Utilisateur non authentifié:', authError?.message);
+        throw new Error("User not found");
+      }
 
       const { error } = await supabase.from("health_professionals").insert({
         name: formData.name,

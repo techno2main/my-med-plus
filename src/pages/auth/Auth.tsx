@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useEmailAuth } from './hooks/useEmailAuth';
 import { useBiometricAuth } from './hooks/useBiometricAuth';
 import { LoginForm } from './components/LoginForm';
+import { SignUpForm } from './components/SignUpForm';
 import { BiometricButton } from './components/BiometricButton';
 import { GoogleButton } from './components/GoogleButton';
 
@@ -16,8 +18,10 @@ const Auth = () => {
   const { user, loading, signInWithGoogle } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSignUpMode, setIsSignUpMode] = useState(false);
   
-  const { isSubmitting: isEmailSubmitting, handleSignIn } = useEmailAuth();
+  const { isSubmitting: isEmailSubmitting, handleSignIn, handleSignUp } = useEmailAuth();
   const { 
     biometricAvailable, 
     isSubmitting: isBiometricSubmitting, 
@@ -41,7 +45,19 @@ const Auth = () => {
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    handleSignIn(email, password);
+    if (isSignUpMode) {
+      if (password !== confirmPassword) {
+        toast.error('Les mots de passe ne correspondent pas');
+        return;
+      }
+      if (password.length < 6) {
+        toast.error('Le mot de passe doit contenir au moins 6 caractères');
+        return;
+      }
+      handleSignUp(email, password);
+    } else {
+      handleSignIn(email, password);
+    }
   };
 
   const handleBiometricSignIn = () => {
@@ -66,19 +82,51 @@ const Auth = () => {
             MyHealth+
           </h1>
           <p className="text-muted-foreground">
-            Connectez-vous pour accéder à votre espace santé
+            {isSignUpMode 
+              ? "Créez votre compte pour commencer" 
+              : "Connectez-vous pour accéder à votre espace santé"}
           </p>
         </div>
 
         <div className="space-y-4">
-          <LoginForm
-            email={email}
-            password={password}
-            onEmailChange={setEmail}
-            onPasswordChange={setPassword}
-            onSubmit={onSubmit}
-            isSubmitting={isSubmitting}
-          />
+          {isSignUpMode ? (
+            <SignUpForm
+              email={email}
+              password={password}
+              confirmPassword={confirmPassword}
+              onEmailChange={setEmail}
+              onPasswordChange={setPassword}
+              onConfirmPasswordChange={setConfirmPassword}
+              onSubmit={onSubmit}
+              isSubmitting={isSubmitting}
+            />
+          ) : (
+            <LoginForm
+              email={email}
+              password={password}
+              onEmailChange={setEmail}
+              onPasswordChange={setPassword}
+              onSubmit={onSubmit}
+              isSubmitting={isSubmitting}
+            />
+          )}
+
+          <div className="text-center">
+            <Button
+              type="button"
+              variant="link"
+              onClick={() => {
+                setIsSignUpMode(!isSignUpMode);
+                setPassword('');
+                setConfirmPassword('');
+              }}
+              className="text-sm text-muted-foreground hover:text-primary"
+            >
+              {isSignUpMode 
+                ? "Vous avez déjà un compte ? Connectez-vous" 
+                : "Pas encore de compte ? Inscrivez-vous"}
+            </Button>
+          </div>
         </div>
 
         <div className="relative">

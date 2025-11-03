@@ -5,6 +5,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
 import { toast } from "sonner";
 import { parseISO } from 'date-fns';
+import { getAuthenticatedUser } from "@/lib/auth-guard";
 
 // Mode debug pour les logs détaillés (false en production)
 const DEBUG_NOTIFICATIONS = import.meta.env.DEV && false; // Mettre à true pour déboguer
@@ -167,9 +168,11 @@ export const useMedicationNotificationScheduler = () => {
       }
       
       // Vérifier qu'on a un utilisateur connecté
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        // Ne pas afficher de message, c'est normal au démarrage
+      const { data: user, error: authError } = await getAuthenticatedUser();
+      if (authError || !user) {
+        if (DEBUG_NOTIFICATIONS) {
+          console.warn('[useMedicationNotificationScheduler] Utilisateur non authentifié:', authError?.message);
+        }
         return;
       }
       

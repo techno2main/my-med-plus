@@ -445,25 +445,28 @@ Privacy.tsx (page principale)
 
 **Commit:** À venir sur branche `feat/password-management` après validation tests
 
-### Étape 20 : Réactivation inscription ⏸️
-**Status:** À FAIRE - PRIORITAIRE
+### Étape 20 : Réactivation inscription ✅
+**Status:** Complétée le 03/11/2025
 
-20.1. ⏸️ Réactiver fonction d'inscription email/mot de passe
-- **Objectif:** Permettre création compte test pour validation workflow suppression réelle
-- **Actions:**
-  - Vérifier si signup désactivé dans Auth.tsx
-  - Réactiver formulaire inscription
-  - Valider création profil automatique
-  - Tester flow complet inscription → connexion
+20.1. ✅ Réactiver fonction d'inscription email/mot de passe
+- **Action réalisée:** Toggle connexion/inscription dans Auth.tsx avec validation complète
+- **Fichiers créés:**
+  - `src/pages/auth/components/SignUpForm.tsx` : Formulaire inscription avec validations (71 lignes)
+- **Fichiers modifiés:**
+  - `src/pages/auth/Auth.tsx` : Toggle mode, state confirmPassword, logique conditionnelle
+- **Fonctionnalités:**
+  - Formulaire 3 champs : email, mot de passe, confirmation
+  - Validation temps réel min 6 caractères et correspondance mots de passe
+  - Messages d'erreur inline avec `text-destructive`
+  - Bouton toggle discret "Pas encore de compte ? Inscrivez-vous"
+  - Reset mots de passe lors changement de mode
+  - Réutilisation `handleSignUp` du hook existant useEmailAuth
+- **Résultat:** Inscription fonctionnelle, création profil automatique via trigger Supabase
 
-20.2. ⏸️ Tester inscription Google OAuth
-- **Objectif:** Valider que Google Sign-In fonctionne correctement
-- **Actions:**
-  - Vérifier configuration Google OAuth dans Supabase
-  - Tester connexion Google sur mobile
-  - Valider création profil automatique
+20.2. ✅ Tester inscription Google OAuth
+- **Note:** Déjà fonctionnel, configuration existante validée
 
-20.3. ⏸️ Créer 2 comptes de test
+20.3. ✅ Créer 2 comptes de test
 - **Compte 1 - Email classique:**
   - Email: `antonymasson.dev@gmail.com`
   - Mot de passe: `abc123DEF!TEST`
@@ -524,8 +527,8 @@ Privacy.tsx (page principale)
 
 ## 📊 Récapitulatif
 
-**✅ Complété:** Étapes 1-4, 5 (Phase 6), 6-14, 16-19  
-**⏸️ À faire:** Étapes 15, 20-22
+**✅ Complété:** Étapes 1-4, 5 (Phase 6), 6-14, 16-20  
+**⏸️ À faire:** Étapes 15, 21-22
 
 ### Statistiques du projet
 
@@ -537,6 +540,7 @@ Privacy.tsx (page principale)
 - `DeleteAccountDialog.tsx` + 3 steps (Étape 18)
 - `ChangePasswordDialog.tsx` (Étape 19)
 - `ForgotPasswordDialog.tsx` (Étape 19)
+- `SignUpForm.tsx` (Étape 20)
 
 **Hooks refactorisés** :
 - `usePrivacySettings.ts` : 491 → 86 lignes (orchestrateur)
@@ -561,14 +565,13 @@ Privacy.tsx (page principale)
 - @ebarooni/capacitor-calendar ✨ (nouveau)
 - capacitor-native-biometric
 
-**Date dernière mise à jour:** 02 novembre 2025
+**Date dernière mise à jour:** 03 novembre 2025
 
 ## 🚀 Prochaines étapes prioritaires
 
-1. **Étape 20** : Réactivation inscription (email + Google OAuth) - **CRITIQUE pour tests**
-2. **Étape 21** : Tests en conditions réelles (2 comptes test)
-3. **Étape 22** : Nettoyage et activation suppression réelle
-4. **Étape 15** : Notifications alertes stocks + redirection clic notification
+1. **Étape 21** : Tests en conditions réelles (2 comptes test) - **CRITIQUE**
+2. **Étape 22** : Nettoyage et activation suppression réelle
+3. **Étape 15** : Notifications alertes stocks + redirection clic notification
 
 ## 📱 Tests à effectuer
 

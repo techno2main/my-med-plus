@@ -11,6 +11,7 @@ import { Step2Medications } from "./Step2Medications";
 import { Step3Stocks } from "./Step3Stocks";
 import { Step4Summary } from "./Step4Summary";
 import { TreatmentFormData } from "./types";
+import { getAuthenticatedUser } from "@/lib/auth-guard";
 
 const TOTAL_STEPS = 4;
 
@@ -110,8 +111,16 @@ export function TreatmentWizard() {
     
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Non authentifié");
+      const { data: user, error: authError } = await getAuthenticatedUser();
+      if (authError || !user) {
+        console.error("[TreatmentWizard] Utilisateur non authentifié:", authError?.message);
+        toast({
+          title: "Erreur d'authentification",
+          description: "Vous devez être connecté pour créer un traitement.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       let prescriptionId = formData.prescriptionId;
 

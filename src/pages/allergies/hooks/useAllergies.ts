@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthenticatedUser } from "@/lib/auth-guard";
 import { toast } from "sonner";
 import type { Allergy } from "../utils/allergyUtils";
 
@@ -21,19 +22,22 @@ export function useAllergies() {
 
   const createAllergy = async (name: string, severity: string, description: string) => {
     try {
-      const { data: userData } = await supabase.auth.getUser();
+      const { data: user, error } = await getAuthenticatedUser();
+      if (error) {
+        console.warn('[useAllergies] Utilisateur non authentifié:', error.message);
+      }
       
-      const { error } = await supabase
+      const { error: insertError } = await supabase
         .from("allergies")
         .insert({
           name,
           severity: severity || null,
           description: description || null,
-          created_by: userData?.user?.id,
+          created_by: user?.id,
           is_approved: false,
         });
 
-      if (error) throw error;
+      if (insertError) throw insertError;
 
       toast.success("Allergie ajoutée avec succès");
       queryClient.invalidateQueries({ queryKey: ["allergies"] });

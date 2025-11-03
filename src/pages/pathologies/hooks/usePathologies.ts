@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthenticatedUser } from "@/lib/auth-guard";
 import { toast } from "sonner";
 import type { Pathology } from "../utils/pathologyUtils";
 
@@ -21,18 +22,21 @@ export function usePathologies() {
 
   const createPathology = async (name: string, description: string) => {
     try {
-      const { data: userData } = await supabase.auth.getUser();
+      const { data: user, error } = await getAuthenticatedUser();
+      if (error) {
+        console.warn('[usePathologies] Utilisateur non authentifié:', error.message);
+      }
       
-      const { error } = await supabase
+      const { error: insertError } = await supabase
         .from("pathologies")
         .insert({
           name,
           description: description || null,
-          created_by: userData?.user?.id,
+          created_by: user?.id,
           is_approved: false,
         });
 
-      if (error) throw error;
+      if (insertError) throw insertError;
 
       toast.success("Pathologie ajoutée avec succès");
       queryClient.invalidateQueries({ queryKey: ["pathologies"] });

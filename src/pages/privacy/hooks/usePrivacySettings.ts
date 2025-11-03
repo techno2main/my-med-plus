@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthenticatedUser } from "@/lib/auth-guard";
 import { usePasswordManagement } from "./usePasswordManagement";
 import { useBiometricSettings } from "./useBiometricSettings";
 import { useAccountActions } from "./useAccountActions";
@@ -19,8 +20,9 @@ export const usePrivacySettings = () => {
 
   const loadUserData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: user, error } = await getAuthenticatedUser();
+      if (error || !user) {
+        console.warn('[usePrivacySettings] Utilisateur non authentifié:', error?.message);
         navigate('/auth');
         return;
       }

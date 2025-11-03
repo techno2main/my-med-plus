@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { TreatmentFormData } from "../types";
+import { getAuthenticatedUser } from "@/lib/auth-guard";
 
 interface UseStep3StocksProps {
   formData: TreatmentFormData;
@@ -17,8 +18,12 @@ export function useStep3Stocks({ formData, setFormData }: UseStep3StocksProps) {
   const loadExistingStocks = async () => {
     setLoadingStocks(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: user, error } = await getAuthenticatedUser();
+      if (error || !user) {
+        console.warn('[useStep3Stocks] Utilisateur non authentifié:', error?.message);
+        setLoadingStocks(false);
+        return;
+      }
 
       // Récupérer tous les médicaments actifs de l'utilisateur
       const { data: existingMedications } = await supabase

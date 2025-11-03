@@ -8,6 +8,7 @@ import { fr } from "date-fns/locale"
 import { supabase } from "@/integrations/supabase/client"
 import { useTheme } from "@/components/theme-provider"
 import { useUserRole } from "@/hooks/useUserRole"
+import { getAuthenticatedUser } from "@/lib/auth-guard"
 
 export function AppHeader() {
   const navigate = useNavigate()
@@ -23,20 +24,23 @@ export function AppHeader() {
 
   const loadUserProfile = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("avatar_url")
-          .eq("id", user.id)
-          .maybeSingle()
-        
-        if (profile?.avatar_url) {
-          setAvatarUrl(profile.avatar_url)
-        }
+      const { data: user, error } = await getAuthenticatedUser()
+      if (error || !user) {
+        console.warn('[AppHeader] Utilisateur non authentifié:', error?.message)
+        return
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("id", user.id)
+        .maybeSingle()
+      
+      if (profile?.avatar_url) {
+        setAvatarUrl(profile.avatar_url)
       }
     } catch (error) {
-      console.error("Error loading profile:", error)
+      console.error("[AppHeader] Error loading profile:", error)
     }
   }
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthenticatedUser } from "@/lib/auth-guard";
 import { useToast } from "@/hooks/use-toast";
 
 export interface SettingsSection {
@@ -31,8 +32,9 @@ export function useSettingsSectionOrder() {
 
   const loadSectionOrder = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: user, error: authError } = await getAuthenticatedUser();
+      if (authError || !user) {
+        console.warn('[useSettingsSectionOrder] Utilisateur non authentifié:', authError?.message);
         setLoading(false);
         return;
       }
@@ -67,8 +69,11 @@ export function useSettingsSectionOrder() {
 
   const saveSectionOrder = async (newSections: SettingsSection[]) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: user, error: authError } = await getAuthenticatedUser();
+      if (authError || !user) {
+        console.warn('[useSettingsSectionOrder] Utilisateur non authentifié:', authError?.message);
+        return;
+      }
 
       const { error } = await supabase
         .from("user_preferences")

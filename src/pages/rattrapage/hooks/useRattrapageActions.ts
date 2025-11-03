@@ -59,20 +59,35 @@ export function useRattrapageActions(missedIntakes: MissedIntake[]) {
     });
   };
 
-  const confirmAction = () => {
+  const confirmAction = (actualTakenTime?: string) => {
     const { intakeId, action } = confirmDialog;
+    
+    let takenAtValue: string | undefined = undefined;
+    let actualTakenTimeValue: string | undefined = actualTakenTime;
+    
+    if (action === 'taken' && actualTakenTime) {
+      // Convertir actualTakenTime (HH:MM) en timestamp ISO en utilisant la date du scheduledTime
+      const scheduledDate = new Date(confirmDialog.scheduledTime);
+      const [hours, minutes] = actualTakenTime.split(':');
+      scheduledDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      takenAtValue = scheduledDate.toISOString();
+    } else if (action === 'taken') {
+      takenAtValue = confirmDialog.scheduledTime;
+    } else if (action === 'taken_now') {
+      const now = new Date();
+      takenAtValue = now.toISOString();
+      // Stocker aussi l'heure actuelle au format HH:MM pour l'affichage
+      actualTakenTimeValue = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    }
     
     setActions(prev => ({
       ...prev,
       [intakeId]: {
         id: intakeId,
         action,
-        takenAt: action === 'taken' 
-          ? confirmDialog.scheduledTime 
-          : action === 'taken_now' 
-          ? new Date().toISOString() 
-          : undefined,
+        takenAt: takenAtValue,
         scheduledTime: confirmDialog.scheduledTime,
+        actualTakenTime: actualTakenTimeValue,
       },
     }));
 
@@ -128,7 +143,11 @@ export function useRattrapageActions(missedIntakes: MissedIntake[]) {
 
         // Ajouter une note
         if (actionItem.action === 'taken') {
-          updateData.notes = "Pris à l'heure prévue (marqué en retard)";
+          if (actionItem.actualTakenTime) {
+            updateData.notes = `Pris à ${actionItem.actualTakenTime} (déclaré en retard)`;
+          } else {
+            updateData.notes = "Pris à l'heure prévue (marqué en retard)";
+          }
         } else if (actionItem.action === 'taken_now') {
           updateData.notes = "Pris en rattrapage";
         }
