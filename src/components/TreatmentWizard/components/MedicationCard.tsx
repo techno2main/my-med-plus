@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { TimeSelect } from "@/components/ui/time-select"
+import { TimePickerInput } from "@/components/ui/time-picker-dialog"
 import { Trash2 } from "lucide-react"
 import type { MedicationItem } from "../types"
 
@@ -74,7 +74,7 @@ export const MedicationCard = ({
         <Label>{medication.times.length === 1 ? "Horaire de prise" : "Horaires de prise"}</Label>
         <div className="grid gap-2">
           {medication.times.map((time, timeIndex) => (
-            <TimeSelect
+            <TimePickerInput
               key={`time-${index}-${timeIndex}`}
               value={time}
               onValueChange={(value) => onUpdateTimeSlot(index, timeIndex, value)}

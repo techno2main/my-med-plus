@@ -1,5 +1,5 @@
 import { ConfirmDialog } from "@/components/ui/organisms/ConfirmDialog";
-import { TimeSelect } from "@/components/ui/time-select";
+import { TimePickerInput } from "@/components/ui/time-picker-dialog";
 import type { ConfirmationDialog } from "../utils/rattrapageTypes";
 import { useState } from "react";
 import { format } from "date-fns";
@@ -60,7 +60,7 @@ export function RattrapageConfirmationDialog({
             <label className="text-sm font-medium text-foreground">
               Heure de prise réelle
             </label>
-            <TimeSelect 
+            <TimePickerInput 
               value={actualTakenTime} 
               onValueChange={setActualTakenTime}
               placeholder="HH:MM"

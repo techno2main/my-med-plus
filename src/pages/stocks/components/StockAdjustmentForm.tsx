@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { NumericKeyboardInput } from "@/components/ui/numeric-keyboard";
 
 interface StockAdjustmentFormProps {
   currentStock: number;
@@ -38,11 +39,11 @@ export function StockAdjustmentForm({
 
         <div className="space-y-2">
           <Label htmlFor="adjustment">Ajustement (+10 ou -5)</Label>
-          <Input
-            id="adjustment"
+          <NumericKeyboardInput
             value={adjustmentStr}
-            onChange={(e) => setAdjustmentStr(e.target.value)}
+            onValueChange={setAdjustmentStr}
             placeholder="+10 ou -5"
+            title="Ajustement du stock"
           />
           {adjustment !== 0 && (
             <p className="text-sm text-muted-foreground">

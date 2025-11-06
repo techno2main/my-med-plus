@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TimeSelect } from "@/components/ui/time-select";
+import { TimePickerInput } from "@/components/ui/time-picker-dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeft, Pill } from "lucide-react";
 import { detectTakesFromDosage, getDefaultTimes, generateDosageFromTimes } from "../utils/medicationUtils";
@@ -178,7 +178,7 @@ export function MedicationDialog({
                 <div className="flex flex-wrap gap-2">
                   {formData.default_times.map((time, index) => (
                     <div key={index} className="flex items-center gap-1 p-2 rounded-md border bg-muted/30">
-                      <TimeSelect
+                      <TimePickerInput
                         value={time}
                         onValueChange={(value) => {
                           const newTimes = [...formData.default_times];

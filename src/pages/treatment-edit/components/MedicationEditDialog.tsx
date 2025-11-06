@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { TimeSelect } from "@/components/ui/time-select";
+import { TimePickerInput } from "@/components/ui/time-picker-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { X, ArrowLeft } from "lucide-react";
@@ -274,7 +274,7 @@ export function MedicationEditDialog({ open, onOpenChange, medication, treatment
                 <div className="flex flex-wrap gap-2">
                   {times.map((time, index) => (
                     <div key={index} className="flex items-center gap-1 p-2 rounded-md border bg-muted/30">
-                      <TimeSelect
+                      <TimePickerInput
                         value={time}
                         onValueChange={(value) => {
                           const newTimes = [...times];
