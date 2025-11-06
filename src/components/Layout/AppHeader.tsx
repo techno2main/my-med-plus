@@ -9,11 +9,15 @@ import { supabase } from "@/integrations/supabase/client"
 import { useTheme } from "@/components/theme-provider"
 import { useUserRole } from "@/hooks/useUserRole"
 import { getAuthenticatedUser } from "@/lib/auth-guard"
+import { useStatusBarTheme } from "@/hooks/useStatusBarTheme"
 
 export function AppHeader() {
   const navigate = useNavigate()
   const { theme, setTheme } = useTheme()
   const { isAdmin } = useUserRole()
+  
+  // Mettre à jour la barre de statut selon le thème
+  useStatusBarTheme(theme)
   const currentDate = format(new Date(), "EEEE d MMMM yyyy", { locale: fr })
   const currentTime = format(new Date(), "HH:mm")
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
@@ -56,24 +60,25 @@ export function AppHeader() {
   }
 
   return (
-    <header className="bg-background border-b border-border py-4 sticky top-0 z-50 pt-safe-android">
-      <div className="container max-w-2xl mx-auto px-3 md:px-4 space-y-2">
+    <header className="border-b border-border sticky top-0 z-50" style={{ backgroundColor: theme === 'dark' ? '#0D1117' : '#1976D2' }}>
+      <div className="pt-8 pb-4 container max-w-2xl mx-auto px-3 md:px-4 space-y-2">
         <div className="flex items-center justify-between">
           <h1 
-            className="text-2xl font-bold gradient-primary bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity"
+            className="text-2xl font-bold cursor-pointer hover:opacity-80 transition-opacity"
+            style={{ color: 'white' }}
             onClick={() => navigate("/")}
           >
             MyHealth+
           </h1>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5">
-              <Sun className="h-3.5 w-3.5 text-muted-foreground" />
+              <Sun className="h-3.5 w-3.5" style={{ color: 'rgba(255,255,255,0.7)' }} />
               <Switch
                 checked={theme === "dark"}
                 onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-                className="data-[state=checked]:bg-primary scale-75"
+                className="data-[state=checked]:bg-blue-300 scale-75"
               />
-              <Moon className="h-3.5 w-3.5 text-muted-foreground" />
+              <Moon className="h-3.5 w-3.5" style={{ color: 'rgba(255,255,255,0.7)' }} />
             </div>
             <AvatarWithBadge
               src={avatarUrl || undefined}
@@ -89,7 +94,7 @@ export function AppHeader() {
             />
           </div>
         </div>
-        <p className="text-sm text-muted-foreground capitalize">{currentDate} • {currentTime}</p>
+        <p className="text-sm capitalize" style={{ color: 'rgba(255,255,255,0.9)' }}>{currentDate} • {currentTime}</p>
       </div>
     </header>
   )

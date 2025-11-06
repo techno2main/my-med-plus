@@ -14,8 +14,8 @@ const config: CapacitorConfig = {
       sound: "beep.wav",
     },
     StatusBar: {
-      style: 'default',
-      backgroundColor: '#ffffff',
+      style: 'dark',
+      backgroundColor: '#1976D2',
     },
   },
 };

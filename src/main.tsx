@@ -2,7 +2,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { ThemeProvider } from "./components/theme-provider";
-import { StatusBar } from '@capacitor/status-bar';
+import { StatusBar, Style } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { LocalNotifications } from '@capacitor/local-notifications';
@@ -14,6 +14,29 @@ autoCleanInvalidTokens();
 // Configure StatusBar for mobile platforms
 if (Capacitor.isNativePlatform()) {
   StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
+  
+  // Configurer la couleur de la barre de statut selon le thème au démarrage
+  const updateStatusBar = async () => {
+    try {
+      const theme = localStorage.getItem('health-plus-theme') || 'dark';
+      
+      if (theme === 'dark') {
+        // Mode sombre : fond bleu foncé, icônes blanches
+        await StatusBar.setBackgroundColor({ color: '#0D1117' });
+        await StatusBar.setStyle({ style: Style.Dark });
+      } else {
+        // Mode clair : fond bleu Material, icônes blanches
+        await StatusBar.setBackgroundColor({ color: '#1976D2' });
+        await StatusBar.setStyle({ style: Style.Dark });
+      }
+      
+      console.log(`📱 StatusBar initialisée au démarrage: theme=${theme}`);
+    } catch (error) {
+      console.error('❌ Erreur initialisation StatusBar:', error);
+    }
+  };
+  
+  updateStatusBar();
   
   // Demander les permissions de notification au démarrage
   LocalNotifications.requestPermissions().then(result => {
