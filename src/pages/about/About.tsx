@@ -26,7 +26,7 @@ export default function About() {
           </div>
           <h2 className="text-2xl font-bold mb-2">MyHealth+</h2>
           <p className="text-muted-foreground mb-1">Votre assistant santé personnel</p>
-          <p className="text-sm text-muted-foreground">Version 1.0.0</p>
+          <p className="text-sm text-muted-foreground">Version 1.1.0</p>
         </Card>
 
         {/* Description */}

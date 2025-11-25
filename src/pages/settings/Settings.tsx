@@ -91,7 +91,7 @@ export default function Settings() {
         <NavigationCard
           icon={Smartphone}
           title="À propos de l'application"
-          description="Version 1.0.0"
+          description="Version 1.1.0"
           onClick={() => navigate("/about")}
         />
       </div>
