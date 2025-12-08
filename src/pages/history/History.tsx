@@ -43,10 +43,10 @@ export default function History() {
   const filterCounts = useMemo(() => {
     if (!stats) return { all: 0, ontime: 0, late: 0, missed: 0, skipped: 0 }
     return {
-      all: stats.takenOnTime + stats.lateIntakes + stats.skipped,
+      all: stats.takenOnTime + stats.lateIntakes + stats.skipped + stats.missed,
       ontime: stats.takenOnTime,
       late: stats.lateIntakes,
-      missed: 0, // TODO: calculer les prises vraiment manquées
+      missed: stats.missed,
       skipped: stats.skipped
     }
   }, [stats])
