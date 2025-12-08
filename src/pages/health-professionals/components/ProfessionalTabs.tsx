@@ -1,6 +1,4 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { ProfessionalList } from "./ProfessionalList";
 import type { HealthProfessional, TabType } from "../utils/professionalUtils";
 
@@ -13,7 +11,6 @@ interface ProfessionalTabsProps {
     laboratoires: HealthProfessional[];
   };
   isLoading: boolean;
-  onAdd: (type: "medecin" | "pharmacie" | "laboratoire") => void;
   onEdit: (professional: HealthProfessional) => void;
   onDelete: (id: string) => void;
 }
@@ -23,7 +20,6 @@ export function ProfessionalTabs({
   onTabChange,
   professionals,
   isLoading,
-  onAdd,
   onEdit,
   onDelete,
 }: ProfessionalTabsProps) {
@@ -36,10 +32,6 @@ export function ProfessionalTabs({
       </TabsList>
 
       <TabsContent value="medecins" className="space-y-4">
-        <Button className="gradient-primary w-full" onClick={() => onAdd("medecin")}>
-          <Plus className="h-4 w-4 mr-2" />
-          Ajouter un médecin
-        </Button>
         <ProfessionalList
           professionals={professionals.medecins}
           isLoading={isLoading}
@@ -50,10 +42,6 @@ export function ProfessionalTabs({
       </TabsContent>
 
       <TabsContent value="pharmacies" className="space-y-4">
-        <Button className="gradient-primary w-full" onClick={() => onAdd("pharmacie")}>
-          <Plus className="h-4 w-4 mr-2" />
-          Ajouter une pharmacie
-        </Button>
         <ProfessionalList
           professionals={professionals.pharmacies}
           isLoading={isLoading}
@@ -64,10 +52,6 @@ export function ProfessionalTabs({
       </TabsContent>
 
       <TabsContent value="laboratoires" className="space-y-4">
-        <Button className="gradient-primary w-full" onClick={() => onAdd("laboratoire")}>
-          <Plus className="h-4 w-4 mr-2" />
-          Ajouter un laboratoire
-        </Button>
         <ProfessionalList
           professionals={professionals.laboratoires}
           isLoading={isLoading}

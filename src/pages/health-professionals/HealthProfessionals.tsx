@@ -9,6 +9,7 @@ import { useEntityDialog } from "@/hooks/generic/useEntityDialog";
 import { ProfessionalTabs } from "./components/ProfessionalTabs";
 import { ProfessionalDialog } from "./components/ProfessionalDialog";
 import { ProfessionalDeleteAlert } from "./components/ProfessionalDeleteAlert";
+import { FloatingAddButton } from "./components/FloatingAddButton";
 
 const HealthProfessionals = () => {
   const navigate = useNavigate();
@@ -120,10 +121,11 @@ const HealthProfessionals = () => {
           onTabChange={handleTabChange}
           professionals={filteredData}
           isLoading={isLoading}
-          onAdd={handleAdd}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
+
+        <FloatingAddButton onAdd={handleAdd} />
 
         <ProfessionalDialog
           open={showDialog}
