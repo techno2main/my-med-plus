@@ -38,7 +38,7 @@ const getStatusBadge = (status: string, scheduledTimestamp?: string, takenAtTime
     case "taken":
       return <CheckCircle2 className="h-6 w-6 text-success" />
     case "skipped":
-      return <SkipForward className="h-6 w-6 text-warning" />
+      return <SkipForward className="h-6 w-6 text-warning flex-shrink-0" />
     case "missed":
       return <XCircle className="h-6 w-6 text-danger" />
     case "pending":
