@@ -8,9 +8,9 @@ interface FloatingAddButtonProps {
 }
 
 const options = [
-  { type: "laboratoire" as const, label: "Laboratoire", icon: FlaskConical },
-  { type: "pharmacie" as const, label: "Pharmacie", icon: Building2 },
   { type: "medecin" as const, label: "Médecin", icon: Stethoscope },
+  { type: "pharmacie" as const, label: "Pharmacie", icon: Building2 },
+  { type: "laboratoire" as const, label: "Laboratoire", icon: FlaskConical },
 ];
 
 export function FloatingAddButton({ onAdd }: FloatingAddButtonProps) {
