@@ -208,7 +208,7 @@ export function MedicationDialog({
               )}
               
               <p className="text-xs text-muted-foreground">
-                Ces heures seront pré-remplies lors de l'ajout d'un traitement
+                Heures pré-remplies à l'ajout d'un traitement
               </p>
             </div>
 
