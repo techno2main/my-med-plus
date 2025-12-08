@@ -1,7 +1,7 @@
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { PageHeader } from "@/components/Layout/PageHeader";
 import { useNavigate } from "react-router-dom";
-import { Bell, Shield, Smartphone, Database, CalendarSync, Clock, Navigation, ArrowUpDown, Bug } from "lucide-react";
+import { Bell, Shield, Smartphone, Database, CalendarSync, Clock, Navigation, ArrowUpDown, Bug, Package } from "lucide-react";
 import { ThemeCard } from "./components/ThemeCard";
 import { NavigationCard } from "./components/NavigationCard";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,17 @@ export default function Settings() {
           title="Référentiels"
           description="Gérer les données de référence"
           onClick={() => navigate("/referentials")}
+        />
+      </div>
+    ),
+    stocks: (
+      <div className="space-y-3" key="stocks">
+        <h3 className="text-sm font-medium text-muted-foreground px-1">Stocks</h3>
+        <NavigationCard
+          icon={Package}
+          title="Gestion des stocks"
+          description="Gérer les stocks de médicaments"
+          onClick={() => navigate("/stocks")}
         />
       </div>
     ),
