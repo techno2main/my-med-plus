@@ -25,7 +25,7 @@ export default function Settings() {
         <NavigationCard
           icon={Navigation}
           title="Menu de navigation"
-          description="Ordre et visibilité des éléments"
+          description="Gérer les éléments de navigation"
           onClick={() => navigate("/settings/navigation")}
         />
       </div>
