@@ -46,6 +46,10 @@ interface ConfirmDialogProps {
    * Variant for confirm button (default, destructive, etc.)
    */
   confirmVariant?: "default" | "destructive" | "outline" | "secondary";
+  /**
+   * Whether the confirm button should be disabled
+   */
+  confirmDisabled?: boolean;
 }
 
 /**
@@ -76,6 +80,7 @@ export function ConfirmDialog({
   confirmLabel = "Confirmer",
   cancelLabel = "Annuler",
   confirmVariant = "default",
+  confirmDisabled = false,
 }: ConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -91,7 +96,7 @@ export function ConfirmDialog({
           <Button variant="outline" onClick={onClose}>
             {cancelLabel}
           </Button>
-          <Button variant={confirmVariant} onClick={onConfirm}>
+          <Button variant={confirmVariant} onClick={onConfirm} disabled={confirmDisabled}>
             {confirmLabel}
           </Button>
         </DialogFooter>
