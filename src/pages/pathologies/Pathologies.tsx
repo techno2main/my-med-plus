@@ -92,6 +92,7 @@ const Pathologies = () => {
           isLoading={isLoading}
           onEdit={openDialog}
           onDelete={setDeletingId}
+          onAdd={() => openDialog()}
         />
 
         <PathologyDialog

@@ -1,5 +1,6 @@
-import { Card } from "@/components/ui/card";
 import { AllergyCard } from "./AllergyCard";
+import { EmptyState } from "@/components/ui/atoms/EmptyState";
+import { AlertTriangle } from "lucide-react";
 import type { Allergy } from "../utils/allergyUtils";
 
 interface AllergyListProps {
@@ -7,18 +8,26 @@ interface AllergyListProps {
   isLoading: boolean;
   onEdit: (allergy: Allergy) => void;
   onDelete: (id: string) => void;
+  onAdd?: () => void;
 }
 
-export function AllergyList({ allergies, isLoading, onEdit, onDelete }: AllergyListProps) {
+export function AllergyList({ allergies, isLoading, onEdit, onDelete, onAdd }: AllergyListProps) {
   if (isLoading) {
     return <p>Chargement...</p>;
   }
 
   if (allergies.length === 0) {
     return (
-      <Card className="p-8 text-center">
-        <p className="text-muted-foreground">Aucune allergie trouvée</p>
-      </Card>
+      <EmptyState
+        icon={AlertTriangle}
+        iconColor="text-orange-500"
+        title="Aucune allergie enregistrée"
+        description="Ajoutez vos allergies pour recevoir des alertes lors de la prescription de médicaments"
+        action={onAdd ? {
+          label: "Ajouter une allergie",
+          onClick: onAdd
+        } : undefined}
+      />
     );
   }
 

@@ -1,5 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfessionalList } from "./ProfessionalList";
+import { Stethoscope, Building2, FlaskConical } from "lucide-react";
 import type { HealthProfessional, TabType } from "../utils/professionalUtils";
 
 interface ProfessionalTabsProps {
@@ -13,6 +14,7 @@ interface ProfessionalTabsProps {
   isLoading: boolean;
   onEdit: (professional: HealthProfessional) => void;
   onDelete: (id: string) => void;
+  onAdd: (type: "medecin" | "pharmacie" | "laboratoire") => void;
 }
 
 export function ProfessionalTabs({
@@ -22,6 +24,7 @@ export function ProfessionalTabs({
   isLoading,
   onEdit,
   onDelete,
+  onAdd,
 }: ProfessionalTabsProps) {
   return (
     <Tabs value={activeTab} onValueChange={onTabChange}>
@@ -35,9 +38,13 @@ export function ProfessionalTabs({
         <ProfessionalList
           professionals={professionals.medecins}
           isLoading={isLoading}
-          emptyMessage="Aucun médecin trouvé"
+          emptyIcon={Stethoscope}
+          emptyIconColor="text-blue-500"
+          emptyTitle="Aucun médecin enregistré"
+          emptyDescription="Ajoutez vos médecins pour gérer facilement vos consultations"
           onEdit={onEdit}
           onDelete={onDelete}
+          onAdd={() => onAdd("medecin")}
         />
       </TabsContent>
 
@@ -45,9 +52,13 @@ export function ProfessionalTabs({
         <ProfessionalList
           professionals={professionals.pharmacies}
           isLoading={isLoading}
-          emptyMessage="Aucune pharmacie trouvée"
+          emptyIcon={Building2}
+          emptyIconColor="text-green-500"
+          emptyTitle="Aucune pharmacie enregistrée"
+          emptyDescription="Ajoutez votre pharmacie pour faciliter le suivi de vos médicaments"
           onEdit={onEdit}
           onDelete={onDelete}
+          onAdd={() => onAdd("pharmacie")}
         />
       </TabsContent>
 
@@ -55,9 +66,13 @@ export function ProfessionalTabs({
         <ProfessionalList
           professionals={professionals.laboratoires}
           isLoading={isLoading}
-          emptyMessage="Aucun laboratoire trouvé"
+          emptyIcon={FlaskConical}
+          emptyIconColor="text-purple-500"
+          emptyTitle="Aucun laboratoire enregistré"
+          emptyDescription="Ajoutez vos laboratoires pour gérer vos analyses"
           onEdit={onEdit}
           onDelete={onDelete}
+          onAdd={() => onAdd("laboratoire")}
         />
       </TabsContent>
     </Tabs>

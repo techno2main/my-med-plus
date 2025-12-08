@@ -1,21 +1,30 @@
-import { Card } from "@/components/ui/card";
 import { ProfessionalCard } from "./ProfessionalCard";
+import { EmptyState } from "@/components/ui/atoms/EmptyState";
+import { LucideIcon } from "lucide-react";
 import type { HealthProfessional } from "../utils/professionalUtils";
 
 interface ProfessionalListProps {
   professionals: HealthProfessional[];
   isLoading: boolean;
-  emptyMessage: string;
+  emptyIcon?: LucideIcon;
+  emptyIconColor?: string;
+  emptyTitle?: string;
+  emptyDescription?: string;
   onEdit: (professional: HealthProfessional) => void;
   onDelete: (id: string) => void;
+  onAdd?: () => void;
 }
 
 export function ProfessionalList({
   professionals,
   isLoading,
-  emptyMessage,
+  emptyIcon,
+  emptyIconColor,
+  emptyTitle,
+  emptyDescription,
   onEdit,
   onDelete,
+  onAdd,
 }: ProfessionalListProps) {
   if (isLoading) {
     return <p>Chargement...</p>;
@@ -23,9 +32,16 @@ export function ProfessionalList({
 
   if (professionals.length === 0) {
     return (
-      <Card className="p-8 text-center">
-        <p className="text-muted-foreground">{emptyMessage}</p>
-      </Card>
+      <EmptyState
+        icon={emptyIcon}
+        iconColor={emptyIconColor}
+        title={emptyTitle}
+        description={emptyDescription || "Aucun élément trouvé"}
+        action={onAdd ? {
+          label: "Ajouter",
+          onClick: onAdd
+        } : undefined}
+      />
     );
   }
 
