@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card"
 import { AdherenceStats } from "@/hooks/useAdherenceStats"
+import { CheckCircle2, Clock, SkipForward, XCircle } from "lucide-react"
 
 interface StatsCardsProps {
   stats: AdherenceStats
@@ -46,31 +47,31 @@ export const StatsCards = ({ stats, onFilterClick, totalCompleted, totalPending 
         <h3 className="font-semibold mb-4">Résumé (depuis le 13/10/25)</h3>
         <div className="grid grid-cols-4 gap-2">
           <div 
-            className="p-3 rounded-lg bg-success/10 cursor-pointer hover:bg-success/20 transition-colors" 
+            className="p-3 rounded-lg bg-success/10 cursor-pointer hover:bg-success/20 transition-colors text-center" 
             onClick={() => onFilterClick("ontime")}
           >
-            <p className="text-xs text-muted-foreground mb-1">À l'heure</p>
+            <CheckCircle2 className="h-5 w-5 text-success mx-auto mb-1" />
             <p className="text-2xl font-bold text-success">{stats.takenOnTime}</p>
           </div>
           <div 
-            className="p-3 rounded-lg bg-success/10 cursor-pointer hover:bg-success/20 transition-colors" 
+            className="p-3 rounded-lg bg-success/10 cursor-pointer hover:bg-success/20 transition-colors text-center" 
             onClick={() => onFilterClick("late")}
           >
-            <p className="text-xs text-muted-foreground mb-1">En retard</p>
+            <Clock className="h-5 w-5 text-success mx-auto mb-1" />
             <p className="text-2xl font-bold text-success">{stats.lateIntakes}</p>
           </div>
           <div 
-            className="p-3 rounded-lg bg-warning/10 cursor-pointer hover:bg-warning/20 transition-colors" 
+            className="p-3 rounded-lg bg-warning/10 cursor-pointer hover:bg-warning/20 transition-colors text-center" 
             onClick={() => onFilterClick("skipped")}
           >
-            <p className="text-xs text-muted-foreground mb-1">Sautées</p>
+            <SkipForward className="h-5 w-5 text-warning mx-auto mb-1" />
             <p className="text-2xl font-bold text-warning">{stats.skipped}</p>
           </div>
           <div 
-            className="p-3 rounded-lg bg-danger/10 cursor-pointer hover:bg-danger/20 transition-colors" 
+            className="p-3 rounded-lg bg-danger/10 cursor-pointer hover:bg-danger/20 transition-colors text-center" 
             onClick={() => onFilterClick("missed")}
           >
-            <p className="text-xs text-muted-foreground mb-1">Manquées</p>
+            <XCircle className="h-5 w-5 text-danger mx-auto mb-1" />
             <p className="text-2xl font-bold text-danger">{stats.missed}</p>
           </div>
         </div>
