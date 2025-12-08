@@ -14,9 +14,11 @@ interface SecurityCardProps {
   authProvider: string | null;
   biometricEnabled: boolean;
   twoFactorEnabled: boolean;
+  requireAuthOnOpen: boolean;
   onPasswordChange: () => void;
   onBiometricToggle: () => void;
   onTwoFactorToggle: () => void;
+  onRequireAuthOnOpenToggle: () => void;
   onDeleteAccount: () => void;
 }
 
@@ -24,9 +26,11 @@ export function SecurityCard({
   authProvider,
   biometricEnabled,
   twoFactorEnabled,
+  requireAuthOnOpen,
   onPasswordChange,
   onBiometricToggle,
   onTwoFactorToggle,
+  onRequireAuthOnOpenToggle,
   onDeleteAccount,
 }: SecurityCardProps) {
   return (
@@ -97,6 +101,19 @@ export function SecurityCard({
             id="2fa"
             checked={twoFactorEnabled}
             onCheckedChange={onTwoFactorToggle}
+          />
+        </div>
+
+        {/* Verrouillage à l'ouverture */}
+        <div className="flex items-center justify-between">
+          <Label htmlFor="require-auth" className="flex-1 cursor-pointer">
+            <p className="font-medium">Verrouiller à l'ouverture</p>
+            <p className="text-sm text-muted-foreground">Demander l'authentification à chaque lancement</p>
+          </Label>
+          <Switch 
+            id="require-auth"
+            checked={requireAuthOnOpen}
+            onCheckedChange={onRequireAuthOnOpenToggle}
           />
         </div>
 
