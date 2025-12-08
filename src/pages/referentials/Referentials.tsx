@@ -22,7 +22,7 @@ const Referentials = () => {
     },
     {
       title: "Allergies",
-      description: "Gestion des allergies",
+      description: "Mes allergies",
       icon: AlertCircle,
       path: "/referentials/allergies"
     },
