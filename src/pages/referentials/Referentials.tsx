@@ -10,7 +10,7 @@ const Referentials = () => {
   const categories = [
     {
       title: "Professionnels de Santé",
-      description: "Mon réseau",
+      description: "Mon réseau de professionnels",
       icon: Stethoscope,
       path: "/referentials/health-professionals"
     },
