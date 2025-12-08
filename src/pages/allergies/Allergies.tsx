@@ -93,6 +93,7 @@ const Allergies = () => {
           isLoading={isLoading}
           onEdit={openDialog}
           onDelete={setDeletingId}
+          onAdd={() => openDialog()}
         />
 
         <AllergyDialog
