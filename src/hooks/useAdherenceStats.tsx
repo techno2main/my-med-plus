@@ -90,11 +90,11 @@ export const useAdherenceStats = () => {
         return differenceMinutes <= 30;
       }).length;
 
-      // Note: historiquement "skipped" était utilisé pour les prises manquées
-      // Le nouveau statut "skipped" sera pour les sauts volontaires (pas encore utilisé)
-      // Pour l'instant, on compte "skipped" comme "missed" pour la rétrocompatibilité
-      const skippedAll = 0; // Pas encore de vrais sauts volontaires
-      const missedAll = allPastIntakes.filter(i => i.status === 'skipped' || i.status === 'missed').length;
+      // Calculer les prises sautées volontairement - TOUT l'historique
+      const skippedAll = allPastIntakes.filter(i => i.status === 'skipped').length;
+
+      // Calculer les prises manquées - TOUT l'historique
+      const missedAll = allPastIntakes.filter(i => i.status === 'missed').length;
 
       // Calculer les prises en retard (>30min) - TOUT l'historique
       const lateIntakesAll = allPastIntakes.filter(i => {
