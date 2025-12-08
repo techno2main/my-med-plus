@@ -134,7 +134,16 @@ export const IntakeCard = ({ intake, isOverdue, isTomorrowSection = false, onTak
           </div>
           
           {/* Afficher l'icône de statut si pris/manqué, sinon le bouton d'action */}
-          {isTaken || isMissed ? (
+          {isTaken ? (
+            <div className="flex flex-col items-center">
+              {getStatusBadge(intake.status, isOverdue, intake.date, intake.takenAt)}
+              {intake.takenAt && (
+                <span className="text-[10px] text-muted-foreground mt-0.5">
+                  {format(intake.takenAt, "HH:mm")}
+                </span>
+              )}
+            </div>
+          ) : isMissed ? (
             getStatusBadge(intake.status, isOverdue, intake.date, intake.takenAt)
           ) : (
             <Button 
