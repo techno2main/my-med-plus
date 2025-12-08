@@ -5,6 +5,7 @@ interface Treatment {
   start_date: string
   end_date: string | null
   is_active: boolean
+  prescription_id: string
   qsp_days?: number | null
   medications: Array<{
     id: string

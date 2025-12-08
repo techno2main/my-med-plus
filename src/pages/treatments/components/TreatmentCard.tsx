@@ -105,14 +105,14 @@ export const TreatmentCard = ({ treatment }: TreatmentCardProps) => {
             <span>{treatment.prescribing_doctor.name}</span>
           </div>
         )}
-        {treatment.prescription?.file_path && (
+        {treatment.prescription_id && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Download className="h-3 w-3" />
             <button 
-              onClick={handleDownloadPrescription}
+              onClick={() => navigate(`/prescriptions?open=${treatment.prescription_id}`)}
               className="hover:text-primary underline cursor-pointer"
             >
-              Voir l'ordonnance
+              Consulter l'ordonnance
             </button>
           </div>
         )}
