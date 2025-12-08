@@ -275,19 +275,7 @@ export const CalendarView = ({
               showOutsideDays={false}
             />
 
-            <div className="flex items-center justify-center gap-2 pt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const today = new Date();
-                  onMonthChange(today);
-                  onDateSelect(today);
-                }}
-                className="h-8 w-8 p-0 rounded-full"
-              >
-                <CalendarDays className="h-4 w-4" />
-              </Button>
+            <div className="flex items-center justify-center pt-2">
               <Button
                 variant="ghost"
                 size="sm"
