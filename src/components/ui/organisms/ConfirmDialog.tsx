@@ -50,6 +50,10 @@ interface ConfirmDialogProps {
    * Whether the confirm button should be disabled
    */
   confirmDisabled?: boolean;
+  /**
+   * Whether to show the footer buttons
+   */
+  showFooter?: boolean;
 }
 
 /**
@@ -81,6 +85,7 @@ export function ConfirmDialog({
   cancelLabel = "Annuler",
   confirmVariant = "default",
   confirmDisabled = false,
+  showFooter = true,
 }: ConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -92,14 +97,16 @@ export function ConfirmDialog({
 
         {children && <div className="py-4">{children}</div>}
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            {cancelLabel}
-          </Button>
-          <Button variant={confirmVariant} onClick={onConfirm} disabled={confirmDisabled}>
-            {confirmLabel}
-          </Button>
-        </DialogFooter>
+        {showFooter && (
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose}>
+              {cancelLabel}
+            </Button>
+            <Button variant={confirmVariant} onClick={onConfirm} disabled={confirmDisabled}>
+              {confirmLabel}
+            </Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );

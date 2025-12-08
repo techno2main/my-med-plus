@@ -7,6 +7,7 @@ import { useMissedIntakesDetection } from "@/hooks/useMissedIntakesDetection"
 import { useIntakeOverdue } from "@/hooks/useIntakeOverdue"
 import { useDashboardData } from "./hooks/useDashboardData"
 import { useTakeIntake } from "./hooks/useTakeIntake"
+import { useSkipIntake } from "./hooks/useSkipIntake"
 import { useAccordionState } from "./hooks/useAccordionState"
 import { getLocalDateString, isIntakeValidationAllowed, getCurrentDateInParis } from "@/lib/dateUtils"
 import { ActiveTreatmentsCard } from "./components/ActiveTreatmentsCard"
@@ -14,7 +15,9 @@ import { StockAlertsCard } from "./components/StockAlertsCard"
 import { MissedIntakesCard } from "./components/MissedIntakesCard"
 import { TodaySection } from "./components/TodaySection"
 import { TomorrowSection } from "./components/TomorrowSection"
+import { IntakeActionDialog } from "./components/IntakeActionDialog"
 import { TakeIntakeDialog } from "./components/TakeIntakeDialog"
+import { SkipIntakeDialog } from "./components/SkipIntakeDialog"
 import { QuickActions } from "./components/QuickActions"
 import { UpcomingIntake } from "./types"
 
@@ -27,8 +30,10 @@ const Index = () => {
   // Data loading
   const { upcomingIntakes, stockAlerts, activeTreatments, loading, reload } = useDashboardData()
   
-  // Dialog state
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  // Dialog states - 3 dialogs: action choice, take confirm, skip confirm
+  const [showActionDialog, setShowActionDialog] = useState(false)
+  const [showTakeDialog, setShowTakeDialog] = useState(false)
+  const [showSkipDialog, setShowSkipDialog] = useState(false)
   const [selectedIntake, setSelectedIntake] = useState<UpcomingIntake | null>(null)
   
   // Accordion state
@@ -40,8 +45,15 @@ const Index = () => {
   const tomorrowSectionRef = useRef<HTMLDivElement>(null)
   
   // Take intake hook
-  const { takeIntake, processing } = useTakeIntake(() => {
-    setShowConfirmDialog(false)
+  const { takeIntake, processing: takeProcessing } = useTakeIntake(() => {
+    setShowTakeDialog(false)
+    setSelectedIntake(null)
+    reload()
+  })
+
+  // Skip intake hook
+  const { skipIntake, processing: skipProcessing } = useSkipIntake(() => {
+    setShowSkipDialog(false)
     setSelectedIntake(null)
     reload()
   })
@@ -73,7 +85,7 @@ const Index = () => {
       const intake = upcomingIntakes.find(i => i.id === intakeId)
       if (intake) {
         setSelectedIntake(intake)
-        setShowConfirmDialog(true)
+        setShowActionDialog(true)
         // Nettoyer le paramètre de l'URL
         setSearchParams({})
       }
@@ -93,7 +105,19 @@ const Index = () => {
     }
     
     setSelectedIntake(intake)
-    setShowConfirmDialog(true)
+    setShowActionDialog(true)
+  }
+
+  // User chose to confirm the intake
+  const handleConfirmIntakeChoice = () => {
+    setShowActionDialog(false)
+    setShowTakeDialog(true)
+  }
+
+  // User chose to skip the intake
+  const handleSkipIntakeChoice = () => {
+    setShowActionDialog(false)
+    setShowSkipDialog(true)
   }
 
   const confirmTakeIntake = async () => {
@@ -101,9 +125,26 @@ const Index = () => {
     await takeIntake(selectedIntake)
   }
 
-  const cancelTakeIntake = () => {
-    setShowConfirmDialog(false)
+  const confirmSkipIntake = async () => {
+    if (!selectedIntake) return
+    await skipIntake(selectedIntake)
+  }
+
+  const cancelActionDialog = () => {
+    setShowActionDialog(false)
     setSelectedIntake(null)
+  }
+
+  const cancelTakeDialog = () => {
+    setShowTakeDialog(false)
+    // Go back to action dialog
+    setShowActionDialog(true)
+  }
+
+  const cancelSkipDialog = () => {
+    setShowSkipDialog(false)
+    // Go back to action dialog
+    setShowActionDialog(true)
   }
 
   const handleTreatmentClick = (treatmentId: string) => {
@@ -188,12 +229,28 @@ const Index = () => {
         />
       </div>
 
+      <IntakeActionDialog
+        open={showActionDialog}
+        intake={selectedIntake}
+        onConfirmIntake={handleConfirmIntakeChoice}
+        onSkipIntake={handleSkipIntakeChoice}
+        onCancel={cancelActionDialog}
+      />
+
       <TakeIntakeDialog
-        open={showConfirmDialog}
+        open={showTakeDialog}
         intake={selectedIntake}
         onConfirm={confirmTakeIntake}
-        onCancel={cancelTakeIntake}
-        processing={processing}
+        onCancel={cancelTakeDialog}
+        processing={takeProcessing}
+      />
+
+      <SkipIntakeDialog
+        open={showSkipDialog}
+        intake={selectedIntake}
+        onConfirm={confirmSkipIntake}
+        onCancel={cancelSkipDialog}
+        processing={skipProcessing}
       />
     </AppLayout>
   )

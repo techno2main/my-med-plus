@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Clock, Pill, CheckCircle2, XCircle, ClockAlert } from "lucide-react"
+import { Clock, Pill, CheckCircle2, XCircle, ClockAlert, SkipForward } from "lucide-react"
 import { format } from "date-fns"
 import { isIntakeValidationAllowed, getLocalDateString } from "@/lib/dateUtils"
 import { UpcomingIntake } from "../types"
@@ -76,8 +76,13 @@ const getStatusBadge = (
     return <CheckCircle2 className="h-6 w-6 text-success" />
   }
   
+  // Prise sautée volontairement
+  if (status === 'skipped') {
+    return <SkipForward className="h-6 w-6 text-orange-500" />
+  }
+  
   // Prise manquée
-  if (status === 'missed' || status === 'skipped') {
+  if (status === 'missed') {
     return <XCircle className="h-6 w-6 text-danger" />
   }
   
@@ -120,6 +125,10 @@ export const IntakeCard = ({ intake, isOverdue, isTomorrowSection = false, onTak
       // Sinon CheckCircle2 vert
       return <CheckCircle2 className="h-3.5 w-3.5 mb-0.5 text-success" />
     }
+    // Si sauté, afficher SkipForward orange
+    if (intake.status === 'skipped') {
+      return <SkipForward className="h-3.5 w-3.5 mb-0.5 text-orange-500" />
+    }
     // Pour les autres cas, afficher Clock
     return <Clock className={`h-3.5 w-3.5 mb-0.5 ${shouldShowOrangeBadge ? 'text-orange-600' : 'text-primary'}`} />
   }
@@ -127,6 +136,7 @@ export const IntakeCard = ({ intake, isOverdue, isTomorrowSection = false, onTak
   // Couleur de fond du badge horaire
   const getTimeBadgeBgColor = () => {
     if (isTaken) return 'bg-success/10'
+    if (intake.status === 'skipped') return 'bg-orange-100'
     if (shouldShowOrangeBadge) return 'bg-orange-100'
     return 'bg-primary/10'
   }
@@ -134,6 +144,7 @@ export const IntakeCard = ({ intake, isOverdue, isTomorrowSection = false, onTak
   // Couleur du texte de l'heure
   const getTimeTextColor = () => {
     if (isTaken) return 'text-success'
+    if (intake.status === 'skipped') return 'text-orange-500'
     if (shouldShowOrangeBadge) return 'text-orange-700'
     return 'text-primary'
   }
