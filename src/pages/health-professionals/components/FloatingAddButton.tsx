@@ -35,16 +35,16 @@ export function FloatingAddButton({ onAdd }: FloatingAddButtonProps) {
             key={option.type}
             onClick={() => handleOptionClick(option.type)}
             className={cn(
-              "flex items-center gap-3 bg-card border border-border rounded-full pl-4 pr-3 py-2 shadow-lg",
+              "flex items-center justify-between w-44 bg-card border border-border rounded-full pl-4 pr-2 py-2 shadow-lg",
               "hover:bg-accent transition-all duration-200",
               "animate-in fade-in slide-in-from-bottom-2"
             )}
             style={{ animationDelay: `${index * 50}ms` }}
           >
-            <span className="text-sm font-medium text-foreground whitespace-nowrap">
+            <span className="text-sm font-medium text-foreground">
               {option.label}
             </span>
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
               <option.icon className="h-5 w-5 text-primary-foreground" />
             </div>
           </button>
