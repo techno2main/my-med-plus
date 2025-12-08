@@ -1,12 +1,6 @@
 import { Card } from "@/components/ui/card"
 import { AdherenceStats } from "@/hooks/useAdherenceStats"
-import { CheckCircle2, ClockAlert, SkipForward, XCircle } from "lucide-react"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+import { StatusIcon, statusBgClasses, statusHoverBgClasses, IntakeStatus } from "@/components/ui/status-icon"
 
 interface StatsCardsProps {
   stats: AdherenceStats
@@ -14,6 +8,13 @@ interface StatsCardsProps {
   totalCompleted: number
   totalPending: number
 }
+
+const statItems: { status: IntakeStatus; key: keyof AdherenceStats }[] = [
+  { status: 'ontime', key: 'takenOnTime' },
+  { status: 'late', key: 'lateIntakes' },
+  { status: 'skipped', key: 'skipped' },
+  { status: 'missed', key: 'missed' },
+]
 
 export const StatsCards = ({ stats, onFilterClick, totalCompleted, totalPending }: StatsCardsProps) => {
   return (
@@ -51,66 +52,22 @@ export const StatsCards = ({ stats, onFilterClick, totalCompleted, totalPending 
 
       <Card className="p-6">
         <h3 className="font-semibold mb-4">Résumé (depuis le 13/10/25)</h3>
-        <TooltipProvider>
-          <div className="grid grid-cols-4 gap-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div 
-                  className="p-3 rounded-lg bg-success/10 cursor-pointer hover:bg-success/20 transition-colors text-center" 
-                  onClick={() => onFilterClick("ontime")}
-                >
-                  <CheckCircle2 className="h-5 w-5 text-success mx-auto mb-1" />
-                  <p className="text-2xl font-bold text-success">{stats.takenOnTime}</p>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>À l'heure</p>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div 
-                  className="p-3 rounded-lg bg-success/10 cursor-pointer hover:bg-success/20 transition-colors text-center" 
-                  onClick={() => onFilterClick("late")}
-                >
-                  <ClockAlert className="h-5 w-5 text-success mx-auto mb-1" />
-                  <p className="text-2xl font-bold text-success">{stats.lateIntakes}</p>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>En retard</p>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div 
-                  className="p-3 rounded-lg bg-warning/10 cursor-pointer hover:bg-warning/20 transition-colors text-center" 
-                  onClick={() => onFilterClick("skipped")}
-                >
-                  <SkipForward className="h-5 w-5 text-warning mx-auto mb-1" />
-                  <p className="text-2xl font-bold text-warning">{stats.skipped}</p>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Sautées</p>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div 
-                  className="p-3 rounded-lg bg-danger/10 cursor-pointer hover:bg-danger/20 transition-colors text-center" 
-                  onClick={() => onFilterClick("missed")}
-                >
-                  <XCircle className="h-5 w-5 text-danger mx-auto mb-1" />
-                  <p className="text-2xl font-bold text-danger">{stats.missed}</p>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Manquées</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </TooltipProvider>
+        <div className="grid grid-cols-4 gap-2">
+          {statItems.map(({ status, key }) => (
+            <div 
+              key={status}
+              className={`p-3 rounded-lg cursor-pointer transition-colors text-center ${statusBgClasses[status]} ${statusHoverBgClasses[status]}`}
+              onClick={() => onFilterClick(status as 'ontime' | 'late' | 'missed' | 'skipped')}
+            >
+              <div className="flex justify-center mb-1">
+                <StatusIcon status={status} size="md" />
+              </div>
+              <p className={`text-2xl font-bold ${status === 'missed' ? 'text-danger' : status === 'skipped' ? 'text-warning' : 'text-success'}`}>
+                {stats[key]}
+              </p>
+            </div>
+          ))}
+        </div>
         
         {(totalCompleted > 0 || totalPending > 0) && (
           <div className="mt-4 pt-4 border-t border-border">
