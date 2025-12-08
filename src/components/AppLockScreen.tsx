@@ -22,6 +22,7 @@ export function AppLockScreen({ onUnlock, biometricEnabled }: AppLockScreenProps
   const [isLoading, setIsLoading] = useState(false);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [attemptingBiometric, setAttemptingBiometric] = useState(false);
+  const [isGoogleUser, setIsGoogleUser] = useState(false);
   
   // Password attempt tracking
   const [failedAttempts, setFailedAttempts] = useState(0);
@@ -31,6 +32,7 @@ export function AppLockScreen({ onUnlock, biometricEnabled }: AppLockScreenProps
 
   useEffect(() => {
     checkBiometricAvailability();
+    checkAuthProvider();
   }, []);
 
   useEffect(() => {
@@ -62,6 +64,18 @@ export function AppLockScreen({ onUnlock, biometricEnabled }: AppLockScreenProps
 
     return () => clearInterval(interval);
   }, [isLockedOut, lockEndTime]);
+
+  const checkAuthProvider = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const provider = user.app_metadata?.provider;
+        setIsGoogleUser(provider === 'google');
+      }
+    } catch {
+      console.error("Erreur vérification provider");
+    }
+  };
 
   const checkBiometricAvailability = async () => {
     if (!Capacitor.isNativePlatform()) {
@@ -118,6 +132,17 @@ export function AppLockScreen({ onUnlock, biometricEnabled }: AppLockScreenProps
         return;
       }
 
+      // Pour les utilisateurs Google, on ne peut pas vérifier le mot de passe
+      if (isGoogleUser) {
+        toast.error("Utilisez la biométrie ou reconnectez-vous via Google");
+        setIsLoading(false);
+        return;
+      }
+
+      // Sauvegarder le token actuel avant la vérification
+      const { data: sessionData } = await supabase.auth.getSession();
+      const currentSession = sessionData?.session;
+
       // Vérifier le mot de passe en tentant une connexion
       const { error } = await supabase.auth.signInWithPassword({
         email: user.email,
@@ -125,6 +150,14 @@ export function AppLockScreen({ onUnlock, biometricEnabled }: AppLockScreenProps
       });
 
       if (error) {
+        // Restaurer la session précédente si elle existe
+        if (currentSession) {
+          await supabase.auth.setSession({
+            access_token: currentSession.access_token,
+            refresh_token: currentSession.refresh_token
+          });
+        }
+        
         const newAttempts = failedAttempts + 1;
         setFailedAttempts(newAttempts);
         setPassword("");
@@ -145,12 +178,14 @@ export function AppLockScreen({ onUnlock, biometricEnabled }: AppLockScreenProps
         return;
       }
 
-      // Reset attempts on successful unlock
+      // Mot de passe correct - Reset attempts on successful unlock
       setFailedAttempts(0);
       setIsLockedOut(false);
       setLockEndTime(null);
+      toast.success("Déverrouillé");
       onUnlock();
     } catch (error) {
+      console.error("Erreur vérification:", error);
       toast.error("Erreur lors de la vérification");
     } finally {
       setIsLoading(false);
