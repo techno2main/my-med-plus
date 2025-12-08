@@ -26,8 +26,12 @@ export const useExpandedDays = (
     if (historyData.length > 0 && filterStatus !== "all") {
       // Helper function to check if intake matches filter
       const matchesFilter = (intake: any) => {
-        if (filterStatus === "missed") {
+        if (filterStatus === "skipped") {
           return intake.status === "skipped"
+        }
+        
+        if (filterStatus === "missed") {
+          return intake.status === "missed"
         }
         
         if (intake.status !== "taken" || !intake.scheduledTimestamp || !intake.takenAtTimestamp) {
