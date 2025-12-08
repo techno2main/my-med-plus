@@ -9,7 +9,6 @@ import {
 import { cn } from "@/lib/utils"
 import { supabase } from "@/integrations/supabase/client"
 import { useQuery } from "@tanstack/react-query"
-import { useUserRole } from "@/hooks/useUserRole"
 
 const ICON_MAP: Record<string, any> = {
   Home, Pill, Package, Calendar, Settings,
@@ -24,7 +23,6 @@ export function BottomNavigation() {
   const [isDragging, setIsDragging] = useState(false)
   const [startX, setStartX] = useState(0)
   const [scrollLeft, setScrollLeft] = useState(0)
-  const { isAdmin } = useUserRole()
 
   // Restore scroll position on mount and route change
   useEffect(() => {
@@ -106,15 +104,7 @@ export function BottomNavigation() {
     setIsDragging(false);
   };
 
-  // Filter items based on admin status
-  const filteredNavItems = navItems?.filter(item => {
-    if (item.path === '/admin') {
-      return isAdmin;
-    }
-    return true;
-  }) || [];
-
-  if (filteredNavItems.length === 0) return null;
+  if (!navItems || navItems.length === 0) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-sm pb-safe">
@@ -130,7 +120,7 @@ export function BottomNavigation() {
         onMouseLeave={handleMouseLeave}
       >
         <div className="flex items-center h-16 px-2 gap-2 md:justify-center md:max-w-4xl md:mx-auto">
-          {filteredNavItems.map((item) => {
+          {navItems.map((item) => {
             const isActive = location.pathname === item.path
             const Icon = getIconComponent(item.icon)
             

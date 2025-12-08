@@ -36,7 +36,6 @@ const ProfileExport = lazy(() => import("./pages/profile-export/ProfileExport"))
 const NotificationDebug = lazy(() => import("./pages/admin/NotificationDebug"));
 const NavigationManager = lazy(() => import("./pages/admin/NavigationManager"));
 const SettingsSectionOrder = lazy(() => import("./pages/settings/SettingsSectionOrder"));
-const Admin = lazy(() => import("./pages/admin/dashboard/AdminDashboard"));
 const NotFound = lazy(() => import("./pages/not-found/NotFound"));
 const Rattrapage = lazy(() => import("./pages/rattrapage/Rattrapage"));
 
@@ -77,7 +76,6 @@ const App = () => {
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/settings/navigation" element={<ProtectedRoute><NavigationManager /></ProtectedRoute>} />
           <Route path="/settings/sections-order" element={<ProtectedRoute><SettingsSectionOrder /></ProtectedRoute>} />
-          <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
           <Route path="/notifications/debug" element={<ProtectedRoute><NotificationDebug /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />

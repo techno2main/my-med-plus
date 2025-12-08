@@ -185,7 +185,7 @@ export function useRattrapageActions(missedIntakes: MissedIntake[]) {
         `${processedActions.length} prise(s) traitée(s) : ${takenCount} prise(s), ${skippedCount} manquée(s)`
       );
       
-      navigate("/admin");
+      navigate("/settings");
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
       toast.error("Erreur lors de la sauvegarde");
