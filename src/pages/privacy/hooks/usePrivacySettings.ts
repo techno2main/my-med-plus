@@ -5,6 +5,7 @@ import { getAuthenticatedUser } from "@/lib/auth-guard";
 import { usePasswordManagement } from "./usePasswordManagement";
 import { useBiometricSettings } from "./useBiometricSettings";
 import { useAccountActions } from "./useAccountActions";
+import { toast } from "sonner";
 
 export const usePrivacySettings = () => {
   const navigate = useNavigate();
@@ -12,6 +13,8 @@ export const usePrivacySettings = () => {
   const [authProvider, setAuthProvider] = useState<string | null>(null);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [requireAuthOnOpen, setRequireAuthOnOpen] = useState(false);
+  const [inactivityTimeoutMinutes, setInactivityTimeoutMinutes] = useState(5);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,8 +40,10 @@ export const usePrivacySettings = () => {
         .single();
 
       if (prefs) {
-        setBiometricEnabled(prefs.biometric_enabled);
-        setTwoFactorEnabled(prefs.two_factor_enabled);
+        setBiometricEnabled(prefs.biometric_enabled ?? false);
+        setTwoFactorEnabled(prefs.two_factor_enabled ?? false);
+        setRequireAuthOnOpen((prefs as { require_auth_on_open?: boolean }).require_auth_on_open ?? false);
+        setInactivityTimeoutMinutes((prefs as { inactivity_timeout_minutes?: number }).inactivity_timeout_minutes ?? 5);
       } else {
         await supabase
           .from('user_preferences')
@@ -71,16 +76,60 @@ export const usePrivacySettings = () => {
     setTwoFactorEnabled
   );
 
+  const handleRequireAuthOnOpenToggle = async (enabled: boolean) => {
+    try {
+      const { data: user } = await getAuthenticatedUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('user_preferences')
+        .update({ require_auth_on_open: enabled } as Record<string, unknown>)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setRequireAuthOnOpen(enabled);
+      toast.success(enabled ? "Verrouillage activé" : "Verrouillage désactivé");
+    } catch (error) {
+      console.error('Erreur mise à jour préférence:', error);
+      toast.error("Erreur lors de la mise à jour");
+    }
+  };
+
+  const handleInactivityTimeoutChange = async (minutes: number) => {
+    try {
+      const { data: user } = await getAuthenticatedUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('user_preferences')
+        .update({ inactivity_timeout_minutes: minutes } as Record<string, unknown>)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setInactivityTimeoutMinutes(minutes);
+      toast.success(`Déconnexion automatique après ${minutes} minute${minutes > 1 ? 's' : ''}`);
+    } catch (error) {
+      console.error('Erreur mise à jour timeout:', error);
+      toast.error("Erreur lors de la mise à jour");
+    }
+  };
+
   return {
     authProvider,
     biometricEnabled,
     twoFactorEnabled,
+    requireAuthOnOpen,
+    inactivityTimeoutMinutes,
     loading,
     handlePasswordChange,
     handleForgotPassword,
     handleBiometricToggle,
     handleBiometricPasswordConfirm,
     handleTwoFactorToggle,
+    handleRequireAuthOnOpenToggle,
+    handleInactivityTimeoutChange,
     handleExportData,
     handleDeleteAccount,
   };

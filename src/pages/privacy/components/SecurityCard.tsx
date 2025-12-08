@@ -9,24 +9,48 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface SecurityCardProps {
   authProvider: string | null;
   biometricEnabled: boolean;
   twoFactorEnabled: boolean;
+  requireAuthOnOpen: boolean;
+  inactivityTimeoutMinutes: number;
   onPasswordChange: () => void;
   onBiometricToggle: () => void;
   onTwoFactorToggle: () => void;
+  onRequireAuthOnOpenToggle: () => void;
+  onInactivityTimeoutChange: (minutes: number) => void;
   onDeleteAccount: () => void;
 }
+
+const TIMEOUT_OPTIONS = [
+  { value: 1, label: "1 minute" },
+  { value: 2, label: "2 minutes" },
+  { value: 5, label: "5 minutes" },
+  { value: 10, label: "10 minutes" },
+  { value: 15, label: "15 minutes" },
+  { value: 30, label: "30 minutes" },
+];
 
 export function SecurityCard({
   authProvider,
   biometricEnabled,
   twoFactorEnabled,
+  requireAuthOnOpen,
+  inactivityTimeoutMinutes,
   onPasswordChange,
   onBiometricToggle,
   onTwoFactorToggle,
+  onRequireAuthOnOpenToggle,
+  onInactivityTimeoutChange,
   onDeleteAccount,
 }: SecurityCardProps) {
   return (
@@ -98,6 +122,42 @@ export function SecurityCard({
             checked={twoFactorEnabled}
             onCheckedChange={onTwoFactorToggle}
           />
+        </div>
+
+        {/* Verrouillage à l'ouverture */}
+        <div className="flex items-center justify-between">
+          <Label htmlFor="require-auth" className="flex-1 cursor-pointer">
+            <p className="font-medium">Verrouiller à l'ouverture</p>
+            <p className="text-sm text-muted-foreground">Demander l'authentification à chaque lancement</p>
+          </Label>
+          <Switch 
+            id="require-auth"
+            checked={requireAuthOnOpen}
+            onCheckedChange={onRequireAuthOnOpenToggle}
+          />
+        </div>
+
+        {/* Déconnexion automatique */}
+        <div className="flex items-center justify-between">
+          <Label htmlFor="inactivity-timeout" className="flex-1">
+            <p className="font-medium">Déconnexion automatique</p>
+            <p className="text-sm text-muted-foreground">Après une période d'inactivité</p>
+          </Label>
+          <Select
+            value={String(inactivityTimeoutMinutes)}
+            onValueChange={(value) => onInactivityTimeoutChange(Number(value))}
+          >
+            <SelectTrigger className="w-[130px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TIMEOUT_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={String(option.value)}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Supprimer le compte */}

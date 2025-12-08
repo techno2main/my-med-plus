@@ -15,12 +15,16 @@ export default function Privacy() {
     authProvider,
     biometricEnabled,
     twoFactorEnabled,
+    requireAuthOnOpen,
+    inactivityTimeoutMinutes,
     loading,
     handlePasswordChange,
     handleForgotPassword,
     handleBiometricToggle,
     handleBiometricPasswordConfirm,
     handleTwoFactorToggle,
+    handleRequireAuthOnOpenToggle,
+    handleInactivityTimeoutChange,
     handleExportData,
     handleDeleteAccount,
   } = usePrivacySettings();
@@ -136,9 +140,13 @@ export default function Privacy() {
           authProvider={authProvider}
           biometricEnabled={biometricEnabled}
           twoFactorEnabled={twoFactorEnabled}
+          requireAuthOnOpen={requireAuthOnOpen}
+          inactivityTimeoutMinutes={inactivityTimeoutMinutes}
           onPasswordChange={() => setShowChangePasswordDialog(true)}
           onBiometricToggle={onBiometricToggle}
           onTwoFactorToggle={onTwoFactorToggle}
+          onRequireAuthOnOpenToggle={() => handleRequireAuthOnOpenToggle(!requireAuthOnOpen)}
+          onInactivityTimeoutChange={handleInactivityTimeoutChange}
           onDeleteAccount={() => setShowDeleteDialog(true)}
         />
 
