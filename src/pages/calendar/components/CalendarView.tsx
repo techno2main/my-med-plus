@@ -296,6 +296,7 @@ export const CalendarView = ({
               >
                 <RefreshCw className="h-4 w-4" />
                 <span className="text-xs">Synchroniser</span>
+                <CalendarDays className="h-4 w-4" />
               </Button>
             </div>
           </div>
