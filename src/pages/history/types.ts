@@ -32,5 +32,5 @@ export interface GroupedIntakes {
   }[]
 }
 
-export type FilterStatus = 'all' | 'missed' | 'ontime' | 'late'
+export type FilterStatus = 'all' | 'missed' | 'ontime' | 'late' | 'skipped'
 export type ActiveTab = 'history' | 'statistics'

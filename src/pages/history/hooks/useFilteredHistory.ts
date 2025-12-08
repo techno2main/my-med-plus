@@ -9,8 +9,19 @@ export const useFilteredHistory = (historyData: GroupedIntakes[], filterStatus: 
     return historyData.map(day => ({
       ...day,
       intakes: day.intakes.filter(intake => {
-        if (filterStatus === "missed") {
+        // Filtre "skipped" : prises volontairement sautées
+        if (filterStatus === "skipped") {
           return intake.status === 'skipped'
+        }
+
+        // Filtre "missed" : prises manquées (pending passées, pas skipped)
+        if (filterStatus === "missed") {
+          if (intake.status === 'skipped') return false
+          if (intake.status === 'pending' && intake.scheduledTimestamp) {
+            const scheduledTime = parseISO(intake.scheduledTimestamp)
+            return scheduledTime < new Date()
+          }
+          return false
         }
 
         // For ontime and late filters, check if taken

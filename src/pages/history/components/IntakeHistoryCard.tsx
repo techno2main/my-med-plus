@@ -1,4 +1,4 @@
-import { Pill, CheckCircle2, XCircle, Clock, ClockAlert } from "lucide-react"
+import { Pill, CheckCircle2, XCircle, Clock, ClockAlert, SkipForward } from "lucide-react"
 
 interface IntakeHistoryCardProps {
   intake: {
@@ -28,11 +28,7 @@ const getStatusBadge = (status: string, scheduledTimestamp?: string, takenAtTime
     if (differenceMinutes <= 30) {
       return <CheckCircle2 className="h-6 w-6 text-success" />
     }
-    // Vert : entre 30min et 1h après (léger retard)
-    else if (differenceMinutes <= 60) {
-      return <ClockAlert className="h-6 w-6 text-success" />
-    }
-    // Vert : plus d'1h après (gros retard)
+    // Vert : plus de 30min après (en retard)
     else {
       return <ClockAlert className="h-6 w-6 text-success" />
     }
@@ -42,9 +38,9 @@ const getStatusBadge = (status: string, scheduledTimestamp?: string, takenAtTime
     case "taken":
       return <CheckCircle2 className="h-6 w-6 text-success" />
     case "skipped":
-      return <XCircle className="h-6 w-6 text-danger" />
+      return <SkipForward className="h-6 w-6 text-warning" />
     case "pending":
-      return <Clock className="h-6 w-6 text-warning" />
+      return <Clock className="h-6 w-6 text-muted-foreground" />
     default:
       return null
   }
