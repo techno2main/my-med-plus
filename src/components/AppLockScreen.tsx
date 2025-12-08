@@ -194,6 +194,9 @@ export function AppLockScreen({ onUnlock, biometricEnabled }: AppLockScreenProps
 
   const remainingAttemptsText = MAX_ATTEMPTS - failedAttempts;
 
+  // Si biométrie activée, afficher uniquement l'option biométrie (pas de mot de passe)
+  const showPasswordFallback = !biometricEnabled || !biometricAvailable;
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm p-6 space-y-6">
@@ -203,75 +206,83 @@ export function AppLockScreen({ onUnlock, biometricEnabled }: AppLockScreenProps
           </div>
           <h1 className="text-xl font-semibold">MyHealth+</h1>
           <p className="text-sm text-muted-foreground">
-            Veuillez vous authentifier pour continuer
+            {biometricEnabled && biometricAvailable 
+              ? "Utilisez la biométrie pour déverrouiller" 
+              : "Veuillez vous authentifier pour continuer"}
           </p>
         </div>
 
+        {/* Bouton biométrie principal */}
         {biometricAvailable && biometricEnabled && (
           <Button
-            variant="outline"
             className="w-full gap-2"
             onClick={attemptBiometricUnlock}
+            size="lg"
           >
             <Fingerprint className="h-5 w-5" />
-            Utiliser la biométrie
+            Déverrouiller avec la biométrie
           </Button>
         )}
 
-        {/* Lockout warning */}
-        {isLockedOut && (
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-            <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0" />
-            <div className="text-sm">
-              <p className="font-medium text-destructive">Trop de tentatives</p>
-              <p className="text-muted-foreground">
-                Réessayez dans {remainingSeconds} seconde{remainingSeconds > 1 ? 's' : ''}
-              </p>
+        {/* Afficher le mot de passe UNIQUEMENT si biométrie non disponible/activée */}
+        {showPasswordFallback && (
+          <>
+            {/* Lockout warning */}
+            {isLockedOut && (
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium text-destructive">Trop de tentatives</p>
+                  <p className="text-muted-foreground">
+                    Réessayez dans {remainingSeconds} seconde{remainingSeconds > 1 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Failed attempts warning (before lockout) */}
+            {!isLockedOut && failedAttempts > 0 && failedAttempts < MAX_ATTEMPTS && (
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                <AlertTriangle className="h-5 w-5 text-orange-500 flex-shrink-0" />
+                <p className="text-sm text-muted-foreground">
+                  {remainingAttemptsText} tentative{remainingAttemptsText > 1 ? 's' : ''} restante{remainingAttemptsText > 1 ? 's' : ''}
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Mot de passe"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && !isLockedOut && handlePasswordUnlock()}
+                  disabled={isLockedOut}
+                  className={isLockedOut ? "opacity-50" : ""}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={isLockedOut}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+              
+              <Button
+                className="w-full"
+                onClick={handlePasswordUnlock}
+                disabled={isLoading || isLockedOut}
+              >
+                {isLoading ? "Vérification..." : isLockedOut ? `Bloqué (${remainingSeconds}s)` : "Déverrouiller"}
+              </Button>
             </div>
-          </div>
+          </>
         )}
-
-        {/* Failed attempts warning (before lockout) */}
-        {!isLockedOut && failedAttempts > 0 && failedAttempts < MAX_ATTEMPTS && (
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
-            <AlertTriangle className="h-5 w-5 text-orange-500 flex-shrink-0" />
-            <p className="text-sm text-muted-foreground">
-              {remainingAttemptsText} tentative{remainingAttemptsText > 1 ? 's' : ''} restante{remainingAttemptsText > 1 ? 's' : ''}
-            </p>
-          </div>
-        )}
-
-        <div className="space-y-4">
-          <div className="relative">
-            <Input
-              type={showPassword ? "text" : "password"}
-              placeholder="Mot de passe"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && !isLockedOut && handlePasswordUnlock()}
-              disabled={isLockedOut}
-              className={isLockedOut ? "opacity-50" : ""}
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="absolute right-0 top-0 h-full px-3"
-              onClick={() => setShowPassword(!showPassword)}
-              disabled={isLockedOut}
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </Button>
-          </div>
-          
-          <Button
-            className="w-full"
-            onClick={handlePasswordUnlock}
-            disabled={isLoading || isLockedOut}
-          >
-            {isLoading ? "Vérification..." : isLockedOut ? `Bloqué (${remainingSeconds}s)` : "Déverrouiller"}
-          </Button>
-        </div>
       </Card>
     </div>
   );
