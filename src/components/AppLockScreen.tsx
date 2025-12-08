@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Lock, Fingerprint, Eye, EyeOff } from "lucide-react";
+import { Lock, Fingerprint, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { NativeBiometric } from "capacitor-native-biometric";
 import { Capacitor } from "@capacitor/core";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,12 +13,21 @@ interface AppLockScreenProps {
   biometricEnabled: boolean;
 }
 
+const MAX_ATTEMPTS = 3;
+const LOCKOUT_DURATION_SECONDS = 30;
+
 export function AppLockScreen({ onUnlock, biometricEnabled }: AppLockScreenProps) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [attemptingBiometric, setAttemptingBiometric] = useState(false);
+  
+  // Password attempt tracking
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [isLockedOut, setIsLockedOut] = useState(false);
+  const [lockEndTime, setLockEndTime] = useState<number | null>(null);
+  const [remainingSeconds, setRemainingSeconds] = useState(0);
 
   useEffect(() => {
     checkBiometricAvailability();
@@ -31,6 +40,28 @@ export function AppLockScreen({ onUnlock, biometricEnabled }: AppLockScreenProps
       attemptBiometricUnlock();
     }
   }, [biometricAvailable, biometricEnabled]);
+
+  // Countdown timer for lockout
+  useEffect(() => {
+    if (!isLockedOut || !lockEndTime) return;
+
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const remaining = Math.ceil((lockEndTime - now) / 1000);
+      
+      if (remaining <= 0) {
+        setIsLockedOut(false);
+        setLockEndTime(null);
+        setRemainingSeconds(0);
+        setFailedAttempts(0);
+        clearInterval(interval);
+      } else {
+        setRemainingSeconds(remaining);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isLockedOut, lockEndTime]);
 
   const checkBiometricAvailability = async () => {
     if (!Capacitor.isNativePlatform()) {
@@ -57,6 +88,10 @@ export function AppLockScreen({ onUnlock, biometricEnabled }: AppLockScreenProps
         description: "Pour accéder à l'application"
       });
       
+      // Reset attempts on successful unlock
+      setFailedAttempts(0);
+      setIsLockedOut(false);
+      setLockEndTime(null);
       onUnlock();
     } catch (error) {
       console.log("Biometric verification cancelled or failed");
@@ -66,6 +101,10 @@ export function AppLockScreen({ onUnlock, biometricEnabled }: AppLockScreenProps
   const handlePasswordUnlock = async () => {
     if (!password.trim()) {
       toast.error("Veuillez entrer votre mot de passe");
+      return;
+    }
+
+    if (isLockedOut) {
       return;
     }
 
@@ -86,11 +125,30 @@ export function AppLockScreen({ onUnlock, biometricEnabled }: AppLockScreenProps
       });
 
       if (error) {
-        toast.error("Mot de passe incorrect");
+        const newAttempts = failedAttempts + 1;
+        setFailedAttempts(newAttempts);
+        setPassword("");
+        
+        if (newAttempts >= MAX_ATTEMPTS) {
+          // Activate lockout
+          const endTime = Date.now() + LOCKOUT_DURATION_SECONDS * 1000;
+          setIsLockedOut(true);
+          setLockEndTime(endTime);
+          setRemainingSeconds(LOCKOUT_DURATION_SECONDS);
+          toast.error("Trop de tentatives. Réessayez dans 30 secondes.");
+        } else {
+          const remaining = MAX_ATTEMPTS - newAttempts;
+          toast.error(`Mot de passe incorrect. ${remaining} tentative${remaining > 1 ? 's' : ''} restante${remaining > 1 ? 's' : ''}.`);
+        }
+        
         setIsLoading(false);
         return;
       }
 
+      // Reset attempts on successful unlock
+      setFailedAttempts(0);
+      setIsLockedOut(false);
+      setLockEndTime(null);
       onUnlock();
     } catch (error) {
       toast.error("Erreur lors de la vérification");
@@ -98,6 +156,8 @@ export function AppLockScreen({ onUnlock, biometricEnabled }: AppLockScreenProps
       setIsLoading(false);
     }
   };
+
+  const remainingAttemptsText = MAX_ATTEMPTS - failedAttempts;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -123,6 +183,29 @@ export function AppLockScreen({ onUnlock, biometricEnabled }: AppLockScreenProps
           </Button>
         )}
 
+        {/* Lockout warning */}
+        {isLockedOut && (
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+            <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0" />
+            <div className="text-sm">
+              <p className="font-medium text-destructive">Trop de tentatives</p>
+              <p className="text-muted-foreground">
+                Réessayez dans {remainingSeconds} seconde{remainingSeconds > 1 ? 's' : ''}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Failed attempts warning (before lockout) */}
+        {!isLockedOut && failedAttempts > 0 && failedAttempts < MAX_ATTEMPTS && (
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
+            <AlertTriangle className="h-5 w-5 text-orange-500 flex-shrink-0" />
+            <p className="text-sm text-muted-foreground">
+              {remainingAttemptsText} tentative{remainingAttemptsText > 1 ? 's' : ''} restante{remainingAttemptsText > 1 ? 's' : ''}
+            </p>
+          </div>
+        )}
+
         <div className="space-y-4">
           <div className="relative">
             <Input
@@ -130,7 +213,9 @@ export function AppLockScreen({ onUnlock, biometricEnabled }: AppLockScreenProps
               placeholder="Mot de passe"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handlePasswordUnlock()}
+              onKeyDown={(e) => e.key === "Enter" && !isLockedOut && handlePasswordUnlock()}
+              disabled={isLockedOut}
+              className={isLockedOut ? "opacity-50" : ""}
             />
             <Button
               type="button"
@@ -138,6 +223,7 @@ export function AppLockScreen({ onUnlock, biometricEnabled }: AppLockScreenProps
               size="sm"
               className="absolute right-0 top-0 h-full px-3"
               onClick={() => setShowPassword(!showPassword)}
+              disabled={isLockedOut}
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </Button>
@@ -146,9 +232,9 @@ export function AppLockScreen({ onUnlock, biometricEnabled }: AppLockScreenProps
           <Button
             className="w-full"
             onClick={handlePasswordUnlock}
-            disabled={isLoading}
+            disabled={isLoading || isLockedOut}
           >
-            {isLoading ? "Vérification..." : "Déverrouiller"}
+            {isLoading ? "Vérification..." : isLockedOut ? `Bloqué (${remainingSeconds}s)` : "Déverrouiller"}
           </Button>
         </div>
       </Card>
