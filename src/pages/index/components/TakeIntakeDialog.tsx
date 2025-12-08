@@ -90,11 +90,11 @@ export const TakeIntakeDialog = ({ open, intake, onConfirm, onCancel, processing
 
         {/* Avertissement si prise anticipée */}
         {isEarly && (
-          <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 space-y-2">
+          <div className="bg-orange-500/20 border border-orange-400/50 rounded-lg p-3 space-y-3">
             <div className="flex items-start gap-2">
-              <AlertTriangle className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-warning-foreground">
-                Vous êtes sur le point de confirmer cette prise <strong>avant l'heure prévue</strong>. 
+              <AlertTriangle className="h-5 w-5 text-orange-400 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-foreground">
+                Vous êtes sur le point de confirmer cette prise <strong className="text-orange-400">avant l'heure prévue</strong>. 
                 Êtes-vous sûr de vouloir continuer ?
               </p>
             </div>
@@ -103,10 +103,11 @@ export const TakeIntakeDialog = ({ open, intake, onConfirm, onCancel, processing
                 id="early-confirm" 
                 checked={earlyConfirmChecked}
                 onCheckedChange={(checked) => setEarlyConfirmChecked(checked === true)}
+                className="border-orange-400 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
               />
               <label 
                 htmlFor="early-confirm" 
-                className="text-sm font-medium cursor-pointer select-none"
+                className="text-sm font-medium cursor-pointer select-none text-foreground"
               >
                 Je confirme vouloir valider cette prise en avance
               </label>
