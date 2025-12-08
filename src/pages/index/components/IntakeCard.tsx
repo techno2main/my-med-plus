@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Clock, Pill, CheckCircle2 } from "lucide-react"
+import { Clock, Pill, CheckCircle2, XCircle, ClockAlert } from "lucide-react"
 import { format } from "date-fns"
 import { isIntakeValidationAllowed, getLocalDateString } from "@/lib/dateUtils"
 import { UpcomingIntake } from "../types"
@@ -54,16 +54,46 @@ const getButtonClasses = (
   return "gradient-primary h-8 w-8 p-0"
 }
 
+// Icône de statut basée sur le statut de la prise (comme dans l'historique)
+const getStatusBadge = (
+  status: string,
+  isOverdue: boolean,
+  scheduledTime?: Date
+) => {
+  // Prise effectuée
+  if (status === 'taken') {
+    return <CheckCircle2 className="h-6 w-6 text-success" />
+  }
+  
+  // Prise manquée
+  if (status === 'missed' || status === 'skipped') {
+    return <XCircle className="h-6 w-6 text-danger" />
+  }
+  
+  // Prise en attente mais en retard
+  if (status === 'pending' && isOverdue) {
+    return <ClockAlert className="h-6 w-6 text-warning" />
+  }
+  
+  // Prise en attente (à venir)
+  if (status === 'pending') {
+    return <Clock className="h-6 w-6 text-primary" />
+  }
+  
+  return null
+}
+
 export const IntakeCard = ({ intake, isOverdue, isTomorrowSection = false, onTake }: IntakeCardProps) => {
   // Vérifier si c'est aujourd'hui et si l'heure de validation est autorisée
   const isToday = getLocalDateString(intake.date) === getLocalDateString(new Date())
   const isValidationAllowed = isIntakeValidationAllowed()
   const isDisabledByTime = isToday && !isValidationAllowed && !isTomorrowSection
   const isTaken = intake.status === 'taken'
-  const isDisabled = intake.currentStock === 0 || isOverdue || isTomorrowSection || isDisabledByTime || isTaken
+  const isMissed = intake.status === 'missed' || intake.status === 'skipped'
+  const isDisabled = intake.currentStock === 0 || isOverdue || isTomorrowSection || isDisabledByTime || isTaken || isMissed
   
   // Badge horaire : orange uniquement pour rattrapage (isOverdue et pas encore pris)
-  const shouldShowOrangeBadge = isOverdue && !isTaken
+  const shouldShowOrangeBadge = isOverdue && !isTaken && !isMissed
   
   return (
     <Card className="p-3 surface-elevated hover:shadow-md transition-shadow">
@@ -92,21 +122,30 @@ export const IntakeCard = ({ intake, isOverdue, isTomorrowSection = false, onTak
             </span>
           </div>
           
-          <Button 
-            size="sm" 
-            className={getButtonClasses(
-              intake.currentStock,
-              intake.minThreshold,
-              isOverdue,
-              isDisabledByTime,
-              isTomorrowSection,
-              isTaken
-            )}
-            onClick={() => onTake(intake)}
-            disabled={isDisabled}
-          >
-            <CheckCircle2 className="h-4 w-4" />
-          </Button>
+          {/* Afficher l'icône de statut si pris/manqué, sinon le bouton d'action */}
+          {isTaken || isMissed ? (
+            getStatusBadge(intake.status, isOverdue, intake.date)
+          ) : (
+            <Button 
+              size="sm" 
+              className={getButtonClasses(
+                intake.currentStock,
+                intake.minThreshold,
+                isOverdue,
+                isDisabledByTime,
+                isTomorrowSection,
+                isTaken
+              )}
+              onClick={() => onTake(intake)}
+              disabled={isDisabled}
+            >
+              {isOverdue ? (
+                <ClockAlert className="h-4 w-4" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4" />
+              )}
+            </Button>
+          )}
         </div>
       </div>
     </Card>
