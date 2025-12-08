@@ -105,13 +105,45 @@ export const IntakeCard = ({ intake, isOverdue, isTomorrowSection = false, onTak
   
   // Badge horaire : orange uniquement pour rattrapage (isOverdue et pas encore pris)
   const shouldShowOrangeBadge = isOverdue && !isTaken && !isMissed
+
+  // Détermine si la prise a été faite en retard (>30 min)
+  const isTakenLate = isTaken && intake.takenAt && 
+    ((intake.takenAt.getTime() - intake.date.getTime()) / (1000 * 60) > 30)
+
+  // Icône à afficher à gauche selon le statut
+  const getLeftIcon = () => {
+    if (isTaken) {
+      // Si pris en retard, afficher ClockAlert vert
+      if (isTakenLate) {
+        return <ClockAlert className="h-3.5 w-3.5 mb-0.5 text-success" />
+      }
+      // Sinon CheckCircle2 vert
+      return <CheckCircle2 className="h-3.5 w-3.5 mb-0.5 text-success" />
+    }
+    // Pour les autres cas, afficher Clock
+    return <Clock className={`h-3.5 w-3.5 mb-0.5 ${shouldShowOrangeBadge ? 'text-orange-600' : 'text-primary'}`} />
+  }
+
+  // Couleur de fond du badge horaire
+  const getTimeBadgeBgColor = () => {
+    if (isTaken) return 'bg-success/10'
+    if (shouldShowOrangeBadge) return 'bg-orange-100'
+    return 'bg-primary/10'
+  }
+
+  // Couleur du texte de l'heure
+  const getTimeTextColor = () => {
+    if (isTaken) return 'text-success'
+    if (shouldShowOrangeBadge) return 'text-orange-700'
+    return 'text-primary'
+  }
   
   return (
     <Card className="p-3 surface-elevated hover:shadow-md transition-shadow">
       <div className="flex items-center gap-3">
-        <div className={`flex flex-col items-center justify-center min-w-[60px] p-1.5 rounded-lg ${shouldShowOrangeBadge ? 'bg-orange-100' : 'bg-primary/10'}`}>
-          <Clock className={`h-3.5 w-3.5 mb-0.5 ${shouldShowOrangeBadge ? 'text-orange-600' : 'text-primary'}`} />
-          <span className={`text-xs font-semibold ${shouldShowOrangeBadge ? 'text-orange-700' : 'text-primary'}`}>{intake.time}</span>
+        <div className={`flex flex-col items-center justify-center min-w-[60px] p-1.5 rounded-lg ${getTimeBadgeBgColor()}`}>
+          {getLeftIcon()}
+          <span className={`text-xs font-semibold ${getTimeTextColor()}`}>{intake.time}</span>
           <span className="text-[10px] text-muted-foreground">{format(intake.date, "dd/MM")}</span>
         </div>
         
