@@ -4,7 +4,7 @@ import {
   Home, Pill, Package, Calendar, Settings,
   User, Heart, Bell, Shield, FileText,
   ClipboardList, Users, Database, Smartphone,
-  Moon, Sun, Mail, Phone, MapPin, Search
+  Moon, Sun, Mail, Phone, MapPin, Search, ListPlus
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { supabase } from "@/integrations/supabase/client"
@@ -14,7 +14,7 @@ const ICON_MAP: Record<string, any> = {
   Home, Pill, Package, Calendar, Settings,
   User, Heart, Bell, Shield, FileText,
   ClipboardList, Users, Database, Smartphone,
-  Moon, Sun, Mail, Phone, MapPin, Search
+  Moon, Sun, Mail, Phone, MapPin, Search, ListPlus
 };
 
 export function BottomNavigation() {
