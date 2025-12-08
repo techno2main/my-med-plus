@@ -3,7 +3,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,15 +52,9 @@ export function MedicationDialog({
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <DialogTitle>
-              {editingMed ? "Modifier" : "Ajouter"}
+              {editingMed ? "Modifier un Médicament" : "Ajouter un Médicament"}
             </DialogTitle>
           </div>
-          <DialogDescription className="text-muted-foreground">
-            {editingMed 
-              ? "Modifier les informations du médicament"
-              : "Ajoutez un nouveau médicament au référentiel"
-            }
-          </DialogDescription>
         </DialogHeader>
         
         <ScrollArea className="flex-1 min-h-0">
