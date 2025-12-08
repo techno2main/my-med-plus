@@ -21,6 +21,7 @@ interface DaySectionProps {
       treatmentId: string
       treatmentQspDays?: number | null
       treatmentEndDate?: string | null
+      treatmentIsActive?: boolean
     }>
   }
   isExpanded: boolean
@@ -37,12 +38,13 @@ export const DaySection = forwardRef<HTMLDivElement, DaySectionProps>(
         acc[intake.treatmentId] = {
           treatment: intake.treatment,
           qspDays: intake.treatmentQspDays,
+          isActive: intake.treatmentIsActive ?? true,
           intakes: []
         }
       }
       acc[intake.treatmentId].intakes.push(intake)
       return acc
-    }, {} as Record<string, { treatment: string; qspDays?: number | null; intakes: typeof day.intakes }>)
+    }, {} as Record<string, { treatment: string; qspDays?: number | null; isActive?: boolean; intakes: typeof day.intakes }>)
 
     return (
       <Card className="p-4" ref={ref}>
@@ -79,6 +81,7 @@ export const DaySection = forwardRef<HTMLDivElement, DaySectionProps>(
                 key={treatmentId}
                 treatment={group.treatment}
                 qspDays={group.qspDays}
+                isActive={group.isActive}
                 intakes={group.intakes}
               />
             ))}

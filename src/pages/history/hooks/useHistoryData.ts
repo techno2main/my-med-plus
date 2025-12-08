@@ -28,7 +28,6 @@ export const useHistoryData = () => {
             treatments!inner(name, start_date, end_date, prescription_id, is_active)
           )
         `)
-        .eq("medications.treatments.is_active", true)
         .order("scheduled_time", { ascending: false })
 
       if (error) throw error
@@ -60,7 +59,8 @@ export const useHistoryData = () => {
           
           treatmentsQspMap.set(treatmentId, {
             qsp_days: qspDays,
-            end_date: treatment.end_date
+            end_date: treatment.end_date,
+            is_active: treatment.is_active
           })
         }
       }
@@ -96,7 +96,8 @@ export const useHistoryData = () => {
           treatment: intake.medications?.treatments?.name || 'Traitement inconnu',
           treatmentId: treatmentId,
           treatmentQspDays: treatmentInfo?.qsp_days || null,
-          treatmentEndDate: treatmentInfo?.end_date || null
+          treatmentEndDate: treatmentInfo?.end_date || null,
+          treatmentIsActive: treatmentInfo?.is_active ?? true
         })
 
         return acc

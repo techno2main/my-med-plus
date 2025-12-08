@@ -29,6 +29,7 @@ export interface GroupedIntakes {
     treatmentId: string
     treatmentQspDays?: number | null
     treatmentEndDate?: string | null
+    treatmentIsActive?: boolean
   }[]
 }
 
