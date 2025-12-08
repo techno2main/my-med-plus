@@ -16,7 +16,7 @@ const Referentials = () => {
     },
     {
       title: "Pathologies",
-      description: "Gestion des pathologies",
+      description: "Mes pathologies",
       icon: AlertCircle,
       path: "/referentials/pathologies"
     },
