@@ -13,6 +13,7 @@ export interface UpcomingIntake {
   treatmentQspDays?: number | null
   treatmentEndDate?: string | null
   status: 'pending' | 'taken' | 'missed' | 'skipped'
+  takenAt?: Date | null
 }
 
 export interface StockAlert {

@@ -96,6 +96,7 @@ export const useDashboardData = () => {
           medication_id,
           scheduled_time,
           status,
+          taken_at,
           medications!inner (
             id,
             name,
@@ -130,6 +131,7 @@ export const useDashboardData = () => {
           medication_id,
           scheduled_time,
           status,
+          taken_at,
           medications!inner (
             id,
             name,
@@ -187,7 +189,8 @@ export const useDashboardData = () => {
           minThreshold: intake.medications.min_threshold || 10,
           treatmentQspDays: treatmentInfo?.qspDays || null,
           treatmentEndDate: treatmentInfo?.endDate || null,
-          status: intake.status
+          status: intake.status,
+          takenAt: intake.taken_at ? parseISO(intake.taken_at.replace(' ', 'T').replace('+00', 'Z')) : null
         })
       })
 

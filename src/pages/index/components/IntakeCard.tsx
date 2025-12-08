@@ -55,13 +55,24 @@ const getButtonClasses = (
 }
 
 // Icône de statut basée sur le statut de la prise (comme dans l'historique)
+// Calcul du retard basé sur la différence entre heure prévue et heure de prise
 const getStatusBadge = (
   status: string,
   isOverdue: boolean,
-  scheduledTime?: Date
+  scheduledTime: Date,
+  takenAt?: Date | null
 ) => {
-  // Prise effectuée
+  // Prise effectuée - vérifier si en retard
   if (status === 'taken') {
+    if (takenAt && scheduledTime) {
+      const differenceMinutes = (takenAt.getTime() - scheduledTime.getTime()) / (1000 * 60)
+      
+      // Plus de 30 minutes de retard = icône ClockAlert verte
+      if (differenceMinutes > 30) {
+        return <ClockAlert className="h-6 w-6 text-success" />
+      }
+    }
+    // À l'heure ou moins de 30 min de retard = CheckCircle2 vert
     return <CheckCircle2 className="h-6 w-6 text-success" />
   }
   
@@ -124,7 +135,7 @@ export const IntakeCard = ({ intake, isOverdue, isTomorrowSection = false, onTak
           
           {/* Afficher l'icône de statut si pris/manqué, sinon le bouton d'action */}
           {isTaken || isMissed ? (
-            getStatusBadge(intake.status, isOverdue, intake.date)
+            getStatusBadge(intake.status, isOverdue, intake.date, intake.takenAt)
           ) : (
             <Button 
               size="sm" 
