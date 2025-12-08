@@ -275,7 +275,7 @@ export const CalendarView = ({
               showOutsideDays={false}
             />
 
-            <div className="flex items-center justify-center pt-2">
+            <div className="flex items-center justify-center gap-2 pt-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -287,6 +287,15 @@ export const CalendarView = ({
                 className="h-8 w-8 p-0 rounded-full"
               >
                 <CalendarDays className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/calendar-sync")}
+                className="gap-2 text-muted-foreground hover:text-foreground rounded-full"
+              >
+                <RefreshCw className="h-4 w-4" />
+                <span className="text-xs">Synchroniser</span>
               </Button>
             </div>
           </div>
@@ -318,18 +327,6 @@ export const CalendarView = ({
               </div>
             </div>
 
-            {/* Sync Button */}
-            <div className="flex justify-end">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate("/calendar-sync")}
-                className="gap-2 text-muted-foreground hover:text-foreground rounded-full"
-              >
-                <RefreshCw className="h-4 w-4" />
-                <span className="text-xs">Synchroniser</span>
-              </Button>
-            </div>
           </>
         )}
       </div>
