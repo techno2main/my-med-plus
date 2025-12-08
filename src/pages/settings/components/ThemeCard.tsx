@@ -24,7 +24,7 @@ export function ThemeCard() {
         </div>
         <div className="flex-1">
           <h3 className="font-semibold">Apparence</h3>
-          <p className="text-sm text-muted-foreground">Personnaliser l'interface</p>
+          <p className="text-sm text-muted-foreground">Thème de l'interface</p>
         </div>
         {isExpanded ? (
           <EyeOff className="h-5 w-5 text-muted-foreground" />
