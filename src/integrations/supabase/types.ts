@@ -570,6 +570,7 @@ export type Database = {
           created_at: string | null
           export_config: Json | null
           id: string
+          inactivity_timeout_minutes: number | null
           require_auth_on_open: boolean | null
           settings_section_order: Json | null
           two_factor_enabled: boolean | null
@@ -581,6 +582,7 @@ export type Database = {
           created_at?: string | null
           export_config?: Json | null
           id?: string
+          inactivity_timeout_minutes?: number | null
           require_auth_on_open?: boolean | null
           settings_section_order?: Json | null
           two_factor_enabled?: boolean | null
@@ -592,6 +594,7 @@ export type Database = {
           created_at?: string | null
           export_config?: Json | null
           id?: string
+          inactivity_timeout_minutes?: number | null
           require_auth_on_open?: boolean | null
           settings_section_order?: Json | null
           two_factor_enabled?: boolean | null

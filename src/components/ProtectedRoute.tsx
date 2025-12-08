@@ -6,6 +6,7 @@ import { AppLockScreen } from './AppLockScreen';
 import { supabase } from '@/integrations/supabase/client';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
+import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -17,6 +18,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const [lockLoading, setLockLoading] = useState(true);
   const [requireAuthOnOpen, setRequireAuthOnOpen] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [inactivityTimeoutMinutes, setInactivityTimeoutMinutes] = useState(5);
 
   const loadLockPreferences = useCallback(async () => {
     if (!user) {
@@ -27,14 +29,19 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     try {
       const { data: preferences } = await supabase
         .from("user_preferences")
-        .select("biometric_enabled, require_auth_on_open")
+        .select("biometric_enabled, require_auth_on_open, inactivity_timeout_minutes")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (preferences) {
-        const prefs = preferences as { biometric_enabled?: boolean; require_auth_on_open?: boolean };
+        const prefs = preferences as { 
+          biometric_enabled?: boolean; 
+          require_auth_on_open?: boolean;
+          inactivity_timeout_minutes?: number;
+        };
         setBiometricEnabled(prefs.biometric_enabled ?? false);
         setRequireAuthOnOpen(prefs.require_auth_on_open ?? false);
+        setInactivityTimeoutMinutes(prefs.inactivity_timeout_minutes ?? 5);
         
         // Verrouiller au premier chargement si l'option est activée
         if (prefs.require_auth_on_open) {
@@ -70,6 +77,12 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const handleUnlock = useCallback(() => {
     setIsLocked(false);
   }, []);
+
+  // Hook de déconnexion automatique après inactivité
+  useInactivityTimeout({
+    timeoutMinutes: inactivityTimeoutMinutes,
+    enabled: !!user && !isLocked && !loading && !lockLoading,
+  });
 
   if (loading || lockLoading) {
     return (
