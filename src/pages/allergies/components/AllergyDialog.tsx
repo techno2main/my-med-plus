@@ -31,12 +31,7 @@ export function AllergyDialog({
       open={open}
       onClose={onClose}
       onSubmit={onSubmit}
-      title={editingItem ? "Modifier" : "Ajouter"}
-      description={
-        editingItem
-          ? "Modifiez les informations de l'allergie"
-          : "Ajoutez une nouvelle allergie au référentiel"
-      }
+      title={editingItem ? "Modifier une Allergie" : "Ajouter une Allergie"}
       submitLabel={editingItem ? "Modifier" : "Ajouter"}
     >
       <div className="space-y-4">

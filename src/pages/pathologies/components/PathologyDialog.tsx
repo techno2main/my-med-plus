@@ -28,12 +28,7 @@ export function PathologyDialog({
       open={open}
       onClose={onClose}
       onSubmit={onSubmit}
-      title={editingItem ? "Modifier" : "Ajouter"}
-      description={
-        editingItem
-          ? "Modifiez les informations de la pathologie"
-          : "Ajoutez une nouvelle pathologie au référentiel"
-      }
+      title={editingItem ? "Modifier une Pathologie" : "Ajouter une Pathologie"}
       submitLabel={editingItem ? "Modifier" : "Ajouter"}
     >
       <div className="space-y-4">
