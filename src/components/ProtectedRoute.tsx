@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect, useCallback } from 'react';
+import { ReactNode, useState, useEffect, useCallback, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
@@ -19,6 +19,9 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const [requireAuthOnOpen, setRequireAuthOnOpen] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [inactivityTimeoutMinutes, setInactivityTimeoutMinutes] = useState(5);
+  
+  // Ref to track if initial lock has been set (prevents re-locking after unlock)
+  const initialLockSetRef = useRef(false);
 
   const loadLockPreferences = useCallback(async () => {
     if (!user) {
@@ -43,8 +46,9 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
         setRequireAuthOnOpen(prefs.require_auth_on_open ?? false);
         setInactivityTimeoutMinutes(prefs.inactivity_timeout_minutes ?? 5);
         
-        // Verrouiller au premier chargement si l'option est activée
-        if (prefs.require_auth_on_open) {
+        // Verrouiller UNIQUEMENT au premier chargement si l'option est activée
+        if (prefs.require_auth_on_open && !initialLockSetRef.current) {
+          initialLockSetRef.current = true;
           setIsLocked(true);
         }
       }
