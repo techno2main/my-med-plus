@@ -45,7 +45,7 @@ export function MedicationDialog({
 }: MedicationDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col p-0 gap-0">
+      <DialogContent className="max-w-2xl h-[85vh] max-h-[85vh] flex flex-col p-0 gap-0 top-[45%]">
         <DialogHeader className="px-6 pt-6 pb-4 border-b flex-shrink-0">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)} className="h-8 w-8 p-0">
@@ -57,7 +57,7 @@ export function MedicationDialog({
           </div>
         </DialogHeader>
         
-        <ScrollArea className="flex-1 min-h-0">
+        <ScrollArea className="flex-1 overflow-y-auto">
           <div className="px-6 py-4 space-y-4 pb-8">
             {/* Première ligne : Nom + Dosage */}
             <div className="grid grid-cols-2 gap-4">
