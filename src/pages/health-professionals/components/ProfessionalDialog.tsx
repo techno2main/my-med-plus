@@ -32,6 +32,17 @@ export function ProfessionalDialog({
   onFormChange,
 }: ProfessionalDialogProps) {
   const isMedecin = formData.type === "medecin" || formData.type === "doctor";
+  const isPharmacie = formData.type === "pharmacie" || formData.type === "pharmacy";
+  const isLaboratoire = formData.type === "laboratoire" || formData.type === "laboratory";
+
+  const getTypeLabel = () => {
+    if (isMedecin) return { article: "un", label: "Médecin" };
+    if (isPharmacie) return { article: "une", label: "Pharmacie" };
+    if (isLaboratoire) return { article: "un", label: "Laboratoire" };
+    return { article: "un", label: "professionnel de santé" };
+  };
+
+  const typeInfo = getTypeLabel();
 
   return (
     <FormDialog
@@ -40,8 +51,8 @@ export function ProfessionalDialog({
       title={editingItem ? "Modifier" : "Ajouter"}
       description={
         editingItem
-          ? "Modifiez les informations du professionnel de santé"
-          : "Ajoutez un nouveau professionnel de santé"
+          ? `Modifiez les informations du ${typeInfo.label.toLowerCase()}`
+          : `Ajouter ${typeInfo.article} ${typeInfo.label}`
       }
       onSubmit={onSubmit}
       submitLabel={editingItem ? "Modifier" : "Ajouter"}
