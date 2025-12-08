@@ -5,7 +5,7 @@ import { StatusBadge } from "./StatusBadge";
 import { MedicationsList } from "./MedicationsList";
 import { formatDate, formatQSP } from "../utils/prescriptionUtils";
 import { getLocalDateString } from "@/lib/dateUtils";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface RefillVisit {
   date: string;
@@ -31,17 +31,29 @@ interface PrescriptionCardProps {
     refillVisits: RefillVisit[];
     hasArchivedTreatment?: boolean;
   };
-  onDownload: () => void; // Déjà bindée avec la prescription dans PrescriptionList
+  onDownload: () => void;
   onToggleVisit: (treatmentId: string, visitNumber: number, currentStatus: boolean, plannedDate: string) => void;
+  defaultOpen?: boolean;
 }
 
-export function PrescriptionCard({ prescription, onDownload, onToggleVisit }: PrescriptionCardProps) {
+export function PrescriptionCard({ prescription, onDownload, onToggleVisit, defaultOpen }: PrescriptionCardProps) {
   // Vérifier si tous les traitements sont archivés
   const allTreatmentsArchived = prescription.treatments.every(t => t.is_active === false);
   
   // État pour afficher/masquer les détails des ordonnances archivées
-  const [showDetails, setShowDetails] = useState(!allTreatmentsArchived);
+  // Si defaultOpen est true, on force l'affichage
+  const [showDetails, setShowDetails] = useState(defaultOpen || !allTreatmentsArchived);
   const detailsRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to card if defaultOpen is true
+  useEffect(() => {
+    if (defaultOpen && cardRef.current) {
+      setTimeout(() => {
+        cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [defaultOpen]);
   
   const handleToggleDetails = () => {
     const newShowDetails = !showDetails;
@@ -64,7 +76,7 @@ export function PrescriptionCard({ prescription, onDownload, onToggleVisit }: Pr
   };
   
   return (
-    <Card className="p-4">
+    <Card ref={cardRef} className="p-4">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-start gap-3 flex-1">
           <div className="p-2 rounded-lg bg-primary/10">

@@ -28,9 +28,10 @@ interface PrescriptionListProps {
   loading: boolean;
   onDownload: (prescription: Prescription) => void;
   onToggleVisit: (treatmentId: string, visitNumber: number, currentStatus: boolean, plannedDate: string) => void;
+  openPrescriptionId?: string | null;
 }
 
-export function PrescriptionList({ prescriptions, loading, onDownload, onToggleVisit }: PrescriptionListProps) {
+export function PrescriptionList({ prescriptions, loading, onDownload, onToggleVisit, openPrescriptionId }: PrescriptionListProps) {
   if (loading) {
     return <p className="text-center text-muted-foreground">Chargement...</p>;
   }
@@ -47,14 +48,29 @@ export function PrescriptionList({ prescriptions, loading, onDownload, onToggleV
     );
   }
 
+  // Trier les ordonnances : non-archivées d'abord (par date desc), archivées ensuite (par date desc)
+  const sortedPrescriptions = [...prescriptions].sort((a, b) => {
+    const aArchived = a.status === "expired";
+    const bArchived = b.status === "expired";
+    
+    // Si les deux ont le même statut d'archivage, trier par date
+    if (aArchived === bArchived) {
+      return new Date(b.prescription_date).getTime() - new Date(a.prescription_date).getTime();
+    }
+    
+    // Sinon, les non-archivées en premier
+    return aArchived ? 1 : -1;
+  });
+
   return (
     <div className="space-y-4">
-      {prescriptions.map((prescription) => (
+      {sortedPrescriptions.map((prescription) => (
         <PrescriptionCard
           key={prescription.id}
           prescription={prescription}
           onDownload={() => onDownload(prescription)}
           onToggleVisit={onToggleVisit}
+          defaultOpen={prescription.id === openPrescriptionId}
         />
       ))}
     </div>

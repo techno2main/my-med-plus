@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { PageHeader } from "@/components/Layout/PageHeader";
 import { usePrescriptions } from "./hooks/usePrescriptions";
@@ -14,6 +15,8 @@ interface PendingVisitAction {
 }
 
 export default function Prescriptions() {
+  const [searchParams] = useSearchParams();
+  const openPrescriptionId = searchParams.get("open");
   const { prescriptions, loading, handleToggleVisit, handleDownload } = usePrescriptions();
   const [pendingAction, setPendingAction] = useState<PendingVisitAction | null>(null);
   const [showDialog, setShowDialog] = useState(false);
@@ -91,6 +94,7 @@ export default function Prescriptions() {
           loading={loading}
           onDownload={handleDownload}
           onToggleVisit={handleVisitClick}
+          openPrescriptionId={openPrescriptionId}
         />
         
         <RefillConfirmDialog
