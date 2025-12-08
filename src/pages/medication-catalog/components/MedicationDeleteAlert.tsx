@@ -22,7 +22,7 @@ export function MedicationDeleteAlert({ open, onOpenChange, onConfirm }: Medicat
         <AlertDialogHeader>
           <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
           <AlertDialogDescription>
-            La suppression de ce médicament est irréversible.
+            Cette action est irréversible.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
