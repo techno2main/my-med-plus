@@ -22,8 +22,7 @@ export function MedicationDeleteAlert({ open, onOpenChange, onConfirm }: Medicat
         <AlertDialogHeader>
           <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
           <AlertDialogDescription>
-            Êtes-vous sûr de vouloir supprimer ce médicament du référentiel ?
-            Cette action est irréversible.
+            La suppression de ce médicament est irréversible.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
