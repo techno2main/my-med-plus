@@ -28,7 +28,7 @@ const Referentials = () => {
     },
     {
       title: "Médicaments",
-      description: "Catalogue complet des médicaments",
+      description: "Mon catalogue de médicaments",
       icon: Pill,
       path: "/medications"
     }
