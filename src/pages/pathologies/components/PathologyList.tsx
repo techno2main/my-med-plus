@@ -1,5 +1,6 @@
-import { Card } from "@/components/ui/card";
 import { PathologyCard } from "./PathologyCard";
+import { EmptyState } from "@/components/ui/atoms/EmptyState";
+import { HeartPulse } from "lucide-react";
 import type { Pathology } from "../utils/pathologyUtils";
 
 interface PathologyListProps {
@@ -7,18 +8,26 @@ interface PathologyListProps {
   isLoading: boolean;
   onEdit: (pathology: Pathology) => void;
   onDelete: (id: string) => void;
+  onAdd?: () => void;
 }
 
-export function PathologyList({ pathologies, isLoading, onEdit, onDelete }: PathologyListProps) {
+export function PathologyList({ pathologies, isLoading, onEdit, onDelete, onAdd }: PathologyListProps) {
   if (isLoading) {
     return <p>Chargement...</p>;
   }
 
   if (pathologies.length === 0) {
     return (
-      <Card className="p-8 text-center">
-        <p className="text-muted-foreground">Aucune pathologie trouvée</p>
-      </Card>
+      <EmptyState
+        icon={HeartPulse}
+        iconColor="text-red-500"
+        title="Aucune pathologie enregistrée"
+        description="Ajoutez vos pathologies pour un meilleur suivi de votre santé"
+        action={onAdd ? {
+          label: "Ajouter une pathologie",
+          onClick: onAdd
+        } : undefined}
+      />
     );
   }
 

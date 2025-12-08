@@ -123,6 +123,7 @@ const HealthProfessionals = () => {
           isLoading={isLoading}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onAdd={handleAdd}
         />
 
         <FloatingAddButton onAdd={handleAdd} />
