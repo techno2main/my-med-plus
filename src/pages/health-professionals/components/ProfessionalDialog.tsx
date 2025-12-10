@@ -44,6 +44,13 @@ export function ProfessionalDialog({
 
   const typeInfo = getTypeLabel();
 
+  const getDescription = () => {
+    if (editingItem) {
+      return `Modifiez les informations de ${typeInfo.article === "une" ? "cette" : "ce"} ${typeInfo.label.toLowerCase()}`;
+    }
+    return `Ajoutez ${typeInfo.article} nouveau${typeInfo.article === "une" ? "le" : ""} ${typeInfo.label.toLowerCase()} à votre carnet de santé`;
+  };
+
   return (
     <FormDialog
       open={open}
@@ -53,6 +60,7 @@ export function ProfessionalDialog({
           ? `Modifier ${typeInfo.article} ${typeInfo.label}`
           : `Ajouter ${typeInfo.article} ${typeInfo.label}`
       }
+      description={getDescription()}
       onSubmit={onSubmit}
       submitLabel={editingItem ? "Modifier" : "Ajouter"}
     >

@@ -11,6 +11,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog"
 import {
   Popover,
@@ -722,6 +723,9 @@ export function DatePickerM3(props: DatePickerM3Props) {
                 <Edit3 className="h-4 w-4" />
               </Button>
             </div>
+            <DialogDescription className="sr-only">
+              {inputMode ? "Entrez une date au format jour/mois/année" : "Choisissez une date dans le calendrier"}
+            </DialogDescription>
             {value && !inputMode && (
               <p className="text-sm text-muted-foreground">
                 {format(value, "EEEE d MMMM yyyy", { locale })}

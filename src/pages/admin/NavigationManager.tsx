@@ -475,10 +475,10 @@ export default function NavigationManager() {
               <DialogTitle>
                 {editingId ? "Modifier" : "Ajouter"}
               </DialogTitle>
-              <DialogDescription>
-                {editingId ? "Modifier les paramètres de cet élément de navigation" : "Ajouter un nouvel élément au menu de navigation"}
-              </DialogDescription>
             </div>
+            <DialogDescription className="text-muted-foreground">
+              {editingId ? "Modifiez les paramètres de cet élément de navigation" : "Ajoutez un nouvel élément au menu de navigation"}
+            </DialogDescription>
           </DialogHeader>
 
           <ScrollArea className="flex-1 px-6">

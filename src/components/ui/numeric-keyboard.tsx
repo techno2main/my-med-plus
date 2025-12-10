@@ -96,6 +96,9 @@ export function NumericKeyboard({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            Saisissez une valeur numérique à l'aide du clavier
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
