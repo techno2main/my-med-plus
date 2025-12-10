@@ -83,7 +83,6 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }, [requireAuthOnOpen]);
 
   const handleUnlock = useCallback(() => {
-    console.log("[ProtectedRoute] Déverrouillage manuel");
     justUnlockedRef.current = true;
     setIsLocked(false);
     
