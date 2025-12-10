@@ -5,6 +5,7 @@ import { convertFrenchToUTC } from "@/lib/dateUtils"
 import { UpcomingIntake } from "../types"
 import { LocalNotifications } from '@capacitor/local-notifications'
 import { Capacitor } from '@capacitor/core'
+import { IntakeNotes } from "@/lib/intakeNotesUtils"
 
 /**
  * Génère un ID numérique unique à partir d'une chaîne (même logique que le scheduler)
@@ -25,12 +26,16 @@ export const useTakeIntake = (onSuccess: () => void) => {
   const takeIntake = async (intake: UpcomingIntake) => {
     setProcessing(true)
     try {
+      const now = new Date();
+      const actualTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      
       // Update existing intake record
       const { error: intakeError } = await supabase
         .from("medication_intakes")
         .update({
-          taken_at: convertFrenchToUTC(new Date()).toISOString(),
-          status: 'taken'
+          taken_at: convertFrenchToUTC(now).toISOString(),
+          status: 'taken',
+          notes: IntakeNotes.takenOnTime(actualTime)
         })
         .eq("id", intake.id)
 

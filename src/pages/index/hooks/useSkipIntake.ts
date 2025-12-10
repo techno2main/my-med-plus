@@ -5,6 +5,7 @@ import { convertFrenchToUTC } from "@/lib/dateUtils"
 import { UpcomingIntake } from "../types"
 import { LocalNotifications } from '@capacitor/local-notifications'
 import { Capacitor } from '@capacitor/core'
+import { IntakeNotes } from "@/lib/intakeNotesUtils"
 
 /**
  * Génère un ID numérique unique à partir d'une chaîne (même logique que le scheduler)
@@ -30,7 +31,8 @@ export const useSkipIntake = (onSuccess: () => void) => {
         .from("medication_intakes")
         .update({
           taken_at: convertFrenchToUTC(new Date()).toISOString(),
-          status: 'skipped'
+          status: 'skipped',
+          notes: IntakeNotes.skippedVoluntarily()
         })
         .eq("id", intake.id)
 
