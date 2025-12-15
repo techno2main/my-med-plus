@@ -1,19 +1,12 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { WizardProgress } from "./WizardProgress";
-import { Step1Info } from "./Step1Info";
-import { Step2Medications } from "./Step2Medications";
-import { Step3Stocks } from "./Step3Stocks";
-import { Step4Summary } from "./Step4Summary";
 import { TreatmentFormData } from "./types";
 import { useTreatmentSubmit } from "./hooks/useTreatmentSubmit";
-
-const TOTAL_STEPS = 4;
+import { useTreatmentSteps } from "./hooks/useTreatmentSteps";
+import { TreatmentWizardSteps } from "./components/TreatmentWizardSteps";
+import { TreatmentWizardActions } from "./components/TreatmentWizardActions";
 
 export function TreatmentWizard() {
-  const [currentStep, setCurrentStep] = useState(1);
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
   const [doctors, setDoctors] = useState<any[]>([]);
   const [pharmacies, setPharmacies] = useState<any[]>([]);
@@ -46,7 +39,8 @@ export function TreatmentWizard() {
     );
   };
 
-  // Hook de soumission
+  // Hooks personnalisés
+  const { currentStep, totalSteps, handleNext, handlePrev, setCurrentStep } = useTreatmentSteps();
   const { loading, handleSubmit } = useTreatmentSubmit(formData, canSubmit);
 
   useEffect(() => {
@@ -84,107 +78,27 @@ export function TreatmentWizard() {
     }
   };
 
-  const handleNext = () => {
-    if (currentStep < TOTAL_STEPS) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <Step1Info
-            formData={formData}
-            setFormData={setFormData}
-            prescriptions={prescriptions}
-            doctors={doctors}
-            pharmacies={pharmacies}
-          />
-        );
-      case 2:
-        return (
-          <Step2Medications
-            formData={formData}
-            setFormData={setFormData}
-          />
-        );
-      case 3:
-        return (
-          <Step3Stocks
-            formData={formData}
-            setFormData={setFormData}
-          />
-        );
-      case 4:
-        return (
-          <Step4Summary
-            formData={formData}
-            prescriptions={prescriptions}
-            pharmacies={pharmacies}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="space-y-6">
-      <WizardProgress 
-        currentStep={currentStep} 
-        totalSteps={TOTAL_STEPS}
+      <TreatmentWizardSteps
+        currentStep={currentStep}
+        totalSteps={totalSteps}
+        formData={formData}
+        setFormData={setFormData}
+        prescriptions={prescriptions}
+        doctors={doctors}
+        pharmacies={pharmacies}
         onStepClick={setCurrentStep}
       />
 
-      <div className="min-h-[400px]">
-        {renderStep()}
-      </div>
-
-      <div className="flex gap-3 sticky bottom-0 bg-background pt-4 pb-6 border-t">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handlePrev}
-          disabled={currentStep === 1 || loading}
-          className="flex-1"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Précédent
-        </Button>
-        
-        {currentStep < TOTAL_STEPS ? (
-          <Button
-            type="button"
-            onClick={handleNext}
-            disabled={loading}
-            className="flex-1 gradient-primary"
-          >
-            Suivant
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            disabled={loading}
-            className="flex-1 gradient-primary"
-          >
-            {loading ? "Enregistrement..." : (
-              <>
-                <Check className="h-4 w-4 mr-2" />
-                Créer le traitement
-              </>
-            )}
-          </Button>
-        )}
-      </div>
+      <TreatmentWizardActions
+        currentStep={currentStep}
+        totalSteps={totalSteps}
+        loading={loading}
+        onNext={handleNext}
+        onPrev={handlePrev}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 }
