@@ -81,6 +81,7 @@ export const BasicInfoFields = ({ formData, setFormData, doctors }: BasicInfoFie
             type="number"
             value={formData.durationDays}
             onChange={(e) => setFormData({ ...formData, durationDays: e.target.value })}
+            onFocus={(e) => e.target.select()}
             placeholder="Ex: 30, 60, 90..."
             className="bg-surface"
             required

@@ -9,7 +9,7 @@
 
 ## 📊 TABLEAU DE SUIVI - REFACTORISATION
 
-**Dernière mise à jour :** 15 décembre 2025 - ✅ Étape 1.2 validée
+**Dernière mise à jour :** 15 décembre 2025 - ✅ Étape 1.3 validée
 
 ### Légende
 - ✅ **VALIDÉ** - Développé, testé et approuvé
@@ -23,10 +23,10 @@
 |-------|--------|-------------|------|
 | **1.1** | ✅ **VALIDÉ** | Extraction handleSubmit (170 lignes) | 15/12/2025 |
 | **1.2** | ✅ **VALIDÉ** | Division composant principal (90 lignes) | 15/12/2025 |
-| **1.3** | ⏳ À FAIRE | Réduction imbrication (niveau 7 → 4) | - |
+| **1.3** | ✅ **VALIDÉ** | Réduction imbrication + gestion stocks | 15/12/2025 |
 | **1.4** | ⏳ À FAIRE | Service de soumission | - |
 
-**Progression Phase 1 :** 50% (2/4 validées)
+**Progression Phase 1 :** 75% (3/4 validées)
 
 ---
 
@@ -79,19 +79,20 @@
 ### 📈 PROGRESSION GLOBALE
 
 ```
-Total : 2/18 étapes validées (11%)
-Phase 1 : ✅ 50% (2/4 validées)
+Total : 3/18 étapes validées (17%)
+Phase 1 : ✅ 75% (3/4 validées)
 Phase 2 : ⏳  0% (0/6)
 Phase 3 : ⏳  0% (0/2)
 Phase 4 : ⏳  0% (0/3)
 Phase 5 : ⏳  0% (0/3)
 ```
 
-**✅ DERNIÈRE ÉTAPE VALIDÉE : 1.2 - Division composant principal (15/12/2025)**
+**✅ DERNIÈRE ÉTAPE VALIDÉE : 1.3 - Réduction imbrication + gestion stocks (15/12/2025)**
 
 **⚠️ NOTES IMPORTANTES :**
 - Warnings React détectés : Sélection médecin prescripteur + pharmacie (Select uncontrolled/controlled)
-- Non liés aux étapes 1.1 et 1.2 - À corriger ultérieurement
+- Non liés aux étapes 1.1, 1.2 et 1.3 - À corriger ultérieurement
+- Étape 1.3 : 5 bugs majeurs détectés et corrigés pendant les tests utilisateur
 
 ---
 
@@ -259,60 +260,134 @@ TreatmentWizard/
 
 ---
 
-### Étape 1.3 : Réduire l'imbrication (niveau 7 → ligne 237)
+### Étape 1.3 : Réduire l'imbrication + Gestion des stocks
 
-**Objectif :** Passer de niveau 7 à niveau 4 maximum
+**✅ VALIDÉE - 15 décembre 2025**
 
-#### Techniques à appliquer
+**Objectif initial :** Réduire l'imbrication de niveau 7 à niveau 4 maximum dans useStep3Stocks.ts
 
-1. **Early returns / Guard clauses**
-   ```typescript
-   // ❌ AVANT (niveau 7)
-   if (condition1) {
-     if (condition2) {
-       if (condition3) {
-         if (condition4) {
-           if (condition5) {
-             if (condition6) {
-               if (condition7) {
-                 visits.push({ ... });
-               }
-             }
-           }
-         }
-       }
-     }
-   }
-   
-   // ✅ APRÈS (niveau 2-3)
-   if (!condition1) return;
-   if (!condition2) return;
-   if (!condition3) return;
-   
-   const visit = buildPharmacyVisit(data);
-   if (isValidVisit(visit)) {
-     visits.push(visit);
-   }
-   ```
+**Objectif étendu :** Corriger les bugs critiques de gestion des stocks découverts pendant les tests
 
-2. **Extraire la logique de construction des visites**
-   ```typescript
-   // src/components/TreatmentWizard/utils/visitBuilders.ts
-   export const buildPharmacyVisits = (
-     medications: Medication[],
-     pharmacyData: PharmacyData
-   ): PharmacyVisit[] => {
-     return medications
-       .filter(isValidForVisit)
-       .map(med => createVisitFromMedication(med, pharmacyData))
-       .filter(Boolean);
-   };
-   ```
+#### Résultats obtenus
+
+**Fichiers créés :**
+- ✅ `src/components/TreatmentWizard/utils/stockHelpers.ts` (129 lignes)
+
+**Fichiers modifiés :**
+- ✅ `src/components/TreatmentWizard/hooks/useStep3Stocks.ts` (110 → 107 lignes)
+- ✅ `src/components/TreatmentWizard/hooks/useStep2Medications.ts` (+35 lignes de corrections)
+- ✅ `src/components/TreatmentWizard/components/StockCard.tsx` (+40 lignes de gestion handlers)
+- ✅ `src/components/TreatmentWizard/components/BasicInfoFields.tsx` (+1 ligne onFocus)
+- ✅ `src/components/TreatmentWizard/components/MedicationCard.tsx` (+2 lignes onFocus)
+
+**Métriques atteintes :**
+- ✅ Imbrication : niveau 7 → niveau 3 (-57%)
+- ✅ Extraction : 5 fonctions utilitaires dans stockHelpers.ts
+- ✅ Tests critiques : 5/5 validés (100%)
+- ✅ UX améliorée : Sélection auto sur tous champs numériques
+
+#### Problèmes détectés et corrigés pendant les tests
+
+**Test 1 - Chargement auto des stocks existants** ✅
+- Statut : OK dès le départ
+
+**Test 2 - Médicaments nouveaux (initialisation)** ✅  
+- Statut : OK dès le départ
+
+**Test 3 - Mise à jour des seuils d'alerte** ✅
+- Statut : OK dès le départ
+
+**Test 4 - Saisie manuelle des stocks** ❌ → ✅
+- **Bug 1** : Interface TypeScript trop restrictive
+  - Symptôme : Impossible de modifier les stocks
+  - Cause : `MedicationWithIndex` ne préservait pas toutes les propriétés
+  - Solution : Index signature `[key: string]: any` sur `MedicationWithThreshold`
+  - Fichiers : stockHelpers.ts (3 modifications)
+
+- **Bug 2** : Stocks non initialisés pour nouveaux médicaments  
+  - Symptôme : `formData.stocks[index]` undefined → Input bloqué
+  - Cause : `addMedicationFromCatalog` et `addCustomMedication` n'initialisaient pas le stock
+  - Solution : Initialiser stock à 0 lors de l'ajout
+  - Fichiers : useStep2Medications.ts (2 fonctions modifiées)
+
+- **Bug 3** : Suppression médicament cassait les indices
+  - Symptôme : Stocks décalés après suppression
+  - Cause : `removeMedication` ne reconstruit pas les indices des stocks
+  - Solution : Reconstruction complète du dictionnaire stocks avec indices décrémentés
+  - Fichiers : useStep2Medications.ts (fonction removeMedication)
+
+- **Bug 4** : Stale closure dans updateStock/updateThreshold
+  - Symptôme : Modifications écrasées par anciennes valeurs de formData
+  - Cause : Closure capturant formData au moment de la création
+  - Solution : Forme fonctionnelle `setFormData((prev) => ...)`
+  - Fichiers : useStep3Stocks.ts (2 fonctions)
+
+- **Bug 5** : Rechargement intempestif écrasant les saisies
+  - Symptôme : loadExistingStocks s'exécute à chaque changement de formData.medications
+  - Cause : useEffect mal configuré, pas de tracking des médicaments chargés
+  - Solution : useRef pour suivre médicaments déjà chargés, ne charger que les nouveaux
+  - Fichiers : useStep3Stocks.ts (logique loadExistingStocks)
+
+**Test 5 - UX champs numériques** ❌ → ✅
+- **Bug UX** : Valeur "0" bloquait la saisie
+  - Symptôme : Retour arrière ne permettait pas d'effacer, "0" restait affiché
+  - Cause : `value={stock || 0}` affichait toujours 0, pas de gestion du vide
+  - Solution : 
+    * `value={stock === 0 ? "" : stock}` avec `placeholder="0"`
+    * Handlers dédiés avec gestion blur
+    * onFocus avec `e.target.select()` sur tous champs numériques
+  - Fichiers : StockCard.tsx, BasicInfoFields.tsx, MedicationCard.tsx
+
+#### Structure finale
+
+```
+TreatmentWizard/
+├── hooks/
+│   ├── useStep3Stocks.ts (107 lignes, imbrication niveau 3)
+│   └── useStep2Medications.ts (correctifs stocks)
+├── components/
+│   ├── StockCard.tsx (handlers + UX améliorée)
+│   ├── BasicInfoFields.tsx (onFocus)
+│   └── MedicationCard.tsx (onFocus)
+└── utils/
+    └── stockHelpers.ts ✅ CRÉÉ (129 lignes)
+        ├── findMatchingMedication()
+        ├── shouldUpdateStock()
+        ├── shouldUpdateThreshold()
+        ├── processExistingStock()
+        └── applyStockUpdates()
+```
+
+#### Scénarios de test validés
+
+1. ✅ **Chargement automatique des stocks existants**
+   - Créer traitement avec médicaments déjà utilisés
+   - Vérifier pré-remplissage automatique
+
+2. ✅ **Médicaments nouveaux**
+   - Ajouter médicament jamais utilisé
+   - Vérifier initialisation à 0
+
+3. ✅ **Mise à jour des seuils d'alerte**
+   - Vérifier récupération seuils existants depuis BDD
+
+4. ✅ **Saisie manuelle des stocks**
+   - Modifier un stock (nouveau et existant)
+   - Modifier un seuil
+   - Effacer complètement un champ (retour arrière)
+   - Vérifier sauvegarde correcte
+
+5. ✅ **Validation finale**
+   - Créer traitement complet avec stocks
+   - Vérifier workflow end-to-end
 
 **Critères de validation :**
-- ✅ Imbrication max = 4
-- ✅ Fonctions extraites testables
-- ✅ Code plus lisible
+- ✅ Imbrication max = 3 (objectif 4)
+- ✅ Fonctions extraites testables et réutilisables
+- ✅ Code plus lisible et maintenable
+- ✅ Tous les tests fonctionnels passent
+- ✅ Aucune régression détectée
+- ✅ UX améliorée sur tous les champs numériques
 
 ---
 

@@ -56,6 +56,7 @@ export const MedicationCard = ({
             min="1"
             value={medication.takesPerDay}
             onChange={(e) => onUpdateTakesPerDay(index, parseInt(e.target.value) || 1)}
+            onFocus={(e) => e.target.select()}
           />
         </div>
         <div className="space-y-2">
@@ -66,6 +67,7 @@ export const MedicationCard = ({
             min="1"
             value={medication.unitsPerTake}
             onChange={(e) => onUpdate(index, { unitsPerTake: parseInt(e.target.value) || 1 })}
+            onFocus={(e) => e.target.select()}
           />
         </div>
       </div>

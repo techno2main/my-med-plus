@@ -72,9 +72,11 @@ export const useStep2Medications = (formData: TreatmentFormData, setFormData: (d
       minThreshold: 10
     }
     
+    const newIndex = formData.medications.length;
     setFormData({
       ...formData,
-      medications: [...formData.medications, newMed]
+      medications: [...formData.medications, newMed],
+      stocks: { ...formData.stocks, [newIndex]: 0 }
     })
     setShowDialog(false)
   }
@@ -128,7 +130,12 @@ export const useStep2Medications = (formData: TreatmentFormData, setFormData: (d
           minThreshold: 10,
           isCustom: true,
         }
-        setFormData({ ...formData, medications: [...formData.medications, newMed] })
+        const newIndex = formData.medications.length;
+        setFormData({ 
+          ...formData, 
+          medications: [...formData.medications, newMed],
+          stocks: { ...formData.stocks, [newIndex]: 0 }
+        })
         setShowCustomDialog(false)
         setNewCustomMed({ name: "", pathology: "", posology: "", strength: "" })
         loadCatalog()
@@ -160,9 +167,26 @@ export const useStep2Medications = (formData: TreatmentFormData, setFormData: (d
   }
 
   const removeMedication = (index: number) => {
+    const updatedMedications = formData.medications.filter((_, i) => i !== index);
+    
+    // Reconstruire les stocks avec les nouveaux indices
+    const updatedStocks: Record<number, number> = {};
+    Object.keys(formData.stocks).forEach((key) => {
+      const oldIndex = parseInt(key);
+      if (oldIndex < index) {
+        // Les médicaments avant celui supprimé gardent leur index
+        updatedStocks[oldIndex] = formData.stocks[oldIndex];
+      } else if (oldIndex > index) {
+        // Les médicaments après celui supprimé ont leur index décrémenté
+        updatedStocks[oldIndex - 1] = formData.stocks[oldIndex];
+      }
+      // Le médicament à l'index supprimé est ignoré
+    });
+    
     setFormData({
       ...formData,
-      medications: formData.medications.filter((_, i) => i !== index),
+      medications: updatedMedications,
+      stocks: updatedStocks,
     })
   }
 
