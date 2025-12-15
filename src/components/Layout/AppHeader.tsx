@@ -80,16 +80,20 @@ export function AppHeader() {
               <Moon className="h-3.5 w-3.5 text-white/70" />
             </div>
             <AvatarWithBadge
-              src={avatarUrl || undefined}
-              alt="Avatar utilisateur"
-              fallback={
-                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-green-400 to-green-600 text-white font-semibold text-sm">
-                  {userInitials || <User className="h-5 w-5" />}
-                </div>
-              }
-              isAdmin={isAdmin}
-              className="cursor-pointer"
-              onClick={() => navigate("/profile")}
+              avatar={{
+                src: avatarUrl || undefined,
+                alt: "Avatar utilisateur",
+                fallback: (
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-green-400 to-green-600 text-white font-semibold text-sm">
+                    {userInitials || <User className="h-5 w-5" />}
+                  </div>
+                ),
+              }}
+              badge={{
+                isAdmin,
+                className: "cursor-pointer",
+                onClick: () => navigate("/profile"),
+              }}
             />
           </div>
         </div>
