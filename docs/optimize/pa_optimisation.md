@@ -9,7 +9,7 @@
 
 ## 📊 TABLEAU DE SUIVI - REFACTORISATION
 
-**Dernière mise à jour :** 15 décembre 2025 - ✅ Étape 1.3 validée
+**Dernière mise à jour :** 15 décembre 2025 - ✅ Phase 1 TERMINÉE
 
 ### Légende
 - ✅ **VALIDÉ** - Développé, testé et approuvé
@@ -18,15 +18,15 @@
 
 ---
 
-### 🎯 Phase 1 : TreatmentWizard (Priorité HAUTE)
+### 🎯 Phase 1 : TreatmentWizard (Priorité HAUTE) - ✅ TERMINÉE
 | Étape | Status | Description | Date |
 |-------|--------|-------------|------|
 | **1.1** | ✅ **VALIDÉ** | Extraction handleSubmit (170 lignes) | 15/12/2025 |
 | **1.2** | ✅ **VALIDÉ** | Division composant principal (90 lignes) | 15/12/2025 |
 | **1.3** | ✅ **VALIDÉ** | Réduction imbrication + gestion stocks | 15/12/2025 |
-| **1.4** | ⏳ À FAIRE | Service de soumission | - |
+| **1.4** | ✅ **VALIDÉ** | Service de soumission + warnings console | 15/12/2025 |
 
-**Progression Phase 1 :** 75% (3/4 validées)
+**Progression Phase 1 :** 100% (4/4 validées) ✅ TERMINÉE
 
 ---
 
@@ -79,20 +79,24 @@
 ### 📈 PROGRESSION GLOBALE
 
 ```
-Total : 3/18 étapes validées (17%)
-Phase 1 : ✅ 75% (3/4 validées)
+Total : 4/18 étapes validées (22%)
+Phase 1 : ✅ 100% (4/4 validées) - TERMINÉE
 Phase 2 : ⏳  0% (0/6)
 Phase 3 : ⏳  0% (0/2)
 Phase 4 : ⏳  0% (0/3)
 Phase 5 : ⏳  0% (0/3)
 ```
 
-**✅ DERNIÈRE ÉTAPE VALIDÉE : 1.3 - Réduction imbrication + gestion stocks (15/12/2025)**
+**✅ PHASE 1 TERMINÉE (15/12/2025)**
+- TreatmentWizard complètement refactorisé
+- 365 → 105 lignes (-71%)
+- Service de persistence créé
+- 5 bugs critiques corrigés
+- Warnings console éliminés
 
-**⚠️ NOTES IMPORTANTES :**
-- Warnings React détectés : Sélection médecin prescripteur + pharmacie (Select uncontrolled/controlled)
-- Non liés aux étapes 1.1, 1.2 et 1.3 - À corriger ultérieurement
-- Étape 1.3 : 5 bugs majeurs détectés et corrigés pendant les tests utilisateur
+**⚠️ NOTES :**
+- Warnings React Select uncontrolled/controlled : ✅ CORRIGÉS
+- Étape 1.3 : 5 bugs majeurs détectés et corrigés pendant tests
 
 ---
 
@@ -391,11 +395,33 @@ TreatmentWizard/
 
 ---
 
-### Étape 1.4 : Créer un service de soumission
+### Étape 1.4 : Créer un service de soumission + Corriger warnings console
 
-**Objectif :** Centraliser la logique de persistence
+**✅ VALIDÉE - 15 décembre 2025**
 
-#### Structure du service
+**Objectifs :**
+- Créer un service centralisé pour la persistence des traitements
+- Corriger les warnings console (Select uncontrolled/controlled)
+
+#### Résultats obtenus
+
+**Fichiers créés :**
+- ✅ `src/services/treatmentSubmissionService.ts` (246 lignes)
+
+**Fichiers modifiés :**
+- ✅ `src/components/TreatmentWizard/hooks/useTreatmentSubmit.ts` (169 → 76 lignes, -55%)
+- ✅ `src/components/TreatmentWizard/TreatmentWizard.tsx` (initialisation formData)
+- ✅ `src/components/TreatmentWizard/components/BasicInfoFields.tsx` (suppression conversion undefined)
+- ✅ `src/components/TreatmentWizard/components/PharmacyInfoFields.tsx` (suppression conversion undefined)
+
+**Métriques atteintes :**
+- ✅ Service isolé et testable : 246 lignes
+- ✅ Hook simplifié : 76 lignes (< 100)
+- ✅ Réduction : -93 lignes sur useTreatmentSubmit (-55%)
+- ✅ Warnings console : 0 (tous corrigés)
+- ✅ Tests fonctionnels : 100% OK
+
+#### Architecture du service
 
 ```typescript
 // src/services/treatmentSubmissionService.ts
@@ -404,46 +430,183 @@ export type SubmissionResult<T> =
   | { success: true; data: T }
   | { success: false; error: Error };
 
+export interface TreatmentSubmissionResponse {
+  prescriptionId: string;
+  treatmentId: string;
+}
+
 export class TreatmentSubmissionService {
-  async submitTreatment(
-    data: TreatmentFormData
-  ): Promise<SubmissionResult<TreatmentResponse>> {
-    try {
-      // 1. Validation
-      const validationResult = this.validateData(data);
-      if (!validationResult.isValid) {
-        return { success: false, error: validationResult.error };
-      }
-      
-      // 2. Transformation
-      const prescription = await this.createPrescription(data);
-      const treatments = await this.createTreatments(data, prescription.id);
-      const intakes = await this.createIntakes(treatments);
-      
-      // 3. Retour
-      return { 
-        success: true, 
-        data: { prescription, treatments, intakes }
-      };
-    } catch (error) {
-      return { success: false, error: error as Error };
-    }
-  }
+  // Méthodes privées pour découper la logique
+  private async uploadPrescriptionFile(...) { }
+  private async createPrescription(...) { }
+  private async ensurePrescriptionExists(...) { }
+  private async createTreatment(...) { }
+  private async createMedications(...) { }
+  private async createPharmacyVisits(...) { }
+  private validateFormData(...) { }
   
-  private async createPrescription(data: TreatmentFormData) { ... }
-  private async createTreatments(data: TreatmentFormData, prescriptionId: string) { ... }
-  private async createIntakes(treatments: Treatment[]) { ... }
-  private validateData(data: TreatmentFormData) { ... }
+  // Point d'entrée principal
+  async submitTreatment(
+    userId: string,
+    formData: TreatmentFormData
+  ): Promise<SubmissionResult<TreatmentSubmissionResponse>> {
+    // 1. Validation
+    // 2. Prescription
+    // 3. Traitement
+    // 4. Médicaments
+    // 5. Visites pharmacie
+    // 6. Retour Result
+  }
 }
 
 export const treatmentSubmissionService = new TreatmentSubmissionService();
 ```
+
+**Avantages :**
+- ✅ Testable en isolation (sans React, router, toast)
+- ✅ Réutilisable (API, scripts, autres composants)
+- ✅ Type Result pour gestion d'erreur typée
+- ✅ Séparation claire : Hook = UI, Service = Persistence
+- ✅ Méthodes privées < 50 lignes chacune
+
+#### Correction warnings console
+
+**Problème :** Select passait de `undefined` à `string` → warning uncontrolled/controlled
+
+**Solution appliquée :**
+1. ✅ Initialiser avec `""` au lieu de `undefined as any` dans formData initial
+2. ✅ Supprimer les conversions `|| undefined` dans les composants
+3. ✅ Passer directement `formData.prescribingDoctorId`, `formData.pharmacyId`, `formData.prescriptionId` aux Select
+
+**Fichiers corrigés :**
+- TreatmentWizard.tsx : Initialisation formData
+- BasicInfoFields.tsx : Suppression `const doctorValue = formData.prescribingDoctorId || undefined`
+- PharmacyInfoFields.tsx : Suppression `const prescriptionValue/pharmacyValue = ... || undefined`
+
+**Résultat :** 0 warning dans la console ✅
+
+#### Tests validés
+
+1. ✅ **Création traitement complet**
+   - Workflow end-to-end fonctionnel
+   - Données sauvegardées correctement en BDD
+   
+2. ✅ **Warnings console**
+   - Aucun warning "uncontrolled to controlled"
+   - Select fonctionnent normalement avec placeholder
+   
+3. ✅ **Navigation**
+   - Retour à l'accueil après succès
+   - Toast de confirmation affiché
 
 **Critères de validation :**
 - ✅ Service testable isolément
 - ✅ Gestion d'erreur robuste avec types Result
 - ✅ Séparation validation/transformation/persistence
 - ✅ Réutilisable dans d'autres contextes
+- ✅ useTreatmentSubmit < 100 lignes
+- ✅ Warnings console éliminés
+- ✅ Aucune régression fonctionnelle
+
+---
+
+## 🎉 BILAN PHASE 1 - TreatmentWizard
+
+**Durée :** 1 journée (15 décembre 2025)  
+**Status :** ✅ TERMINÉE (4/4 étapes validées)
+
+### Métriques globales
+
+| Métrique | Avant | Après | Amélioration |
+|----------|-------|-------|--------------|
+| **TreatmentWizard.tsx** | 365 lignes | 105 lignes | -71% |
+| **Fonction handleSubmit** | 147 lignes | Hook 76 lignes | Extraction |
+| **Imbrication max** | Niveau 7 | Niveau 3 | -57% |
+| **Fichiers créés** | - | 10 fichiers | Architecture |
+| **Bugs corrigés** | - | 5 bugs critiques | Qualité |
+| **Warnings console** | 2 warnings | 0 warning | Stabilité |
+
+### Fichiers créés (10)
+
+**Hooks :**
+- useTreatmentSubmit.ts (76 lignes)
+- useTreatmentSteps.ts (45 lignes)
+
+**Components :**
+- TreatmentWizardSteps.tsx (78 lignes)
+- TreatmentWizardActions.tsx (66 lignes)
+
+**Utils :**
+- treatmentDataBuilders.ts (123 lignes)
+- errorHandlers.ts (55 lignes)
+- stockHelpers.ts (129 lignes)
+
+**Services :**
+- treatmentSubmissionService.ts (246 lignes)
+
+### Bugs corrigés (5)
+
+1. ✅ Interface TypeScript perdant propriétés médicaments
+2. ✅ Stocks non initialisés pour nouveaux médicaments
+3. ✅ Indices décalés après suppression médicament
+4. ✅ Stale closure dans updateStock/updateThreshold
+5. ✅ Rechargements intempestifs écrasant saisies
+
+### Améliorations UX
+
+- ✅ Sélection automatique au focus (tous champs numériques)
+- ✅ Gestion propre des champs vides (placeholder au lieu de 0)
+- ✅ Warnings console éliminés
+- ✅ Workflow fluide sans blocage
+
+### Architecture finale
+
+```
+TreatmentWizard/
+├── TreatmentWizard.tsx (105 lignes) - Orchestration
+├── hooks/
+│   ├── useTreatmentSubmit.ts (76 lignes) - Soumission UI
+│   ├── useTreatmentSteps.ts (45 lignes) - Navigation
+│   ├── useStep3Stocks.ts (107 lignes) - Gestion stocks
+│   └── useStep2Medications.ts - Gestion médicaments
+├── components/
+│   ├── TreatmentWizardSteps.tsx (78 lignes) - Rendu étapes
+│   ├── TreatmentWizardActions.tsx (66 lignes) - Boutons
+│   ├── StockCard.tsx - Saisie stocks
+│   ├── BasicInfoFields.tsx - Infos traitement
+│   └── PharmacyInfoFields.tsx - Pharmacie
+├── utils/
+│   ├── treatmentDataBuilders.ts (123 lignes) - Transformations
+│   ├── errorHandlers.ts (55 lignes) - Gestion erreurs
+│   └── stockHelpers.ts (129 lignes) - Logique stocks
+└── services/
+    └── treatmentSubmissionService.ts (246 lignes) - Persistence
+
+Total : ~1200 lignes bien organisées vs 365 lignes monolithiques
+```
+
+### Points clés
+
+✅ **Séparation des responsabilités**
+- UI (React) ↔ Logique métier ↔ Persistence
+
+✅ **Testabilité**
+- Services et utils testables en isolation
+- Pas de dépendance React dans la logique métier
+
+✅ **Maintenabilité**
+- Fichiers < 250 lignes
+- Fonctions < 100 lignes
+- Imbrication ≤ 4 niveaux
+
+✅ **Qualité**
+- 0 warning console
+- 0 erreur TypeScript
+- Tous tests utilisateur validés
+
+**🚀 Prochaine phase :** Phase 2 - Réduction des paramètres de fonctions
+
+
 
 ---
 
