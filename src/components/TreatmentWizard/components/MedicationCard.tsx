@@ -7,9 +7,12 @@ import { TimePickerInput } from "@/components/ui/time-picker-dialog"
 import { Trash2 } from "lucide-react"
 import type { MedicationItem } from "../types"
 
-interface MedicationCardProps {
+interface MedicationCardData {
   medication: MedicationItem
   index: number
+}
+
+interface MedicationCardHandlers {
   onRemove: (index: number) => void
   onUpdate: (index: number, updates: Partial<MedicationItem>) => void
   onUpdatePosology: (index: number, posology: string) => void
@@ -17,15 +20,18 @@ interface MedicationCardProps {
   onUpdateTakesPerDay: (index: number, takes: number) => void
 }
 
+interface MedicationCardProps {
+  data: MedicationCardData
+  handlers: MedicationCardHandlers
+}
+
 export const MedicationCard = ({
-  medication,
-  index,
-  onRemove,
-  onUpdate,
-  onUpdatePosology,
-  onUpdateTimeSlot,
-  onUpdateTakesPerDay
+  data,
+  handlers
 }: MedicationCardProps) => {
+  const { medication, index } = data
+  const { onRemove, onUpdate, onUpdatePosology, onUpdateTimeSlot, onUpdateTakesPerDay } = handlers
+
   return (
     <Card className="p-4 space-y-4 bg-card border-border">
       <div className="flex items-start justify-between">

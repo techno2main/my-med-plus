@@ -35,13 +35,14 @@ export const MedicationsList = ({
       {medications.map((med, index) => (
         <MedicationCard
           key={index}
-          medication={med}
-          index={index}
-          onRemove={onRemove}
-          onUpdate={onUpdate}
-          onUpdatePosology={onUpdatePosology}
-          onUpdateTimeSlot={onUpdateTimeSlot}
-          onUpdateTakesPerDay={onUpdateTakesPerDay}
+          data={{ medication: med, index }}
+          handlers={{
+            onRemove,
+            onUpdate,
+            onUpdatePosology,
+            onUpdateTimeSlot,
+            onUpdateTakesPerDay
+          }}
         />
       ))}
     </div>

@@ -34,13 +34,13 @@
 | Étape | Status | Composant | Objectif |
 |-------|--------|-----------|----------|
 | **2.1** | ✅ **VALIDÉ** | CustomMedicationDialog | 9 → 5 paramètres |
-| **2.2** | ⏳ À FAIRE | MedicationCard | 7 → 3 paramètres |
+| **2.2** | ✅ **VALIDÉ** | MedicationCard | 7 → 2 paramètres |
 | **2.3** | ⏳ À FAIRE | MedicationsList | 6 → Context |
 | **2.4** | ⏳ À FAIRE | StockCard | 6 → 3 paramètres |
 | **2.5** | ⏳ À FAIRE | EmptyState | 7 → 3 paramètres |
 | **2.6** | ⏳ À FAIRE | AvatarWithBadge | 6 → 2 paramètres |
 
-**Progression Phase 2 :** 17% (1/6)
+**Progression Phase 2 :** 33% (2/6)
 
 ---
 
@@ -79,9 +79,9 @@
 ### 📈 PROGRESSION GLOBALE
 
 ```
-Total : 5/18 étapes validées (28%)
+Total : 6/18 étapes validées (33%)
 Phase 1 : ✅ 100% (4/4 validées) - TERMINÉE
-Phase 2 : 🔄  17% (1/6) - EN COURS
+Phase 2 : 🔄  33% (2/6) - EN COURS
 Phase 3 : ⏳  0% (0/2)
 Phase 4 : ⏳  0% (0/3)
 Phase 5 : ⏳  0% (0/3)
@@ -95,8 +95,8 @@ Phase 5 : ⏳  0% (0/3)
 - Warnings console éliminés
 
 **🔄 PHASE 2 EN COURS (15/12/2025)**
-- Step 2.1 : CustomMedicationDialog validé
-- 9 → 5 paramètres groupés
+- Step 2.1 : CustomMedicationDialog validé (9→5)
+- Step 2.2 : MedicationCard validé (7→2)
 - UX améliorée (sélection auto, boutons)
 - Header mobile corrigé
 
@@ -702,33 +702,62 @@ interface CustomMedicationDialogProps {
 
 ---
 
-### Étape 2.2 : MedicationCard (7 paramètres → 2-3)
+### Étape 2.2 : MedicationCard (7 paramètres → 2)
 
-**Fichier :** `src/components/TreatmentWizard/components/MedicationCard.tsx`  
-**Ligne :** 20
+**✅ VALIDÉE - 15 décembre 2025**
 
-#### Interfaces proposées
+**Fichier :** `src/components/TreatmentWizard/components/MedicationCard.tsx`
+
+#### Résultats obtenus
+
+**Paramètres :** 7 → 2 (-71%)
+
+**Fichiers modifiés :**
+- ✅ `src/components/TreatmentWizard/components/MedicationCard.tsx`
+- ✅ `src/components/TreatmentWizard/components/MedicationsList.tsx`
+
+**Interfaces créées :**
 ```typescript
 interface MedicationCardData {
-  medication: Medication;
-  frequency?: Frequency;
-  intake?: IntakeFormData;
-  showDetails?: boolean;
+  medication: MedicationItem
+  index: number
 }
 
-interface MedicationCardActions {
-  onEdit?: () => void;
-  onDelete?: () => void;
-  onFrequencyChange?: (frequency: Frequency) => void;
-  onIntakeChange?: (intake: IntakeFormData) => void;
+interface MedicationCardHandlers {
+  onRemove: (index: number) => void
+  onUpdate: (index: number, updates: Partial<MedicationItem>) => void
+  onUpdatePosology: (index: number, posology: string) => void
+  onUpdateTimeSlot: (medIndex: number, timeIndex: number, value: string) => void
+  onUpdateTakesPerDay: (index: number, takes: number) => void
 }
 
 interface MedicationCardProps {
-  data: MedicationCardData;
-  actions?: MedicationCardActions;
-  variant?: 'default' | 'compact' | 'detailed';
+  data: MedicationCardData      // 1
+  handlers: MedicationCardHandlers  // 2
 }
 ```
+
+**Usage simplifié :**
+```typescript
+<MedicationCard
+  data={{ medication: med, index }}
+  handlers={{
+    onRemove,
+    onUpdate,
+    onUpdatePosology,
+    onUpdateTimeSlot,
+    onUpdateTakesPerDay
+  }}
+/>
+```
+
+**Tests fonctionnels :**
+- ✅ Affichage des médicaments
+- ✅ Édition nombre de prises/jour
+- ✅ Édition unités par prise
+- ✅ Édition horaires de prise
+- ✅ Édition posologie détaillée
+- ✅ Suppression médicament
 
 ---
 
