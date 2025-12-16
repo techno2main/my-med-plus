@@ -18,6 +18,7 @@ export interface IntakeDetail {
   takenAtTimestamp?: string;
   currentStock?: number;
   minThreshold?: number;
+  isPaused?: boolean;
 }
 
 export interface VisitDates {

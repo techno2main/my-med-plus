@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Clock, Pill, CheckCircle2, ClockAlert, SkipForward } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Clock, Pill, CheckCircle2, ClockAlert, SkipForward, Pause } from "lucide-react"
 import { format } from "date-fns"
 import { isIntakeValidationAllowed, getLocalDateString } from "@/lib/dateUtils"
 import { UpcomingIntake } from "../types"
@@ -31,9 +32,10 @@ const getButtonClasses = (
   isOverdue: boolean,
   isDisabledByTime: boolean,
   isTomorrowSection: boolean,
-  isTaken: boolean
+  isTaken: boolean,
+  isPaused: boolean
 ) => {
-  if (isTaken || isTomorrowSection || isDisabledByTime) {
+  if (isTaken || isTomorrowSection || isDisabledByTime || isPaused) {
     return "bg-primary/60 text-white h-8 w-8 p-0 cursor-not-allowed"
   }
   
@@ -57,7 +59,8 @@ export const IntakeCard = ({ intake, isOverdue, isTomorrowSection = false, onTak
   const isDisabledByTime = isToday && !isValidationAllowed && !isTomorrowSection
   const isTaken = intake.status === 'taken'
   const isMissed = intake.status === 'missed' || intake.status === 'skipped'
-  const isDisabled = intake.currentStock === 0 || isOverdue || isTomorrowSection || isDisabledByTime || isTaken || isMissed
+  const isPaused = intake.medicationIsPaused || false
+  const isDisabled = intake.currentStock === 0 || isOverdue || isTomorrowSection || isDisabledByTime || isTaken || isMissed || isPaused
   
   const shouldShowOrangeBadge = isOverdue && !isTaken && !isMissed
   const isTakenLate = isTaken && intake.takenAt && 
@@ -70,6 +73,9 @@ export const IntakeCard = ({ intake, isOverdue, isTomorrowSection = false, onTak
   )
 
   const getLeftIcon = () => {
+    if (isPaused) {
+      return <Pause className="h-3.5 w-3.5 mb-0.5 text-orange-600" />
+    }
     if (isTaken) {
       if (isTakenLate) {
         return <ClockAlert className="h-3.5 w-3.5 mb-0.5 text-success" />
@@ -83,6 +89,7 @@ export const IntakeCard = ({ intake, isOverdue, isTomorrowSection = false, onTak
   }
 
   const getTimeBadgeBgColor = () => {
+    if (isPaused) return 'bg-orange-100'
     if (isTaken) return 'bg-success/10'
     if (intake.status === 'skipped') return 'bg-orange-100'
     if (shouldShowOrangeBadge) return 'bg-orange-100'
@@ -90,6 +97,7 @@ export const IntakeCard = ({ intake, isOverdue, isTomorrowSection = false, onTak
   }
 
   const getTimeTextColor = () => {
+    if (isPaused) return 'text-orange-700'
     if (isTaken) return 'text-success'
     if (intake.status === 'skipped') return 'text-orange-500'
     if (shouldShowOrangeBadge) return 'text-orange-700'
@@ -101,7 +109,9 @@ export const IntakeCard = ({ intake, isOverdue, isTomorrowSection = false, onTak
       <div className="flex items-center gap-3">
         <div className={`flex flex-col items-center justify-center min-w-[60px] p-1.5 rounded-lg ${getTimeBadgeBgColor()}`}>
           {getLeftIcon()}
-          <span className={`text-xs font-semibold ${getTimeTextColor()}`}>{intake.time}</span>
+          <span className={`text-xs font-semibold ${getTimeTextColor()}`}>
+            {isPaused ? "Pause" : intake.time}
+          </span>
           <span className="text-[10px] text-muted-foreground">{format(intake.date, "dd/MM")}</span>
         </div>
         
@@ -143,12 +153,15 @@ export const IntakeCard = ({ intake, isOverdue, isTomorrowSection = false, onTak
                 isOverdue,
                 isDisabledByTime,
                 isTomorrowSection,
-                isTaken
+                isTaken,
+                isPaused
               )}
               onClick={() => onTake(intake)}
               disabled={isDisabled}
             >
-              {isOverdue ? (
+              {isPaused ? (
+                <Pause className="h-4 w-4" />
+              ) : isOverdue ? (
                 <ClockAlert className="h-4 w-4" />
               ) : (
                 <CheckCircle2 className="h-4 w-4" />

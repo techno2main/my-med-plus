@@ -1,20 +1,38 @@
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Pencil } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
+import { Pencil, Pause } from "lucide-react"
 import type { Medication } from "../types"
+import { useMedicationPause } from "../hooks/useMedicationPause"
 
 interface MedicationsListProps {
   medications: Medication[]
   onAddMedication: () => void
   onEditMedication: (medication: Medication) => void
+  onMedicationUpdated: () => void
 }
 
 export const MedicationsList = ({
   medications,
   onAddMedication,
-  onEditMedication
+  onEditMedication,
+  onMedicationUpdated
 }: MedicationsListProps) => {
+  const { togglePause, loading } = useMedicationPause();
+
+  const handleTogglePause = async (med: Medication) => {
+    const success = await togglePause(
+      med.id,
+      med.is_paused || false,
+      med.name
+    );
+    
+    if (success) {
+      onMedicationUpdated();
+    }
+  };
+
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
@@ -70,6 +88,19 @@ export const MedicationsList = ({
                     </span>
                   ))}
                 </div>
+              </div>
+
+              {/* Ligne 4: Toggle "En pause" */}
+              <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                <div className="flex items-center gap-2">
+                  <Pause className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">En pause</span>
+                </div>
+                <Switch
+                  checked={med.is_paused || false}
+                  onCheckedChange={() => handleTogglePause(med)}
+                  disabled={loading}
+                />
               </div>
             </Card>
           ))

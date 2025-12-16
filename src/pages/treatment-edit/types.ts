@@ -6,6 +6,7 @@ interface Medication {
   times: string[];
   catalog_id?: string;
   pathology?: string | null;
+  is_paused?: boolean;
 }
 
 interface Treatment {

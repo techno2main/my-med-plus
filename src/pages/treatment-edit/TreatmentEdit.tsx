@@ -95,6 +95,7 @@ export default function TreatmentEdit() {
           medications={medications}
           onAddMedication={handleAddMedication}
           onEditMedication={handleEditMedication}
+          onMedicationUpdated={reloadTreatment}
         />
 
         <ActionButtons

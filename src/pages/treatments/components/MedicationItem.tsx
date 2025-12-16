@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge"
-import { Clock, Pill } from "lucide-react"
+import { Clock, Pill, Pause } from "lucide-react"
 
 interface MedicationItemProps {
   medication: {
@@ -10,6 +10,7 @@ interface MedicationItemProps {
     pathology: string | null
     currentStock: number
     minThreshold: number
+    isPaused: boolean
   }
 }
 
@@ -28,7 +29,11 @@ const getStockBgColor = (stock: number, threshold: number) => {
 export const MedicationItem = ({ medication }: MedicationItemProps) => {
   return (
     <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-      <Pill className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+      {medication.isPaused ? (
+        <Pause className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
+      ) : (
+        <Pill className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+      )}
       <div className="flex-1 min-w-0 space-y-1">
         <div className="flex items-center justify-between gap-2">
           <p className="font-medium text-sm">

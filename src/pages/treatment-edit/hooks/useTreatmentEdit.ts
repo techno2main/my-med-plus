@@ -88,7 +88,7 @@ export const useTreatmentEdit = () => {
       // Load medications for this treatment
       const { data: medsData, error: medsError } = await supabase
         .from("medications")
-        .select("id, name, posology, strength, times, catalog_id")
+        .select("id, name, posology, strength, times, catalog_id, is_paused")
         .eq("treatment_id", id)
 
       if (medsError) throw medsError

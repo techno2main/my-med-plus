@@ -1,4 +1,5 @@
-import { Pill } from "lucide-react"
+import { Pill, Pause } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { StatusIcon, calculateIntakeStatus } from "@/components/ui/status-icon"
 
 interface IntakeHistoryCardProps {
@@ -11,6 +12,7 @@ interface IntakeHistoryCardProps {
     takenAt?: string
     scheduledTimestamp?: string
     takenAtTimestamp?: string
+    isPaused?: boolean
   }
 }
 
@@ -21,10 +23,22 @@ export const IntakeHistoryCard = ({ intake }: IntakeHistoryCardProps) => {
     intake.takenAtTimestamp
   )
   
+  // Vérifier si la prise est dans le futur (ou aujourd'hui pas encore prise)
+  const isFutureOrToday = intake.scheduledTimestamp 
+    ? new Date(intake.scheduledTimestamp) >= new Date(new Date().setHours(0, 0, 0, 0))
+    : false;
+  
+  // Afficher pause seulement si : en pause + pending + date future/aujourd'hui
+  const shouldShowPause = intake.isPaused && intake.status === 'pending' && isFutureOrToday;
+  
   return (
     <div className="flex items-center justify-between p-3 rounded-lg bg-surface">
       <div className="flex items-center gap-3 flex-1">
-        <Pill className="h-5 w-5 text-white" />
+        {shouldShowPause ? (
+          <Pause className="h-5 w-5 text-orange-600" />
+        ) : (
+          <Pill className="h-5 w-5 text-white" />
+        )}
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <p className="font-medium">{intake.medication}</p>
@@ -36,7 +50,11 @@ export const IntakeHistoryCard = ({ intake }: IntakeHistoryCardProps) => {
           </p>
         </div>
       </div>
-      <StatusIcon status={calculatedStatus} size="lg" />
+      {shouldShowPause ? (
+        <Pause className="h-6 w-6 text-orange-600" />
+      ) : (
+        <StatusIcon status={calculatedStatus} size="lg" />
+      )}
     </div>
   )
 }

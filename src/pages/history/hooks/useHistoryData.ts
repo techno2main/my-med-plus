@@ -24,6 +24,7 @@ export const useHistoryData = () => {
             name,
             catalog_id,
             treatment_id,
+            is_paused,
             medication_catalog(strength, default_posology),
             treatments!inner(name, start_date, end_date, prescription_id, is_active)
           )
@@ -97,7 +98,8 @@ export const useHistoryData = () => {
           treatmentId: treatmentId,
           treatmentQspDays: treatmentInfo?.qsp_days || null,
           treatmentEndDate: treatmentInfo?.end_date || null,
-          treatmentIsActive: treatmentInfo?.is_active ?? true
+          treatmentIsActive: treatmentInfo?.is_active ?? true,
+          isPaused: intake.medications?.is_paused || false
         })
 
         return acc
