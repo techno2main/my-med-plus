@@ -14,6 +14,7 @@ export interface UpcomingIntake {
   treatmentEndDate?: string | null
   status: 'pending' | 'taken' | 'missed' | 'skipped'
   takenAt?: Date | null
+  medicationIsPaused?: boolean
 }
 
 export interface StockAlert {

@@ -4,8 +4,8 @@ import { toast } from "sonner";
 
 /**
  * Hook pour gérer la pause/reprise d'un médicament
- * - Met en pause : supprime les prises futures
- * - Réactive : régénère les prises pour 7 jours
+ * - Met en pause : les prises restent visibles mais marquées "En pause" (non cliquables)
+ * - Réactive : régénère les prises manquantes pour 7 jours
  */
 export function useMedicationPause() {
   const [loading, setLoading] = useState(false);
@@ -31,20 +31,11 @@ export function useMedicationPause() {
       if (updateError) throw updateError;
       console.log('[useMedicationPause] Update is_paused réussi');
 
-      // 2. Si on met en pause : supprimer les prises futures
+      // 2. Si on met en pause : NE PAS supprimer les prises (elles restent visibles mais marquées "pause")
       if (newIsPaused) {
-        console.log('[useMedicationPause] Appel delete_future_intakes_on_pause...');
-        const { data: deletedCount, error: deleteFutureError } = await supabase
-          .rpc('delete_future_intakes_on_pause' as any, { med_id: medicationId });
-
-        if (deleteFutureError) {
-          console.error('[useMedicationPause] Erreur suppression prises futures:', deleteFutureError);
-        } else {
-          console.log('[useMedicationPause] Prises futures supprimées:', deletedCount);
-        }
-
+        console.log('[useMedicationPause] Médicament mis en pause, prises conservées');
         toast.success(`${medicationName} mis en pause`, {
-          description: "Les prises futures ont été supprimées"
+          description: "Les prises futures seront marquées comme 'En pause'"
         });
       } 
       // 3. Si on réactive : régénérer les prises futures (7 jours)

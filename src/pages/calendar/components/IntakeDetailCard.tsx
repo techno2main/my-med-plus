@@ -1,4 +1,5 @@
-import { CheckCircle2, XCircle, Clock, ClockAlert, Pill, AlertCircle } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, ClockAlert, Pill, AlertCircle, Pause } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { useIntakeOverdue } from "@/hooks/useIntakeOverdue";
 import type { IntakeDetail } from "../types";
 
@@ -13,9 +14,9 @@ export const IntakeDetailCard = ({ intake, isToday = false, isPastDate = false, 
   const { isIntakeOverdue } = useIntakeOverdue();
 
   // Détermine si la carte est cliquable
-  // - Pour aujourd'hui : uniquement les prises 'upcoming'
-  // - Pour les dates antérieures : toutes les prises
-  const isClickable = onClick && ((isToday && intake.status === 'upcoming') || isPastDate);
+  // - Pour aujourd'hui : uniquement les prises 'upcoming' ET non en pause
+  // - Pour les dates antérieures : toutes les prises sauf celles en pause
+  const isClickable = onClick && !intake.isPaused && ((isToday && intake.status === 'upcoming') || isPastDate);
 
   // Détermine si une alerte de stock doit être affichée
   const hasStockAlert = () => {
@@ -32,11 +33,20 @@ export const IntakeDetailCard = ({ intake, isToday = false, isPastDate = false, 
   };
 
   const getStatusIcon = () => {
-    // Toujours afficher l'icône pilule blanche, peu importe le statut
+    // Si le médicament est en pause ET que la prise est encore pending ET que ce n'est pas une date passée
+    if (intake.isPaused && intake.status === 'upcoming' && !isPastDate) {
+      return <Pause className="h-4 w-4 text-orange-600" />;
+    }
+    // Sinon, afficher l'icône pilule blanche
     return <Pill className="h-4 w-4 text-white" />;
   };
 
   const getStatusBadge = () => {
+    // Si le médicament est en pause ET que la prise est encore pending ET que ce n'est pas une date passée
+    if (intake.isPaused && intake.status === 'upcoming' && !isPastDate) {
+      return <Pause className="h-6 w-6 text-orange-600" />;
+    }
+    
     if (intake.status === 'taken' && intake.scheduledTimestamp && intake.takenAtTimestamp) {
       const scheduled = new Date(intake.scheduledTimestamp);
       const taken = new Date(intake.takenAtTimestamp);

@@ -61,6 +61,7 @@ export const useDayDetails = ({ selectedDate, treatmentStartDate }: UseDayDetail
             current_stock,
             min_threshold,
             treatment_id,
+            is_paused,
             treatments!inner (name, is_active),
             medication_catalog (strength, default_posology)
           )
@@ -84,7 +85,9 @@ export const useDayDetails = ({ selectedDate, treatmentStartDate }: UseDayDetail
         } else if (intake.status === 'skipped') {
           status = 'missed';
         } else if (intake.status === 'pending') {
-          if (isPast || scheduledTime < now) {
+          // Pour aujourd'hui : ne marquer comme "missed" que si la date est vraiment passée (jour précédent)
+          // Pour le jour actuel, même si l'heure est passée, on garde "upcoming"
+          if (isPast) {
             status = 'missed';
           } else {
             status = 'upcoming';
@@ -109,7 +112,8 @@ export const useDayDetails = ({ selectedDate, treatmentStartDate }: UseDayDetail
           scheduledTimestamp: intake.scheduled_time,
           takenAtTimestamp: intake.taken_at || undefined,
           currentStock: intake.medications?.current_stock || 0,
-          minThreshold: intake.medications?.min_threshold || 10
+          minThreshold: intake.medications?.min_threshold || 10,
+          isPaused: intake.medications?.is_paused || false
         });
       });
 

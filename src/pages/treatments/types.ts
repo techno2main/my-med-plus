@@ -15,6 +15,7 @@ interface Treatment {
     pathology: string | null
     currentStock: number
     minThreshold: number
+    isPaused: boolean
   }>
   prescribing_doctor?: {
     name: string

@@ -100,7 +100,8 @@ export const useTreatmentsList = () => {
               times,
               current_stock,
               min_threshold,
-              catalog_id
+              catalog_id,
+              is_paused
             `)
             .eq("treatment_id", treatment.id)
 
@@ -139,7 +140,8 @@ export const useTreatmentsList = () => {
                 times: sortedTimes,
                 pathology,
                 currentStock: med.current_stock || 0,
-                minThreshold: med.min_threshold || 10
+                minThreshold: med.min_threshold || 10,
+                isPaused: med.is_paused || false
               };
             })
           );

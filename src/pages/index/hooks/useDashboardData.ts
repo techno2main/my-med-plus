@@ -103,6 +103,7 @@ export const useDashboardData = () => {
             current_stock,
             min_threshold,
             treatment_id,
+            is_paused,
             treatments!inner (name, is_active),
             medication_catalog (
               pathology_id,
@@ -138,6 +139,7 @@ export const useDashboardData = () => {
             current_stock,
             min_threshold,
             treatment_id,
+            is_paused,
             treatments!inner (name, is_active),
             medication_catalog (
               pathology_id,
@@ -190,7 +192,8 @@ export const useDashboardData = () => {
           treatmentQspDays: treatmentInfo?.qspDays || null,
           treatmentEndDate: treatmentInfo?.endDate || null,
           status: intake.status,
-          takenAt: intake.taken_at ? parseISO(intake.taken_at.replace(' ', 'T').replace('+00', 'Z')) : null
+          takenAt: intake.taken_at ? parseISO(intake.taken_at.replace(' ', 'T').replace('+00', 'Z')) : null,
+          medicationIsPaused: intake.medications.is_paused || false
         })
       })
 
