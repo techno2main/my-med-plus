@@ -7,10 +7,8 @@ export function EmptyState() {
   
   return (
     <EmptyStateAtom
-      icon={CheckCircle2}
-      iconColor="text-success"
-      title="Tout est à jour !"
-      description="Aucune prise manquée détectée"
+      visual={{ icon: CheckCircle2, iconColor: "text-success", title: "Tout est à jour !" }}
+      content={{ description: "Aucune prise manquée détectée" }}
       action={{
         label: "Retour à l'accueil",
         onClick: () => navigate("/")

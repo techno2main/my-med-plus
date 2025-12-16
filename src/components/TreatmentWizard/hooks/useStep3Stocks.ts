@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { TreatmentFormData } from "../types";
 import { getAuthenticatedUser } from "@/lib/auth-guard";
+import { applyStockUpdates } from "../utils/stockHelpers";
 
 interface UseStep3StocksProps {
   formData: TreatmentFormData;
@@ -10,12 +11,25 @@ interface UseStep3StocksProps {
 
 export function useStep3Stocks({ formData, setFormData }: UseStep3StocksProps) {
   const [loadingStocks, setLoadingStocks] = useState(true);
+  const loadedMedicationsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     loadExistingStocks();
   }, [formData.medications]);
 
   const loadExistingStocks = async () => {
+    // Identifier les nouveaux médicaments (non encore chargés)
+    const currentMedNames = formData.medications.map(m => m.name);
+    const newMedications = formData.medications.filter(
+      (med) => !loadedMedicationsRef.current.has(med.name)
+    );
+
+    // Si aucun nouveau médicament, ne rien faire
+    if (newMedications.length === 0) {
+      setLoadingStocks(false);
+      return;
+    }
+
     setLoadingStocks(true);
     try {
       const { data: user, error } = await getAuthenticatedUser();
@@ -37,45 +51,35 @@ export function useStep3Stocks({ formData, setFormData }: UseStep3StocksProps) {
         .eq("treatments.user_id", user.id)
         .eq("treatments.is_active", true);
 
-      if (existingMedications) {
-        const newStocks = { ...formData.stocks };
-        const updatedMedications = [...formData.medications];
-        let hasChanges = false;
+      // Early return si pas de données
+      if (!existingMedications) {
+        setLoadingStocks(false);
+        // Marquer les nouveaux médicaments comme chargés même si pas de données
+        newMedications.forEach(med => loadedMedicationsRef.current.add(med.name));
+        return;
+      }
 
-        formData.medications.forEach((med, index) => {
-          // Chercher le médicament existant par nom
-          const existing = existingMedications.find(
-            (em) => em.name.toLowerCase() === med.name.toLowerCase()
-          );
-
-          if (existing) {
-            // Pré-remplir avec le stock actuel existant
-            if (!(index in newStocks) || newStocks[index] === 0) {
-              newStocks[index] = existing.current_stock || 0;
-              hasChanges = true;
-            }
-            // Mettre à jour le seuil d'alerte si non défini
-            if (updatedMedications[index].minThreshold === 10 && existing.min_threshold) {
-              updatedMedications[index].minThreshold = existing.min_threshold;
-              hasChanges = true;
-            }
-          } else {
-            // Initialiser à 0 si pas trouvé
-            if (!(index in newStocks)) {
-              newStocks[index] = 0;
-              hasChanges = true;
-            }
-          }
-        });
+      // Appliquer les mises à jour de stocks avec les utilitaires
+      setFormData((prev) => {
+        const { newStocks, updatedMedications, hasChanges } = applyStockUpdates(
+          prev.medications,
+          prev.stocks,
+          existingMedications
+        );
 
         if (hasChanges) {
-          setFormData({ 
-            ...formData, 
+          return { 
+            ...prev, 
             stocks: newStocks,
             medications: updatedMedications 
-          });
+          };
         }
-      }
+        return prev;
+      });
+
+      // Marquer les nouveaux médicaments comme chargés
+      newMedications.forEach(med => loadedMedicationsRef.current.add(med.name));
+
     } catch (error) {
       console.error("Error loading existing stocks:", error);
     } finally {
@@ -84,16 +88,18 @@ export function useStep3Stocks({ formData, setFormData }: UseStep3StocksProps) {
   };
 
   const updateStock = (index: number, value: number) => {
-    setFormData({
-      ...formData,
-      stocks: { ...formData.stocks, [index]: value },
-    });
+    setFormData((prev) => ({
+      ...prev,
+      stocks: { ...prev.stocks, [index]: value },
+    }));
   };
 
   const updateThreshold = (index: number, value: number) => {
-    const updated = [...formData.medications];
-    updated[index].minThreshold = value;
-    setFormData({ ...formData, medications: updated });
+    setFormData((prev) => {
+      const updated = [...prev.medications];
+      updated[index].minThreshold = value;
+      return { ...prev, medications: updated };
+    });
   };
 
   const hasEmptyStocks = formData.medications.some((_, index) => 

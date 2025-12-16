@@ -33,10 +33,8 @@ export function ProfessionalList({
   if (professionals.length === 0) {
     return (
       <EmptyState
-        icon={emptyIcon}
-        iconColor={emptyIconColor}
-        title={emptyTitle}
-        description={emptyDescription || "Aucun élément trouvé"}
+        visual={emptyIcon || emptyTitle ? { icon: emptyIcon, iconColor: emptyIconColor, title: emptyTitle } : undefined}
+        content={{ description: emptyDescription || "Aucun élément trouvé" }}
         action={onAdd ? {
           label: "Ajouter",
           onClick: onAdd

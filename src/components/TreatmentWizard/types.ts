@@ -30,6 +30,10 @@ export interface MedicationItem {
   unitsPerTake: number;
   minThreshold: number;
   isCustom?: boolean;
+  strength?: string;
+  // Données temporaires pour médicaments personnalisés (avant insertion en base)
+  pendingPathology?: string;
+  pendingInsertion?: boolean;
 }
 
 export interface CatalogMedication {

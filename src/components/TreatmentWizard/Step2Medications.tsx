@@ -1,10 +1,22 @@
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
+import { useState } from "react"
 import { TreatmentFormData } from "./types"
 import { useStep2Medications } from "./hooks/useStep2Medications"
 import { MedicationsList } from "./components/MedicationsList"
 import { CatalogDialog } from "./components/CatalogDialog"
 import { CustomMedicationDialog } from "./components/CustomMedicationDialog"
+import { MedicationsProvider } from "./contexts/MedicationsContext"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface Step2MedicationsProps {
   formData: TreatmentFormData
@@ -12,6 +24,9 @@ interface Step2MedicationsProps {
 }
 
 export function Step2Medications({ formData, setFormData }: Step2MedicationsProps) {
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false)
+  const [existingCatalogMed, setExistingCatalogMed] = useState<any>(null)
+  
   const {
     catalog,
     pathologySuggestions,
@@ -21,8 +36,7 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
     showCustomDialog,
     setShowCustomDialog,
     newCustomMed,
-    setNewCustomMed,
-    handlePathologyChange,
+    handleMedicationFieldChange,
     selectPathology,
     addMedicationFromCatalog,
     addCustomMedication,
@@ -30,11 +44,18 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
     updateMedicationPosology,
     removeMedication,
     updateTimeSlot,
-    updateTakesPerDay
-  } = useStep2Medications(formData, setFormData)
+    updateTakesPerDay,
+    resetCustomMed
+  } = useStep2Medications(formData, setFormData, (catalogMed) => {
+    setExistingCatalogMed(catalogMed)
+    setShowDuplicateDialog(true)
+  })
 
-  const handleMedicationFieldChange = (field: string, value: string) => {
-    setNewCustomMed({ ...newCustomMed, [field]: value })
+  const handleCustomDialogChange = (open: boolean) => {
+    setShowCustomDialog(open)
+    if (!open) {
+      resetCustomMed()
+    }
   }
 
   return (
@@ -60,14 +81,20 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
         </Button>
       </div>
 
-      <MedicationsList
-        medications={formData.medications}
-        onRemove={removeMedication}
-        onUpdate={updateMedication}
-        onUpdatePosology={updateMedicationPosology}
-        onUpdateTimeSlot={updateTimeSlot}
-        onUpdateTakesPerDay={updateTakesPerDay}
-      />
+      <MedicationsProvider
+        value={{
+          medications: formData.medications,
+          handlers: {
+            onRemove: removeMedication,
+            onUpdate: updateMedication,
+            onUpdatePosology: updateMedicationPosology,
+            onUpdateTimeSlot: updateTimeSlot,
+            onUpdateTakesPerDay: updateTakesPerDay
+          }
+        }}
+      >
+        <MedicationsList />
+      </MedicationsProvider>
 
       <CatalogDialog
         open={showDialog}
@@ -77,16 +104,58 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
       />
 
       <CustomMedicationDialog
-        open={showCustomDialog}
-        onOpenChange={setShowCustomDialog}
-        newMedication={newCustomMed}
-        onMedicationChange={handleMedicationFieldChange}
-        onPathologyChange={handlePathologyChange}
-        pathologySuggestions={pathologySuggestions}
-        showSuggestions={showPathologySuggestions}
-        onSelectPathology={selectPathology}
+        dialog={{
+          open: showCustomDialog,
+          onOpenChange: handleCustomDialogChange
+        }}
+        formData={{
+          name: newCustomMed.name,
+          pathology: newCustomMed.pathology,
+          posology: newCustomMed.posology,
+          strength: newCustomMed.strength
+        }}
+        pathology={{
+          suggestions: pathologySuggestions,
+          showSuggestions: showPathologySuggestions,
+          onSelect: selectPathology
+        }}
+        onFieldChange={handleMedicationFieldChange}
         onSubmit={addCustomMedication}
       />
+
+      <AlertDialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Médicament existant</AlertDialogTitle>
+            <AlertDialogDescription>
+              Le médicament &quot;{existingCatalogMed?.name}&quot; existe déjà dans le catalogue.
+              <br /><br />
+              Voulez-vous l&apos;ajouter depuis le catalogue plutôt que d&apos;en créer un nouveau ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setShowDuplicateDialog(false);
+              }}
+            >
+              Créer quand même
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (existingCatalogMed) {
+                  addMedicationFromCatalog(existingCatalogMed);
+                  setShowCustomDialog(false);
+                  resetCustomMed();
+                }
+                setShowDuplicateDialog(false);
+              }}
+            >
+              Utiliser le catalogue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

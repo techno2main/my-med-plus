@@ -19,10 +19,8 @@ export function PathologyList({ pathologies, isLoading, onEdit, onDelete, onAdd 
   if (pathologies.length === 0) {
     return (
       <EmptyState
-        icon={HeartPulse}
-        iconColor="text-red-500"
-        title="Aucune pathologie enregistrée"
-        description="Ajoutez vos pathologies pour un meilleur suivi de votre santé"
+        visual={{ icon: HeartPulse, iconColor: "text-red-500", title: "Aucune pathologie enregistrée" }}
+        content={{ description: "Ajoutez vos pathologies pour un meilleur suivi de votre santé" }}
         action={onAdd ? {
           label: "Ajouter une pathologie",
           onClick: onAdd

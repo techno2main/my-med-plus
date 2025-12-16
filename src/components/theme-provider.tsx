@@ -22,6 +22,33 @@ const initialState: ThemeProviderState = {
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
 
+// Helper functions extracted to reduce nesting
+const updateStatusBar = (isDark: boolean) => {
+  if (!Capacitor.isNativePlatform()) return;
+  
+  const style = isDark ? Style.Dark : Style.Light;
+  const color = isDark ? '#000000' : '#ffffff';
+  
+  StatusBar.setStyle({ style }).catch(() => {});
+  StatusBar.setBackgroundColor({ color }).catch(() => {});
+};
+
+const applyThemeToRoot = (themeClass: string) => {
+  const root = window.document.documentElement;
+  root.classList.remove("light", "dark");
+  root.classList.add(themeClass);
+};
+
+const getSystemTheme = (): "dark" | "light" => {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+};
+
+const handleSystemThemeChange = (e: MediaQueryListEvent) => {
+  const newTheme = e.matches ? "dark" : "light";
+  applyThemeToRoot(newTheme);
+  updateStatusBar(e.matches);
+};
+
 export function ThemeProvider({
   children,
   defaultTheme = "system",
@@ -30,7 +57,6 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
     const stored = localStorage.getItem(storageKey) as Theme;
-    // Si aucune valeur stockée, on utilise "system" par défaut
     if (!stored) {
       localStorage.setItem(storageKey, "system");
       return "system";
@@ -39,63 +65,19 @@ export function ThemeProvider({
   })
 
   useEffect(() => {
-    const root = window.document.documentElement
-
-    root.classList.remove("light", "dark")
-
     if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light"
-
-      root.classList.add(systemTheme)
-      
-      // Update status bar for system theme
-      if (Capacitor.isNativePlatform()) {
-        if (systemTheme === "dark") {
-          StatusBar.setStyle({ style: Style.Dark }).catch(() => {})
-          StatusBar.setBackgroundColor({ color: '#000000' }).catch(() => {})
-        } else {
-          StatusBar.setStyle({ style: Style.Light }).catch(() => {})
-          StatusBar.setBackgroundColor({ color: '#ffffff' }).catch(() => {})
-        }
-      }
+      const systemTheme = getSystemTheme();
+      applyThemeToRoot(systemTheme);
+      updateStatusBar(systemTheme === "dark");
       
       // Listen for system theme changes
-      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
-      const handleChange = (e: MediaQueryListEvent) => {
-        root.classList.remove("light", "dark")
-        root.classList.add(e.matches ? "dark" : "light")
-        
-        // Update status bar on system theme change
-        if (Capacitor.isNativePlatform()) {
-          if (e.matches) {
-            StatusBar.setStyle({ style: Style.Dark }).catch(() => {})
-            StatusBar.setBackgroundColor({ color: '#000000' }).catch(() => {})
-          } else {
-            StatusBar.setStyle({ style: Style.Light }).catch(() => {})
-            StatusBar.setBackgroundColor({ color: '#ffffff' }).catch(() => {})
-          }
-        }
-      }
-      
-      mediaQuery.addEventListener("change", handleChange)
-      return () => mediaQuery.removeEventListener("change", handleChange)
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      mediaQuery.addEventListener("change", handleSystemThemeChange);
+      return () => mediaQuery.removeEventListener("change", handleSystemThemeChange);
     }
 
-    root.classList.add(theme)
-    
-    // Update status bar based on selected theme
-    if (Capacitor.isNativePlatform()) {
-      if (theme === "dark") {
-        StatusBar.setStyle({ style: Style.Dark }).catch(() => {})
-        StatusBar.setBackgroundColor({ color: '#000000' }).catch(() => {})
-      } else {
-        StatusBar.setStyle({ style: Style.Light }).catch(() => {})
-        StatusBar.setBackgroundColor({ color: '#ffffff' }).catch(() => {})
-      }
-    }
+    applyThemeToRoot(theme);
+    updateStatusBar(theme === "dark");
   }, [theme])
 
   const value = {

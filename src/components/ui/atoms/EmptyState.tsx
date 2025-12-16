@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { LucideIcon } from "lucide-react";
 import { ReactNode } from "react";
 
-interface EmptyStateProps {
+interface EmptyStateVisual {
   /**
    * Icon to display above the title (optional)
    */
@@ -16,22 +16,29 @@ interface EmptyStateProps {
    * Title/heading of the empty state (optional)
    */
   title?: string;
+}
+
+interface EmptyStateContent {
   /**
    * Description text explaining the empty state
    */
   description: string;
   /**
-   * Optional action button
-   */
-  action?: {
-    label: string;
-    onClick: () => void;
-    variant?: "default" | "outline" | "secondary";
-  };
-  /**
    * Custom children to render instead of default layout (optional)
    */
   children?: ReactNode;
+}
+
+interface EmptyStateAction {
+  label: string;
+  onClick: () => void;
+  variant?: "default" | "outline" | "secondary";
+}
+
+interface EmptyStateProps {
+  visual?: EmptyStateVisual;
+  content: EmptyStateContent;
+  action?: EmptyStateAction;
 }
 
 /**
@@ -41,29 +48,27 @@ interface EmptyStateProps {
  * @example
  * ```tsx
  * <EmptyState
- *   icon={CheckCircle2}
- *   iconColor="text-success"
- *   title="Tout est à jour !"
- *   description="Aucune prise manquée détectée"
+ *   visual={{ icon: CheckCircle2, iconColor: "text-success", title: "Tout est à jour !" }}
+ *   content={{ description: "Aucune prise manquée détectée" }}
  *   action={{ label: "Retour à l'accueil", onClick: () => navigate("/") }}
  * />
  * ```
  */
 export function EmptyState({
-  icon: Icon,
-  iconColor = "text-muted-foreground",
-  title,
-  description,
+  visual,
+  content,
   action,
-  children,
 }: EmptyStateProps) {
+  const Icon = visual?.icon;
+  const iconColor = visual?.iconColor || "text-muted-foreground";
+  
   return (
     <Card className="p-12 text-center">
-      {children || (
+      {content.children || (
         <>
           {Icon && <Icon className={`h-12 w-12 mx-auto mb-4 ${iconColor}`} />}
-          {title && <h3 className="font-semibold text-lg mb-2">{title}</h3>}
-          <p className="text-muted-foreground mb-4">{description}</p>
+          {visual?.title && <h3 className="font-semibold text-lg mb-2">{visual.title}</h3>}
+          <p className="text-muted-foreground mb-4">{content.description}</p>
           {action && (
             <Button variant={action.variant || "default"} onClick={action.onClick}>
               {action.label}

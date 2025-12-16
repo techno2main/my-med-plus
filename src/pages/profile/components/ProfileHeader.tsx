@@ -28,15 +28,19 @@ export function ProfileHeader({
     <div className="flex items-center gap-3 mb-6">
       <div className="relative group shrink-0">
         <AvatarWithBadge
-          src={avatarUrl || undefined}
-          alt="Avatar"
-          fallback={
-            <span className="bg-gradient-to-br from-green-400 to-green-600 text-white text-base sm:text-lg font-semibold h-full w-full flex items-center justify-center">
-              {getInitials(firstName, lastName)}
-            </span>
-          }
-          isAdmin={isAdmin}
-          className="h-14 w-14 sm:h-16 sm:w-16"
+          avatar={{
+            src: avatarUrl || undefined,
+            alt: "Avatar",
+            fallback: (
+              <span className="bg-gradient-to-br from-green-400 to-green-600 text-white text-base sm:text-lg font-semibold h-full w-full flex items-center justify-center">
+                {getInitials(firstName, lastName)}
+              </span>
+            ),
+          }}
+          badge={{
+            isAdmin,
+            className: "h-14 w-14 sm:h-16 sm:w-16",
+          }}
         />
         {isEditing && (
           <button

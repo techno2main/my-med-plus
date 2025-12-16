@@ -60,41 +60,44 @@ export function AppHeader() {
   }
 
   return (
-    <header className="border-b border-border sticky top-0 z-50" style={{ backgroundColor: theme === 'dark' ? '#0D1117' : '#1976D2' }}>
-      <div className="pt-8 pb-4 container max-w-2xl mx-auto px-3 md:px-4 space-y-2">
+    <header className="border-b border-border fixed top-0 left-0 right-0 z-50 bg-[#1976D2] dark:bg-[#0D1117]">
+      <div className="pt-safe pt-14 pb-4 container max-w-2xl mx-auto px-3 md:px-4 space-y-2">
         <div className="flex items-center justify-between">
           <h1 
-            className="text-2xl font-bold cursor-pointer hover:opacity-80 transition-opacity"
-            style={{ color: 'white' }}
+            className="text-2xl font-bold cursor-pointer hover:opacity-80 transition-opacity text-white"
             onClick={() => navigate("/")}
           >
             MyHealth+
           </h1>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5">
-              <Sun className="h-3.5 w-3.5" style={{ color: 'rgba(255,255,255,0.7)' }} />
+              <Sun className="h-3.5 w-3.5 text-white/70" />
               <Switch
                 checked={theme === "dark"}
                 onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
                 className="data-[state=checked]:bg-blue-300 scale-75"
               />
-              <Moon className="h-3.5 w-3.5" style={{ color: 'rgba(255,255,255,0.7)' }} />
+              <Moon className="h-3.5 w-3.5 text-white/70" />
             </div>
             <AvatarWithBadge
-              src={avatarUrl || undefined}
-              alt="Avatar utilisateur"
-              fallback={
-                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-green-400 to-green-600 text-white font-semibold text-sm">
-                  {userInitials || <User className="h-5 w-5" />}
-                </div>
-              }
-              isAdmin={isAdmin}
-              className="cursor-pointer"
-              onClick={() => navigate("/profile")}
+              avatar={{
+                src: avatarUrl || undefined,
+                alt: "Avatar utilisateur",
+                fallback: (
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-green-400 to-green-600 text-white font-semibold text-sm">
+                    {userInitials || <User className="h-5 w-5" />}
+                  </div>
+                ),
+              }}
+              badge={{
+                isAdmin,
+                className: "cursor-pointer",
+                onClick: () => navigate("/profile"),
+              }}
             />
           </div>
         </div>
-        <p className="text-sm capitalize" style={{ color: 'rgba(255,255,255,0.9)' }}>{currentDate} • {currentTime}</p>
+        <p className="text-sm capitalize text-white/90">{currentDate} • {currentTime}</p>
       </div>
     </header>
   )
