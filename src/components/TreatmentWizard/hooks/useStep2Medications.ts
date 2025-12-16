@@ -3,7 +3,11 @@ import { supabase } from "@/integrations/supabase/client"
 import { detectTakesFromDosage, getDefaultTimes } from "../utils/medicationUtils"
 import type { TreatmentFormData, MedicationItem, CatalogMedication } from "../types"
 
-export const useStep2Medications = (formData: TreatmentFormData, setFormData: (data: TreatmentFormData) => void) => {
+export const useStep2Medications = (
+  formData: TreatmentFormData, 
+  setFormData: (data: TreatmentFormData) => void,
+  onDuplicateFound?: (catalogMed: any) => void
+) => {
   const [catalog, setCatalog] = useState<CatalogMedication[]>([])
   const [pathologies, setPathologies] = useState<string[]>([])
   const [pathologySuggestions, setPathologySuggestions] = useState<string[]>([])
@@ -40,18 +44,21 @@ export const useStep2Medications = (formData: TreatmentFormData, setFormData: (d
     }
   }
 
-  const handlePathologyChange = (value: string) => {
-    setNewCustomMed({ ...newCustomMed, pathology: value })
+  const handleMedicationFieldChange = (field: keyof typeof newCustomMed, value: string) => {
+    setNewCustomMed({ ...newCustomMed, [field]: value })
     
-    if (value.trim().length > 0) {
-      const filtered = pathologies.filter(p => 
-        p.toLowerCase().startsWith(value.toLowerCase())
-      )
-      setPathologySuggestions(filtered)
-      setShowPathologySuggestions(filtered.length > 0)
-    } else {
-      setPathologySuggestions([])
-      setShowPathologySuggestions(false)
+    // Si on modifie la pathologie, gérer les suggestions
+    if (field === "pathology") {
+      if (value.trim().length > 0) {
+        const filtered = pathologies.filter(p => 
+          p.toLowerCase().startsWith(value.toLowerCase())
+        )
+        setPathologySuggestions(filtered)
+        setShowPathologySuggestions(filtered.length > 0)
+      } else {
+        setPathologySuggestions([])
+        setShowPathologySuggestions(false)
+      }
     }
   }
 
@@ -61,6 +68,18 @@ export const useStep2Medications = (formData: TreatmentFormData, setFormData: (d
   }
 
   const addMedicationFromCatalog = (catalogMed: CatalogMedication) => {
+    // Vérifier si le médicament existe déjà
+    const existingIndex = formData.medications.findIndex(med => 
+      med.catalogId === catalogMed.id || 
+      med.name.toLowerCase() === catalogMed.name.toLowerCase()
+    )
+
+    if (existingIndex !== -1) {
+      alert(`Le médicament "${catalogMed.name}" est déjà dans votre liste.`)
+      setShowDialog(false)
+      return
+    }
+
     const newMed: MedicationItem = {
       catalogId: catalogMed.id,
       name: catalogMed.name,
@@ -72,9 +91,11 @@ export const useStep2Medications = (formData: TreatmentFormData, setFormData: (d
       minThreshold: 10
     }
     
+    const newIndex = formData.medications.length;
     setFormData({
       ...formData,
-      medications: [...formData.medications, newMed]
+      medications: [...formData.medications, newMed],
+      stocks: { ...formData.stocks, [newIndex]: 0 }
     })
     setShowDialog(false)
   }
@@ -82,59 +103,63 @@ export const useStep2Medications = (formData: TreatmentFormData, setFormData: (d
   const addCustomMedication = async () => {
     if (!newCustomMed.name) return
 
-    try {
-      // Si une pathologie est saisie, vérifier si elle existe, sinon la créer
-      if (newCustomMed.pathology && newCustomMed.pathology.trim()) {
-        const { data: existingPathology } = await supabase
-          .from("pathologies")
-          .select("id")
-          .ilike("name", newCustomMed.pathology.trim())
-          .maybeSingle()
+    // Vérifier si le médicament existe déjà dans la liste
+    const existingInList = formData.medications.findIndex(med => 
+      med.name.toLowerCase() === newCustomMed.name.trim().toLowerCase()
+    )
 
-        if (!existingPathology) {
-          // Créer la nouvelle pathologie
-          await supabase
-            .from("pathologies")
-            .insert({ name: newCustomMed.pathology.trim() })
-        }
+    if (existingInList !== -1) {
+      alert(`Le médicament "${newCustomMed.name}" est déjà dans votre liste.`)
+      setShowCustomDialog(false)
+      resetCustomMed()
+      return
+    }
+
+    // Vérifier si le médicament existe déjà dans le catalogue
+    const existingInCatalog = catalog.find(med => 
+      med.name.toLowerCase() === newCustomMed.name.trim().toLowerCase()
+    )
+
+    if (existingInCatalog) {
+      if (onDuplicateFound) {
+        onDuplicateFound(existingInCatalog);
+        return;
       }
+    }
 
+    try {
       // Parse la posologie pour détecter le nombre de prises et les moments
       const { count: detectedTakes, moments: detectedMoments } = detectTakesFromDosage(newCustomMed.posology || "")
       const defaultTimes = getDefaultTimes(detectedTakes, detectedMoments)
 
-      // Add to catalog
-      const { data } = await supabase
-        .from("medication_catalog")
-        .insert({
-          name: newCustomMed.name,
-          pathology: newCustomMed.pathology || null,
-          default_posology: newCustomMed.posology || null,
-          strength: newCustomMed.strength || null,
-          default_times: defaultTimes
-        })
-        .select()
-        .single()
-
-      if (data) {
-        const newMed: MedicationItem = {
-          catalogId: data.id,
-          name: data.name,
-          pathology: data.pathology || "",
-          posology: data.default_posology || "",
-          takesPerDay: detectedTakes,
-          times: defaultTimes,
-          unitsPerTake: 1,
-          minThreshold: 10,
-          isCustom: true,
-        }
-        setFormData({ ...formData, medications: [...formData.medications, newMed] })
-        setShowCustomDialog(false)
-        setNewCustomMed({ name: "", pathology: "", posology: "", strength: "" })
-        loadCatalog()
+      // NE PAS insérer en base maintenant - juste créer l'objet temporaire
+      // L'insertion se fera lors de la soumission finale du wizard
+      const newMed: MedicationItem = {
+        name: newCustomMed.name.trim(),
+        pathology: newCustomMed.pathology?.trim() || "",
+        posology: newCustomMed.posology?.trim() || "",
+        strength: newCustomMed.strength?.trim() || "",
+        takesPerDay: detectedTakes,
+        times: defaultTimes,
+        unitsPerTake: 1,
+        minThreshold: 10,
+        isCustom: true,
+        pendingInsertion: true, // Marque que ce médicament doit être inséré en base lors de la soumission
+        pendingPathology: newCustomMed.pathology?.trim() || undefined,
       }
+      
+      const newIndex = formData.medications.length;
+      setFormData({ 
+        ...formData, 
+        medications: [...formData.medications, newMed],
+        stocks: { ...formData.stocks, [newIndex]: 0 }
+      })
+      // Réinitialiser le formulaire et fermer le dialog
+      setNewCustomMed({ name: "", pathology: "", posology: "", strength: "" });
+      setShowCustomDialog(false);
+      loadCatalog();
     } catch (error) {
-      console.error("Error adding custom medication:", error)
+      console.error("Error adding custom medication:", error);
     }
   }
 
@@ -160,9 +185,26 @@ export const useStep2Medications = (formData: TreatmentFormData, setFormData: (d
   }
 
   const removeMedication = (index: number) => {
+    const updatedMedications = formData.medications.filter((_, i) => i !== index);
+    
+    // Reconstruire les stocks avec les nouveaux indices
+    const updatedStocks: Record<number, number> = {};
+    Object.keys(formData.stocks).forEach((key) => {
+      const oldIndex = parseInt(key);
+      if (oldIndex < index) {
+        // Les médicaments avant celui supprimé gardent leur index
+        updatedStocks[oldIndex] = formData.stocks[oldIndex];
+      } else if (oldIndex > index) {
+        // Les médicaments après celui supprimé ont leur index décrémenté
+        updatedStocks[oldIndex - 1] = formData.stocks[oldIndex];
+      }
+      // Le médicament à l'index supprimé est ignoré
+    });
+    
     setFormData({
       ...formData,
-      medications: formData.medications.filter((_, i) => i !== index),
+      medications: updatedMedications,
+      stocks: updatedStocks,
     })
   }
 
@@ -182,6 +224,12 @@ export const useStep2Medications = (formData: TreatmentFormData, setFormData: (d
     setFormData({ ...formData, medications: updated })
   }
 
+  const resetCustomMed = () => {
+    setNewCustomMed({ name: "", pathology: "", posology: "", strength: "" })
+    setShowPathologySuggestions(false)
+    setPathologySuggestions([])
+  }
+
   return {
     catalog,
     pathologySuggestions,
@@ -191,8 +239,7 @@ export const useStep2Medications = (formData: TreatmentFormData, setFormData: (d
     showCustomDialog,
     setShowCustomDialog,
     newCustomMed,
-    setNewCustomMed,
-    handlePathologyChange,
+    handleMedicationFieldChange,
     selectPathology,
     addMedicationFromCatalog,
     addCustomMedication,
@@ -200,6 +247,7 @@ export const useStep2Medications = (formData: TreatmentFormData, setFormData: (d
     updateMedicationPosology,
     removeMedication,
     updateTimeSlot,
-    updateTakesPerDay
+    updateTakesPerDay,
+    resetCustomMed
   }
 }

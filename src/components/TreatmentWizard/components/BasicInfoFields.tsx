@@ -11,8 +11,6 @@ interface BasicInfoFieldsProps {
 }
 
 export const BasicInfoFields = ({ formData, setFormData, doctors }: BasicInfoFieldsProps) => {
-  const doctorValue = formData.prescribingDoctorId || undefined;
-
   return (
     <>
       <div className="space-y-2">
@@ -41,7 +39,7 @@ export const BasicInfoFields = ({ formData, setFormData, doctors }: BasicInfoFie
       <div className="space-y-2">
         <Label htmlFor="doctor">Médecin prescripteur *</Label>
         <Select
-          value={doctorValue}
+          value={formData.prescribingDoctorId}
           onValueChange={(value) => setFormData({ ...formData, prescribingDoctorId: value })}
         >
           <SelectTrigger className="bg-surface">
@@ -81,6 +79,7 @@ export const BasicInfoFields = ({ formData, setFormData, doctors }: BasicInfoFie
             type="number"
             value={formData.durationDays}
             onChange={(e) => setFormData({ ...formData, durationDays: e.target.value })}
+            onFocus={(e) => e.target.select()}
             placeholder="Ex: 30, 60, 90..."
             className="bg-surface"
             required

@@ -26,11 +26,12 @@ export function Step3Stocks({ formData, setFormData }: Step3StocksProps) {
           {formData.medications.map((med, index) => (
             <StockCard
               key={index}
-              medication={med}
-              index={index}
-              stock={formData.stocks[index]}
-              onStockChange={updateStock}
-              onThresholdChange={updateThreshold}
+              data={{ medication: med, index }}
+              handlers={{
+                stock: formData.stocks[index],
+                onStockChange: updateStock,
+                onThresholdChange: updateThreshold,
+              }}
             />
           ))}
         </div>

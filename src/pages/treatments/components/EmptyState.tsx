@@ -4,8 +4,8 @@ import { Pill } from "lucide-react";
 export const EmptyState = () => {
   return (
     <EmptyStateAtom
-      icon={Pill}
-      description="Aucun traitement actif"
+      visual={{ icon: Pill }}
+      content={{ description: "Aucun traitement actif" }}
     />
   );
 };

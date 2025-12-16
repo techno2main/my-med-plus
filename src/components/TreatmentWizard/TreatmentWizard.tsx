@@ -1,25 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { format, addMonths } from "date-fns";
-import { WizardProgress } from "./WizardProgress";
-import { Step1Info } from "./Step1Info";
-import { Step2Medications } from "./Step2Medications";
-import { Step3Stocks } from "./Step3Stocks";
-import { Step4Summary } from "./Step4Summary";
 import { TreatmentFormData } from "./types";
-import { getAuthenticatedUser } from "@/lib/auth-guard";
-
-const TOTAL_STEPS = 4;
+import { useTreatmentSubmit } from "./hooks/useTreatmentSubmit";
+import { useTreatmentSteps } from "./hooks/useTreatmentSteps";
+import { TreatmentWizardSteps } from "./components/TreatmentWizardSteps";
+import { TreatmentWizardActions } from "./components/TreatmentWizardActions";
 
 export function TreatmentWizard() {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [loading, setLoading] = useState(false);
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
   const [doctors, setDoctors] = useState<any[]>([]);
   const [pharmacies, setPharmacies] = useState<any[]>([]);
@@ -27,19 +14,34 @@ export function TreatmentWizard() {
   const [formData, setFormData] = useState<TreatmentFormData>({
     name: "",
     description: "",
-    prescribingDoctorId: undefined as any,
-    prescriptionId: undefined as any,
+    prescribingDoctorId: "",
+    prescriptionId: "",
     prescriptionDate: "",
     startDate: "",
     durationDays: "90",
     qsp: "30",
     prescriptionFile: null,
     prescriptionFileName: "",
-    pharmacyId: undefined as any,
+    pharmacyId: "",
     firstPharmacyVisit: "",
     medications: [],
     stocks: {},
   });
+
+  // Fonction de validation (doit être définie avant le hook)
+  const canSubmit = () => {
+    return (
+      formData.name.trim() !== "" &&
+      formData.medications.length > 0 &&
+      formData.medications.every((_, index) => 
+        formData.stocks[index] && formData.stocks[index] > 0
+      )
+    );
+  };
+
+  // Hooks personnalisés
+  const { currentStep, totalSteps, handleNext, handlePrev, setCurrentStep } = useTreatmentSteps();
+  const { loading, handleSubmit } = useTreatmentSubmit(formData, canSubmit);
 
   useEffect(() => {
     loadData();
@@ -76,289 +78,27 @@ export function TreatmentWizard() {
     }
   };
 
-  const canSubmit = () => {
-    // Validation only for final submit
-    return (
-      formData.name.trim() !== "" &&
-      formData.medications.length > 0 &&
-      formData.medications.every((_, index) => 
-        formData.stocks[index] && formData.stocks[index] > 0
-      )
-    );
-  };
-
-  const handleNext = () => {
-    if (currentStep < TOTAL_STEPS) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!canSubmit()) {
-      toast({
-        title: "Informations manquantes",
-        description: "Veuillez renseigner tous les champs obligatoires avant de créer le traitement.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const { data: user, error: authError } = await getAuthenticatedUser();
-      if (authError || !user) {
-        console.error("[TreatmentWizard] Utilisateur non authentifié:", authError?.message);
-        toast({
-          title: "Erreur d'authentification",
-          description: "Vous devez être connecté pour créer un traitement.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      let prescriptionId = formData.prescriptionId;
-
-      // Toujours créer une prescription (obligatoire pour la contrainte DB)
-      if (!prescriptionId) {
-        const { data: prescData, error: prescError } = await supabase
-          .from("prescriptions")
-          .insert({
-            user_id: user.id,
-            prescribing_doctor_id: formData.prescribingDoctorId || null,
-            prescription_date: formData.prescriptionDate || new Date().toISOString().split('T')[0],
-            duration_days: parseInt(formData.durationDays) || 90,
-            file_path: null,
-            original_filename: null,
-          })
-          .select()
-          .single();
-
-        if (prescError) throw prescError;
-        prescriptionId = prescData.id;
-      }
-
-      // Upload prescription file if provided
-      if (formData.prescriptionFile && prescriptionId) {
-        const fileExt = formData.prescriptionFile.name.split('.').pop();
-        const filePath = `${user.id}/${Date.now()}.${fileExt}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('prescriptions')
-          .upload(filePath, formData.prescriptionFile);
-
-        if (uploadError) throw uploadError;
-
-        // Update prescription record with file
-        const { error: updateError } = await supabase
-          .from("prescriptions")
-          .update({
-            file_path: filePath,
-            original_filename: formData.prescriptionFileName,
-          })
-          .eq('id', prescriptionId);
-
-        if (updateError) throw updateError;
-      }
-
-      // Create treatment
-      const startDate = formData.prescriptionDate || new Date().toISOString().split('T')[0];
-      let endDate = null;
-      if (formData.durationDays) {
-        const start = new Date(startDate);
-        const end = new Date(start);
-        end.setDate(end.getDate() + parseInt(formData.durationDays));
-        endDate = end.toISOString().split('T')[0];
-      }
-
-      const { data: treatment, error: treatmentError } = await supabase
-        .from("treatments")
-        .insert({
-          user_id: user.id,
-          prescription_id: prescriptionId, // Toujours défini maintenant
-          pharmacy_id: formData.pharmacyId || null,
-          name: formData.name,
-          description: formData.description,
-          start_date: startDate,
-          end_date: endDate,
-          pathology: formData.medications.map(m => m.pathology).filter(Boolean).join(", "),
-        })
-        .select()
-        .single();
-
-      if (treatmentError) throw treatmentError;
-
-      // Create medications
-      const medicationsToInsert = formData.medications.map((med, index) => ({
-        treatment_id: treatment.id,
-        catalog_id: med.catalogId || null,
-        name: med.name,
-        posology: med.posology,
-        strength: null, // TODO: récupérer du catalog si catalogId existe
-        times: med.times.filter(t => t !== ""),
-        initial_stock: formData.stocks[index] || 0,
-        current_stock: formData.stocks[index] || 0,
-        min_threshold: med.minThreshold,
-      }));
-
-      const { error: medError } = await supabase
-        .from("medications")
-        .insert(medicationsToInsert);
-
-      if (medError) throw medError;
-
-      // Create pharmacy visits
-      if (formData.firstPharmacyVisit && formData.pharmacyId && formData.durationDays && formData.qsp) {
-        const visits = [];
-        const firstVisitDate = new Date(formData.firstPharmacyVisit);
-        const treatmentDuration = parseInt(formData.durationDays);
-        const qspDays = parseInt(formData.qsp);
-        
-        // Calculer le nombre de visites nécessaires selon le QSP
-        // Si durée <= QSP → 1 seule visite (la première), pas de refill
-        // Si durée > QSP → plusieurs visites espacées du QSP
-        const numberOfVisits = Math.ceil(treatmentDuration / qspDays);
-        
-        // Créer les visites espacées selon le QSP (en jours, pas en mois)
-        for (let i = 0; i < numberOfVisits; i++) {
-          const visitDate = new Date(firstVisitDate);
-          visitDate.setDate(visitDate.getDate() + (i * qspDays));
-          
-          // Ne pas créer de visite après la fin du traitement
-          const treatmentEndDate = new Date(formData.startDate);
-          treatmentEndDate.setDate(treatmentEndDate.getDate() + treatmentDuration);
-          
-          if (visitDate <= treatmentEndDate) {
-            visits.push({
-              treatment_id: treatment.id,
-              pharmacy_id: formData.pharmacyId,
-              visit_date: format(visitDate, "yyyy-MM-dd"),
-              visit_number: i + 1,
-              is_completed: i === 0 ? false : false, // Toutes en attente sauf si besoin
-            });
-          }
-        }
-
-        if (visits.length > 0) {
-          const { error: visitsError } = await supabase
-            .from("pharmacy_visits")
-            .insert(visits);
-
-          if (visitsError) throw visitsError;
-        }
-      }
-
-      toast({
-        title: "Traitement créé",
-        description: "Le traitement a été créé avec succès.",
-      });
-      navigate("/");
-    } catch (error) {
-      console.error("Error:", error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de créer le traitement.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <Step1Info
-            formData={formData}
-            setFormData={setFormData}
-            prescriptions={prescriptions}
-            doctors={doctors}
-            pharmacies={pharmacies}
-          />
-        );
-      case 2:
-        return (
-          <Step2Medications
-            formData={formData}
-            setFormData={setFormData}
-          />
-        );
-      case 3:
-        return (
-          <Step3Stocks
-            formData={formData}
-            setFormData={setFormData}
-          />
-        );
-      case 4:
-        return (
-          <Step4Summary
-            formData={formData}
-            prescriptions={prescriptions}
-            pharmacies={pharmacies}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="space-y-6">
-      <WizardProgress 
-        currentStep={currentStep} 
-        totalSteps={TOTAL_STEPS}
+      <TreatmentWizardSteps
+        currentStep={currentStep}
+        totalSteps={totalSteps}
+        formData={formData}
+        setFormData={setFormData}
+        prescriptions={prescriptions}
+        doctors={doctors}
+        pharmacies={pharmacies}
         onStepClick={setCurrentStep}
       />
 
-      <div className="min-h-[400px]">
-        {renderStep()}
-      </div>
-
-      <div className="flex gap-3 sticky bottom-0 bg-background pt-4 pb-6 border-t">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handlePrev}
-          disabled={currentStep === 1 || loading}
-          className="flex-1"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Précédent
-        </Button>
-        
-        {currentStep < TOTAL_STEPS ? (
-          <Button
-            type="button"
-            onClick={handleNext}
-            disabled={loading}
-            className="flex-1 gradient-primary"
-          >
-            Suivant
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            disabled={loading}
-            className="flex-1 gradient-primary"
-          >
-            {loading ? "Enregistrement..." : (
-              <>
-                <Check className="h-4 w-4 mr-2" />
-                Créer le traitement
-              </>
-            )}
-          </Button>
-        )}
-      </div>
+      <TreatmentWizardActions
+        currentStep={currentStep}
+        totalSteps={totalSteps}
+        loading={loading}
+        onNext={handleNext}
+        onPrev={handlePrev}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 }

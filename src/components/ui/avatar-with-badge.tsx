@@ -3,23 +3,30 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 import { Shield } from "lucide-react"
 
-interface AvatarWithBadgeProps {
+interface AvatarData {
   src?: string
   alt?: string
   fallback?: React.ReactNode
+}
+
+interface BadgeConfig {
   isAdmin?: boolean
   className?: string
   onClick?: () => void
 }
 
+interface AvatarWithBadgeProps {
+  avatar: AvatarData
+  badge?: BadgeConfig
+}
+
 export function AvatarWithBadge({
-  src,
-  alt = "Avatar",
-  fallback,
-  isAdmin = false,
-  className,
-  onClick
+  avatar,
+  badge,
 }: AvatarWithBadgeProps) {
+  const { src, alt = "Avatar", fallback } = avatar
+  const { isAdmin = false, className, onClick } = badge || {}
+  
   return (
     <div className="relative inline-block">
       <Avatar className={cn("h-10 w-10", className)} onClick={onClick}>
