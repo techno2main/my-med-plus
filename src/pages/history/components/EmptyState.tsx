@@ -3,7 +3,7 @@ import { EmptyState as EmptyStateAtom } from "@/components/ui/atoms/EmptyState";
 export const EmptyState = () => {
   return (
     <EmptyStateAtom
-      description="Aucun historique disponible"
+      content={{ description: "Aucun historique disponible" }}
     />
   );
 };
