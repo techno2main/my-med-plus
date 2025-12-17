@@ -15,39 +15,32 @@ export function useMedicationPause() {
     currentIsPaused: boolean,
     medicationName: string
   ): Promise<boolean> => {
-    console.log('[useMedicationPause] Toggle pause appelé:', { medicationId, currentIsPaused, medicationName });
     setLoading(true);
     
     try {
       const newIsPaused = !currentIsPaused;
-      console.log('[useMedicationPause] Nouveau statut is_paused:', newIsPaused);
 
       // 1. Mettre à jour le statut is_paused dans la table medications
       const { error: updateError } = await supabase
         .from('medications')
-        .update({ is_paused: newIsPaused } as any) // Cast temporaire en attendant la régénération des types Supabase
+        .update({ is_paused: newIsPaused } as any)
         .eq('id', medicationId);
 
       if (updateError) throw updateError;
-      console.log('[useMedicationPause] Update is_paused réussi');
 
       // 2. Si on met en pause : NE PAS supprimer les prises (elles restent visibles mais marquées "pause")
       if (newIsPaused) {
-        console.log('[useMedicationPause] Médicament mis en pause, prises conservées');
         toast.success(`${medicationName} mis en pause`, {
           description: "Les prises futures seront marquées comme 'En pause'"
         });
       } 
       // 3. Si on réactive : régénérer les prises futures (7 jours)
       else {
-        console.log('[useMedicationPause] Appel regenerate_future_intakes...');
         const { error: regenerateError } = await supabase
           .rpc('regenerate_future_intakes', { med_id: medicationId });
 
         if (regenerateError) {
           console.error('[useMedicationPause] Erreur régénération prises:', regenerateError);
-        } else {
-          console.log('[useMedicationPause] Prises régénérées avec succès');
         }
 
         toast.success(`${medicationName} réactivé`, {

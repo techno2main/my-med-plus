@@ -106,7 +106,7 @@ export const useHistoryData = () => {
       }, {})
 
       // Sort intakes within each day
-      Object.values(grouped).forEach(day => {
+      Object.values(grouped).forEach((day: GroupedIntakes) => {
         day.intakes = sortIntakesByTimeAndName(day.intakes)
       })
 

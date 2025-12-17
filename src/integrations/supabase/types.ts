@@ -220,6 +220,7 @@ export type Database = {
           expiry_date: string | null
           id: string
           initial_stock: number | null
+          is_paused: boolean | null
           min_threshold: number | null
           name: string
           posology: string
@@ -235,6 +236,7 @@ export type Database = {
           expiry_date?: string | null
           id?: string
           initial_stock?: number | null
+          is_paused?: boolean | null
           min_threshold?: number | null
           name: string
           posology: string
@@ -250,6 +252,7 @@ export type Database = {
           expiry_date?: string | null
           id?: string
           initial_stock?: number | null
+          is_paused?: boolean | null
           min_threshold?: number | null
           name?: string
           posology?: string
@@ -316,6 +319,7 @@ export type Database = {
           id: string
           is_approved: boolean | null
           name: string
+          severity: string | null
           updated_at: string | null
         }
         Insert: {
@@ -325,6 +329,7 @@ export type Database = {
           id?: string
           is_approved?: boolean | null
           name: string
+          severity?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -334,6 +339,7 @@ export type Database = {
           id?: string
           is_approved?: boolean | null
           name?: string
+          severity?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -632,7 +638,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_future_intakes_on_pause: {
+        Args: { med_id: string }
+        Returns: number
+      }
       generate_future_intakes:
+        | { Args: never; Returns: undefined }
         | {
             Args: { days_ahead: number }
             Returns: {
@@ -640,7 +651,6 @@ export type Database = {
               total_generated: number
             }[]
           }
-        | { Args: never; Returns: undefined }
         | {
             Args: { p_days: number; p_medication_id: string }
             Returns: undefined
