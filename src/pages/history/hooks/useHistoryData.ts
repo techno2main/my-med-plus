@@ -24,12 +24,11 @@ export const useHistoryData = () => {
             name,
             catalog_id,
             treatment_id,
-            is_paused,
             medication_catalog(strength, default_posology),
             treatments!inner(name, start_date, end_date, prescription_id, is_active)
           )
         `)
-        .order("scheduled_time", { ascending: false })
+        .order("scheduled_time", { ascending: false }) as { data: any[] | null; error: any }
 
       if (error) throw error
 
@@ -106,7 +105,7 @@ export const useHistoryData = () => {
       }, {})
 
       // Sort intakes within each day
-      Object.values(grouped).forEach(day => {
+      Object.values(grouped).forEach((day: GroupedIntakes) => {
         day.intakes = sortIntakesByTimeAndName(day.intakes)
       })
 
