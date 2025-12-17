@@ -93,17 +93,17 @@ export const processExistingStock = (
 /**
  * Applique les mises à jour de stocks et seuils
  */
-export const applyStockUpdates = (
-  medications: MedicationWithThreshold[],
+export const applyStockUpdates = <T extends MedicationWithThreshold>(
+  medications: T[],
   currentStocks: Record<number, number>,
   existingMedications: ExistingMedication[]
 ): {
   newStocks: Record<number, number>;
-  updatedMedications: MedicationWithThreshold[];
+  updatedMedications: T[];
   hasChanges: boolean;
 } => {
   const newStocks = { ...currentStocks };
-  const updatedMedications = [...medications];
+  const updatedMedications = [...medications] as T[];
   let hasChanges = false;
 
   medications.forEach((med, index) => {
@@ -118,7 +118,7 @@ export const applyStockUpdates = (
         updatedMedications[index] = {
           ...updatedMedications[index],
           minThreshold: result.thresholdValue,
-        };
+        } as T;
       }
       hasChanges = true;
     }

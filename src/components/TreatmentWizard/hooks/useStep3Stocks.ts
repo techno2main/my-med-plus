@@ -6,7 +6,7 @@ import { applyStockUpdates } from "../utils/stockHelpers";
 
 interface UseStep3StocksProps {
   formData: TreatmentFormData;
-  setFormData: (data: TreatmentFormData) => void;
+  setFormData: React.Dispatch<React.SetStateAction<TreatmentFormData>>;
 }
 
 export function useStep3Stocks({ formData, setFormData }: UseStep3StocksProps) {
