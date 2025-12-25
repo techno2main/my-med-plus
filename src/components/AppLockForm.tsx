@@ -3,14 +3,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff, AlertTriangle } from "lucide-react";
 
-interface AppLockFormProps {
-  password: string;
-  setPassword: (password: string) => void;
-  isLoading: boolean;
+interface LockoutState {
   isLockedOut: boolean;
   failedAttempts: number;
   remainingSeconds: number;
   maxAttempts: number;
+}
+
+interface AppLockFormProps {
+  password: string;
+  setPassword: (password: string) => void;
+  isLoading: boolean;
+  lockoutState: LockoutState;
   onSubmit: () => void;
 }
 
@@ -18,12 +22,10 @@ export function AppLockForm({
   password,
   setPassword,
   isLoading,
-  isLockedOut,
-  failedAttempts,
-  remainingSeconds,
-  maxAttempts,
+  lockoutState,
   onSubmit
 }: AppLockFormProps) {
+  const { isLockedOut, failedAttempts, remainingSeconds, maxAttempts } = lockoutState;
   const [showPassword, setShowPassword] = useState(false);
   const remainingAttemptsText = maxAttempts - failedAttempts;
 
