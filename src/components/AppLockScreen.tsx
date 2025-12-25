@@ -63,10 +63,12 @@ export function AppLockScreen({ onUnlock, biometricEnabled }: AppLockScreenProps
             password={password}
             setPassword={setPassword}
             isLoading={isLoading}
-            isLockedOut={isLockedOut}
-            failedAttempts={failedAttempts}
-            remainingSeconds={remainingSeconds}
-            maxAttempts={MAX_ATTEMPTS}
+            lockoutState={{
+              isLockedOut,
+              failedAttempts,
+              remainingSeconds,
+              maxAttempts: MAX_ATTEMPTS
+            }}
             onSubmit={handlePasswordUnlock}
           />
         )}
