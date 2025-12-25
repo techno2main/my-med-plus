@@ -2,8 +2,8 @@
 
 **Priorité :** P3 - HAUTE (BACKEND COMPLET)  
 **Durée estimée :** 30-45 minutes  
-**Risque :** 🟡 Moyen (+13 versions mineures)  
-**Type d'action :** MINOR (2.75.0 → 2.88.0)
+**Risque :** 🟡 Moyen (+14 versions mineures)  
+**Type d'action :** MINOR (2.75.0 → 2.89.0)
 
 ---
 
@@ -26,8 +26,8 @@ Cette étape met à jour le **CLIENT SUPABASE** qui gère TOUT le backend de l'a
 ### Package concerné
 - **Nom :** `@supabase/supabase-js`
 - **Version actuelle :** `2.75.0`
-- **Version cible :** `2.88.0`
-- **Type de mise à jour :** Minor (+13 versions)
+- **Version cible :** `2.89.0`
+- **Type de mise à jour :** Minor (+14 versions)
 - **Dépendance :** production (dependencies)
 
 ### Impact sur MyHealthPlus
@@ -106,11 +106,11 @@ git tag | grep supabase-js
 
 ```bash
 # Mettre à jour @supabase/supabase-js
-npm install @supabase/supabase-js@2.88.0
+npm install @supabase/supabase-js@2.89.0
 
 # Vérifier la version installée
 npm list @supabase/supabase-js
-# Doit afficher : @supabase/supabase-js@2.88.0
+# Doit afficher : @supabase/supabase-js@2.89.0
 ```
 
 **✅ Résultat attendu :**
@@ -121,7 +121,7 @@ changed 1 package, and audited 902 packages in 5s
 **❌ Si erreur de dépendances :**
 ```bash
 # Essayer avec --legacy-peer-deps
-npm install @supabase/supabase-js@2.88.0 --legacy-peer-deps
+npm install @supabase/supabase-js@2.89.0 --legacy-peer-deps
 ```
 
 **⏱️ Temps :** 2 minutes
