@@ -3,7 +3,7 @@
 **Priorité :** P2 - HAUTE  
 **Durée estimée :** 15 minutes  
 **Risque :** 🟢 Minimal (outil dev uniquement)  
-**Type d'action :** MINOR (2.54.11 → 2.67.2)
+**Type d'action :** MINOR (2.54.11 → 2.70.5)
 
 ---
 
@@ -12,8 +12,8 @@
 ### Package concerné
 - **Nom :** `supabase` (CLI)
 - **Version actuelle :** `2.54.11`
-- **Version cible :** `2.67.2`
-- **Type de mise à jour :** Minor (+13 versions)
+- **Version cible :** `2.70.5`
+- **Type de mise à jour :** Minor (+16 versions)
 - **Dépendance :** devDependencies (outil CLI)
 
 ### Contexte
