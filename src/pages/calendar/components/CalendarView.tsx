@@ -41,6 +41,16 @@ export const CalendarView = ({
     return monthIntakes.find(intake => isSameDay(intake.date, date));
   };
 
+  // Custom day renderer for indicators
+  const renderDay = (date: Date) => {
+    return (
+      <div className="relative w-full h-full flex items-center justify-center">
+        {format(date, "d")}
+        {getDayIndicator(date, monthIntakes, nextPharmacyVisit, nextDoctorVisit)}
+      </div>
+    );
+  };
+
   // Swipe handling
   const minSwipeDistance = 50;
 
@@ -235,42 +245,36 @@ export const CalendarView = ({
               classNames={{
                 months: "flex flex-col",
                 month: "space-y-3",
-                caption: "hidden",
+                month_caption: "hidden",
                 caption_label: "hidden",
                 nav: "hidden",
-                nav_button: "hidden",
-                nav_button_previous: "hidden",
-                nav_button_next: "hidden",
-                table: "w-full border-collapse pb-2",
-                head_row: "flex w-full mb-1",
-                head_cell: "text-muted-foreground flex-1 text-center font-medium text-xs uppercase",
-                row: "flex w-full mt-1",
-                cell: cn(
+                button_previous: "hidden",
+                button_next: "hidden",
+                month_grid: "w-full border-collapse pb-2",
+                weekdays: "flex w-full mb-1",
+                weekday: "text-muted-foreground flex-1 text-center font-medium text-xs uppercase",
+                week: "flex w-full mt-1",
+                day: cn(
                   "relative p-0 text-center focus-within:relative focus-within:z-20 flex-1"
                 ),
-                day: cn(
+                day_button: cn(
                   "h-10 w-10 p-0 font-normal rounded-full mx-auto relative",
                   "hover:bg-primary/10 hover:text-primary transition-all duration-200",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 ),
-                day_selected: cn(
+                selected: cn(
                   "bg-primary text-primary-foreground font-semibold",
                   "hover:bg-primary hover:text-primary-foreground"
                 ),
-                day_today: cn(
+                today: cn(
                   "bg-primary/20 text-primary font-bold"
                 ),
-                day_outside: "text-muted-foreground/40 opacity-50",
-                day_disabled: "text-muted-foreground/30 opacity-40 hover:bg-transparent",
-                day_hidden: "invisible",
+                outside: "text-muted-foreground/40 opacity-50",
+                disabled: "text-muted-foreground/30 opacity-40 hover:bg-transparent",
+                hidden: "invisible",
               }}
-              components={{
-                DayContent: ({ date }) => (
-                  <div className="relative w-full h-full flex items-center justify-center">
-                    {format(date, "d")}
-                    {getDayIndicator(date, monthIntakes, nextPharmacyVisit, nextDoctorVisit)}
-                  </div>
-                )
+              formatters={{
+                formatDay: (date) => renderDay(date) as unknown as string,
               }}
               showOutsideDays={false}
             />
