@@ -71,20 +71,24 @@ export const IntakeDetailCard = ({ intake, isToday = false, isPastDate = false, 
         return <CheckCircle2 className="h-6 w-6 text-success" />;
       case 'missed':
         return <XCircle className="h-6 w-6 text-danger" />;
+      case 'skipped':
+        return <XCircle className="h-6 w-6 text-danger" />;
       case 'upcoming':
         // Vérifier si la prise est en retard pour changer l'icône
         if (intake.scheduledTimestamp) {
           const scheduledDate = new Date(intake.scheduledTimestamp);
           if (isIntakeOverdue(scheduledDate)) {
-            return <ClockAlert className="h-6 w-6 text-success" />;
+            return <ClockAlert className="h-6 w-6 text-warning" />;
           }
         }
-        return <Clock className="h-6 w-6 text-warning" />;
+        return <Clock className="h-6 w-6 text-primary" />;
       default:
         return null;
     }
   };
 
+  // Déterminer si l'heure doit être en rouge (missed/skipped) ou orange (en retard non traité)
+  const isMissedOrSkipped = intake.status === 'missed' || intake.status === 'skipped';
   const isOverdue = intake.status === 'upcoming' && 
                     intake.scheduledTimestamp && 
                     isIntakeOverdue(new Date(intake.scheduledTimestamp));
@@ -102,7 +106,7 @@ export const IntakeDetailCard = ({ intake, isToday = false, isPastDate = false, 
         <div className="flex items-center gap-2">
           {getStatusIcon()}
           <span className={`text-sm font-medium ${
-            isOverdue ? 'text-green-700' : ''
+            isMissedOrSkipped ? 'text-danger' : isOverdue ? 'text-warning' : ''
           }`}>
             {intake.time}
             {intake.takenAt && intake.status === 'taken' && (

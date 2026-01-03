@@ -12,7 +12,7 @@ export interface IntakeDetail {
   dosage: string;
   time: string;
   takenAt?: string;
-  status: 'taken' | 'missed' | 'upcoming';
+  status: 'taken' | 'missed' | 'skipped' | 'upcoming';
   treatment: string;
   scheduledTimestamp?: string;
   takenAtTimestamp?: string;

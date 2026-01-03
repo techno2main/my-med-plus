@@ -64,18 +64,10 @@ export const useMonthIntakes = ({ currentMonth }: UseMonthIntakesProps): UseMont
           const dayTotal = dayIntakes.length;
           const dayTaken = dayIntakes.filter((i: any) => i.status === 'taken').length;
 
-          // Count missed: explicitly missed, skipped, OR pending but in the past
-          const dayMissed = dayIntakes.filter((i: any) => {
-            if (i.status === 'missed' || i.status === 'skipped') return true;
-            // Only count as missed if it's a past day (not today)
-            if (i.status === 'pending') {
-              const scheduledTime = new Date(i.scheduled_time);
-              const scheduledDateString = getLocalDateString(scheduledTime);
-              const nowDateString = getLocalDateString(now);
-              return scheduledDateString < nowDateString;
-            }
-            return false;
-          }).length;
+          // Count missed: ONLY explicitly missed or skipped (NOT taken with delay)
+          const dayMissed = dayIntakes.filter((i: any) => 
+            i.status === 'missed' || i.status === 'skipped'
+          ).length;
 
           // Count upcoming: pending and scheduled time is in the future (including today's future times)
           const dayUpcoming = dayIntakes.filter((i: any) => {
