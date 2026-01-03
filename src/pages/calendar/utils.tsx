@@ -37,18 +37,22 @@ export const getDayIndicator = (
   const isPastDay = dateString < nowDateString;
   const isToday = dateString === nowDateString;
 
-  // Only show green if ALL intakes are taken
+  // Green: ALL intakes are taken
   if (dayData.taken === dayData.total) {
     return <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-success" />;
   }
-  // Show red if there are any missed intakes (past days only)
-  else if (dayData.missed > 0 && isPastDay) {
+  // Red: any missed intakes (past days only)
+  if (dayData.missed > 0 && isPastDay) {
     return <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-danger" />;
   }
-  // Show blue only for future days with only upcoming intakes
-  else if (!isPastDay && !isToday && dayData.upcoming > 0 && dayData.taken === 0) {
+  // Orange: partially completed (some taken, some remaining - for today or past days with partial completion)
+  if (dayData.taken > 0 && dayData.taken < dayData.total) {
+    return <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-warning" />;
+  }
+  // Blue: future days OR today with only upcoming intakes (none taken yet)
+  if (dayData.upcoming > 0) {
     return <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary" />;
   }
-  // No indicator for partially completed days or today with pending items
+  
   return null;
 };
