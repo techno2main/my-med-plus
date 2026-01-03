@@ -79,11 +79,15 @@ export const useDayDetails = ({ selectedDate, treatmentStartDate }: UseDayDetail
       (intakes || []).forEach((intake: any) => {
         const scheduledTime = new Date(intake.scheduled_time);
         
-        let status: 'taken' | 'missed' | 'upcoming' = 'upcoming';
+        let status: 'taken' | 'missed' | 'skipped' | 'upcoming' = 'upcoming';
         if (intake.status === 'taken') {
           status = 'taken';
-        } else if (intake.status === 'skipped') {
+        } else if (intake.status === 'missed') {
+          // Explicitement marqué comme manqué via rattrapage
           status = 'missed';
+        } else if (intake.status === 'skipped') {
+          // Explicitement sauté
+          status = 'skipped';
         } else if (intake.status === 'pending') {
           // Pour aujourd'hui : ne marquer comme "missed" que si la date est vraiment passée (jour précédent)
           // Pour le jour actuel, même si l'heure est passée, on garde "upcoming"
