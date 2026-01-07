@@ -32,8 +32,24 @@ export const DaySection = forwardRef<HTMLDivElement, DaySectionProps>(
   ({ day, isExpanded, onToggle }, ref) => {
     const isTodaySection = isToday(day.date)
 
+    // FILTRAGE pour "Aujourd'hui" : exclure les prises "pending" des traitements archivés
+    const filteredIntakes = isTodaySection 
+      ? day.intakes.filter(intake => {
+          // Pour aujourd'hui : garder toutes les prises des traitements actifs
+          // ET garder les prises non-pending (taken/missed/skipped) des traitements archivés
+          const isActive = intake.treatmentIsActive ?? true
+          const isPending = intake.status === 'pending'
+          
+          // Si traitement actif : afficher tout
+          if (isActive) return true
+          
+          // Si traitement archivé : afficher seulement les prises déjà effectuées (pas les pending)
+          return !isPending
+        })
+      : day.intakes
+
     // Group intakes by treatment
-    const groupedByTreatment = day.intakes.reduce((acc, intake) => {
+    const groupedByTreatment = filteredIntakes.reduce((acc, intake) => {
       if (!acc[intake.treatmentId]) {
         acc[intake.treatmentId] = {
           treatment: intake.treatment,

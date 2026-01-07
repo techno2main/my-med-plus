@@ -25,17 +25,6 @@ export const useDayDetails = ({ selectedDate, treatmentStartDate }: UseDayDetail
   const loadDayDetails = async () => {
     try {
       setLoading(true);
-      
-      // Check if selected date is before treatment start
-      if (treatmentStartDate) {
-        const selectedDateString = getLocalDateString(selectedDate);
-        const treatmentStartDateString = getLocalDateString(treatmentStartDate);
-
-        if (selectedDateString < treatmentStartDateString) {
-          setDayDetails([]);
-          return;
-        }
-      }
 
       // Get start and end of selected day using new utility functions
       const dayStart = getStartOfLocalDay(selectedDate);
@@ -45,9 +34,10 @@ export const useDayDetails = ({ selectedDate, treatmentStartDate }: UseDayDetail
       const selectedDateString = getLocalDateString(selectedDate);
       const todayString = getLocalDateString(today);
       const isPast = selectedDateString < todayString;
+      const isToday = selectedDateString === todayString;
 
       // SYSTÈME UNIFIÉ : Lire UNIQUEMENT depuis medication_intakes
-      // Plus de génération dynamique !
+      // Utiliser LEFT JOIN (pas !inner) pour récupérer TOUTES les prises y compris archivées
       const { data: intakes, error: intakesError } = await supabase
         .from("medication_intakes")
         .select(`
@@ -56,27 +46,38 @@ export const useDayDetails = ({ selectedDate, treatmentStartDate }: UseDayDetail
           scheduled_time,
           taken_at,
           status,
-          medications!inner (
+          medications (
             name,
             current_stock,
             min_threshold,
             treatment_id,
             is_paused,
-            treatments!inner (name, is_active),
+            treatments (name, is_active),
             medication_catalog (strength, default_posology)
           )
         `)
         .gte("scheduled_time", dayStart.toISOString())
         .lte("scheduled_time", dayEnd.toISOString())
-        .eq("medications.treatments.is_active", true)
         .order("scheduled_time", { ascending: true });
 
       if (intakesError) throw intakesError;
 
+      // FILTRAGE CÔTÉ CLIENT :
+      // - Pour AUJOURD'HUI et FUTUR : garder uniquement les traitements actifs
+      // - Pour les dates PASSÉES : garder TOUS les traitements
+      let filteredIntakes = intakes || [];
+      if (isToday || !isPast) {
+        // Aujourd'hui ou futur : filtrer pour garder uniquement les actifs
+        filteredIntakes = filteredIntakes.filter((intake: any) => 
+          intake.medications?.treatments?.is_active === true
+        );
+      }
+      // Sinon (dates passées) : on garde tout
+
       const details: IntakeDetail[] = [];
 
-      // Traiter toutes les prises de la même manière
-      (intakes || []).forEach((intake: any) => {
+      // Traiter toutes les prises FILTRÉES
+      filteredIntakes.forEach((intake: any) => {
         const scheduledTime = new Date(intake.scheduled_time);
         
         let status: 'taken' | 'missed' | 'skipped' | 'upcoming' = 'upcoming';

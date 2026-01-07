@@ -62,11 +62,7 @@ export const DayDetailsPanel = ({ selectedDate, dayDetails, loading, treatmentSt
         )}
       </div>
       
-      {isBeforeTreatmentStart() ? (
-        <p className="text-sm text-muted-foreground text-center py-8">
-          Aucun traitement à cette date
-        </p>
-      ) : dayDetails.length === 0 ? (
+      {dayDetails.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-8">
           Aucune prise planifiée
         </p>

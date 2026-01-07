@@ -37,18 +37,12 @@ export const useMonthIntakes = ({ currentMonth }: UseMonthIntakesProps): UseMont
       extendedEnd.setDate(extendedEnd.getDate() + 7);
 
       // Load intakes for the extended range to include visible days from adjacent months
+      // Ne pas filtrer par is_active pour afficher tout l'historique (actifs + archivés)
       const { data: intakes } = await supabase
         .from("medication_intakes")
-        .select(`
-          *,
-          medications!inner(
-            treatment_id,
-            treatments!inner(is_active)
-          )
-        `)
+        .select("*")
         .gte("scheduled_time", extendedStart.toISOString())
-        .lte("scheduled_time", extendedEnd.toISOString())
-        .eq("medications.treatments.is_active", true);
+        .lte("scheduled_time", extendedEnd.toISOString());
 
       // Process day by day using REAL intakes only (but now including adjacent month days)
       const daysData: DayIntake[] = [];

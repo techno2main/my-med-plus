@@ -34,7 +34,8 @@ export const useAdherenceStats = () => {
     try {
       setLoading(true);
 
-      // Charger tous les intakes (tout l'historique) UNIQUEMENT pour traitements actifs
+      // Charger tous les intakes (tout l'historique) pour TOUS les traitements (actifs ET archivés)
+      // IMPORTANT: Les statistiques doivent refléter l'historique complet, pas seulement les traitements actifs
       const { data: intakesData, error } = await supabase
         .from("medication_intakes")
         .select(`
@@ -48,7 +49,6 @@ export const useAdherenceStats = () => {
             treatments!inner(user_id, is_active)
           )
         `)
-        .eq("medications.treatments.is_active", true)
         .order("scheduled_time", { ascending: false });
 
       if (error) throw error;
