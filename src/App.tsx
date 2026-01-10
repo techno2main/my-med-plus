@@ -57,7 +57,7 @@ const App = () => {
         <Toaster />
         <Sonner />
         <UpdateNotification />
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <BrowserRouter>
           <ProfileCompletionProvider>
             <NotificationSchedulerProvider>
             <Suspense fallback={<div className="flex items-center justify-center h-screen">
