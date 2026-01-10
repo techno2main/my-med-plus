@@ -39,6 +39,7 @@ const NavigationManager = lazy(() => import("./pages/admin/NavigationManager"));
 const SettingsSectionOrder = lazy(() => import("./pages/settings/SettingsSectionOrder"));
 const NotFound = lazy(() => import("./pages/not-found/NotFound"));
 const Rattrapage = lazy(() => import("./pages/rattrapage/Rattrapage"));
+const Onboarding = lazy(() => import("./pages/onboarding/Onboarding"));
 
 const queryClient = new QueryClient();
 
@@ -89,6 +90,7 @@ const App = () => {
           <Route path="/stocks/:id" element={<ProtectedRoute><StockDetails /></ProtectedRoute>} />
           <Route path="/treatments/:id/edit" element={<ProtectedRoute><TreatmentEdit /></ProtectedRoute>} />
           <Route path="/rattrapage" element={<ProtectedRoute><Rattrapage /></ProtectedRoute>} />
+          <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

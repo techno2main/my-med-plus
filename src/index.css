@@ -252,6 +252,23 @@
   input[inputmode="numeric"] {
     font-variant-numeric: tabular-nums;
   }
+
+  /* Animation delays for onboarding */
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+  
+  .animation-delay-300 {
+    animation-delay: 300ms;
+  }
+  
+  .animation-delay-400 {
+    animation-delay: 400ms;
+  }
+  
+  .animation-delay-500 {
+    animation-delay: 500ms;
+  }
 }
 
 /* Android-specific safe areas utilities */
