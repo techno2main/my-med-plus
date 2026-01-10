@@ -1,15 +1,22 @@
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { PageHeader } from "@/components/Layout/PageHeader";
 import { useNavigate } from "react-router-dom";
-import { Bell, Shield, Smartphone, Database, CalendarSync, Clock, Navigation, ArrowUpDown, Bug, Package } from "lucide-react";
+import { Bell, Shield, Smartphone, Database, CalendarSync, Clock, Navigation, ArrowUpDown, Bug, Package, RotateCcw } from "lucide-react";
 import { ThemeCard } from "./components/ThemeCard";
 import { NavigationCard } from "./components/NavigationCard";
 import { Button } from "@/components/ui/button";
 import { useSettingsSectionOrder } from "@/hooks/useSettingsSectionOrder";
+import { useOnboarding } from "@/hooks/useOnboarding";
 
 export default function Settings() {
   const navigate = useNavigate();
   const { sections, loading } = useSettingsSectionOrder();
+  const { resetOnboarding } = useOnboarding();
+
+  const handleReplayOnboarding = () => {
+    resetOnboarding();
+    navigate("/onboarding");
+  };
 
   // Mapping des sections vers leurs composants
   const sectionComponents: Record<string, JSX.Element> = {
@@ -115,6 +122,12 @@ export default function Settings() {
           title="À propos de l'application"
           description="Version 1.1.0"
           onClick={() => navigate("/about")}
+        />
+        <NavigationCard
+          icon={RotateCcw}
+          title="Revoir l'onboarding"
+          description="Revoir la présentation de l'application"
+          onClick={handleReplayOnboarding}
         />
       </div>
     ),
