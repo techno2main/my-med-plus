@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { PageHeader } from "@/components/Layout/PageHeader";
@@ -23,6 +23,9 @@ export default function Profile() {
   const { isAdmin } = useUserRole();
   const [searchParams, setSearchParams] = useSearchParams();
   const { refetch: refetchProfileCompletion } = useProfileCompletion();
+  
+  // Stocker le champ à focus avant de nettoyer les query params
+  const [fieldToFocus, setFieldToFocus] = useState<ProfileFieldName | null>(null);
   
   const {
     loading,
@@ -53,16 +56,27 @@ export default function Profile() {
 
   // Lire les query params pour auto-edit et focus
   const shouldEdit = searchParams.get('edit') === 'true';
-  const focusField = searchParams.get('focus') as ProfileFieldName | null;
+  const focusFieldFromParams = searchParams.get('focus') as ProfileFieldName | null;
 
   // Auto-ouvrir le mode édition si demandé via query params
   useEffect(() => {
     if (shouldEdit && !loading) {
       setIsEditing(true);
+      // Stocker le champ à focus avant de nettoyer les params
+      if (focusFieldFromParams) {
+        setFieldToFocus(focusFieldFromParams);
+      }
       // Nettoyer les query params après avoir lu
       setSearchParams({}, { replace: true });
     }
-  }, [shouldEdit, loading, setIsEditing, setSearchParams]);
+  }, [shouldEdit, loading, focusFieldFromParams, setIsEditing, setSearchParams]);
+
+  // Réinitialiser le champ à focus quand on quitte le mode édition
+  useEffect(() => {
+    if (!isEditing) {
+      setFieldToFocus(null);
+    }
+  }, [isEditing]);
 
   const age = calculateAge(dateOfBirth);
   const bmi = calculateBMI(height, weight);
@@ -133,7 +147,7 @@ export default function Profile() {
               weight={weight}
               age={age}
               bmi={bmi}
-              focusField={focusField}
+              focusField={fieldToFocus}
               getBMIColor={getBMIColor}
               onFirstNameChange={setFirstName}
               onLastNameChange={setLastName}

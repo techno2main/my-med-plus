@@ -94,13 +94,18 @@ export function AppHeader() {
                 notificationCount: profileLoading || isComplete ? 0 : missingFieldsCount,
                 className: "cursor-pointer touch-manipulation",
                 onClick: () => {
-                  // Naviguer vers le profil avec le champ à focus
-                  const params = new URLSearchParams();
-                  params.set('edit', 'true');
-                  if (firstMissingField) {
-                    params.set('focus', firstMissingField);
+                  // Si profil complet: page profil en lecture seule
+                  // Si profil incomplet: page profil en édition avec focus sur le premier champ manquant
+                  if (isComplete) {
+                    navigate('/profile');
+                  } else {
+                    const params = new URLSearchParams();
+                    params.set('edit', 'true');
+                    if (firstMissingField) {
+                      params.set('focus', firstMissingField);
+                    }
+                    navigate(`/profile?${params.toString()}`);
                   }
-                  navigate(`/profile?${params.toString()}`);
                 },
               }}
             />
