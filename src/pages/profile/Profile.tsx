@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
-import { useProfileCompletion } from "@/hooks/useProfileCompletion";
+import { useProfileCompletion } from "@/contexts/ProfileCompletionContext";
 import { useProfileData } from "./hooks/useProfileData";
 import { useProfileWizard } from "./hooks/useProfileWizard";
 import { calculateAge, calculateBMI, getBMIColor } from "./utils/profileUtils";
@@ -16,7 +16,7 @@ import { ProfileActions } from "./components/ProfileActions";
 import { ExportDataCard } from "./components/ExportDataCard";
 import { LogoutButton } from "./components/LogoutButton";
 import { ProfileWizardDialog } from "./components/ProfileWizard";
-import type { ProfileFieldName } from "@/hooks/useProfileCompletion";
+import type { ProfileFieldName } from "@/contexts/ProfileCompletionContext";
 
 export default function Profile() {
   const { user } = useAuth();

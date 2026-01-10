@@ -7,6 +7,7 @@ import { lazy, Suspense } from "react";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { UpdateNotification } from "./components/UpdateNotification";
 import { NotificationSchedulerProvider } from "./components/NotificationSchedulerProvider";
+import { ProfileCompletionProvider } from "./contexts/ProfileCompletionContext";
 import { useAutoRegenerateIntakes } from "./hooks/useAutoRegenerateIntakes";
 import { useAutoArchiveTreatments } from "./hooks/useAutoArchiveTreatments";
 
@@ -57,46 +58,48 @@ const App = () => {
         <Sonner />
         <UpdateNotification />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <NotificationSchedulerProvider>
-          <Suspense fallback={<div className="flex items-center justify-center h-screen">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>}>
-          <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-          <Route path="/treatments" element={<ProtectedRoute><Treatments /></ProtectedRoute>} />
-          <Route path="/treatments/new" element={<ProtectedRoute><TreatmentForm /></ProtectedRoute>} />
-          <Route path="/stocks" element={<ProtectedRoute><Stock /></ProtectedRoute>} />
-          <Route path="/stocks/new" element={<ProtectedRoute><StockForm /></ProtectedRoute>} />
-          <Route path="/stocks/adjust" element={<ProtectedRoute><StockForm /></ProtectedRoute>} />
-          <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
-          <Route path="/calendar-sync" element={<ProtectedRoute><CalendarSync /></ProtectedRoute>} />
-          <Route path="/profile-export" element={<ProtectedRoute><ProfileExport /></ProtectedRoute>} />
-          <Route path="/prescriptions" element={<ProtectedRoute><Prescriptions /></ProtectedRoute>} />
-          <Route path="/medications" element={<ProtectedRoute><MedicationCatalog /></ProtectedRoute>} />
-          <Route path="/referentials" element={<ProtectedRoute><Referentials /></ProtectedRoute>} />
-          <Route path="/referentials/health-professionals" element={<ProtectedRoute><HealthProfessionals /></ProtectedRoute>} />
-          <Route path="/referentials/pathologies" element={<ProtectedRoute><Pathologies /></ProtectedRoute>} />
-          <Route path="/referentials/allergies" element={<ProtectedRoute><Allergies /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-          <Route path="/settings/navigation" element={<ProtectedRoute><NavigationManager /></ProtectedRoute>} />
-          <Route path="/settings/sections-order" element={<ProtectedRoute><SettingsSectionOrder /></ProtectedRoute>} />
-          <Route path="/notifications" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
-          <Route path="/notifications/debug" element={<ProtectedRoute><NotificationDebug /></ProtectedRoute>} />
-          <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/privacy" element={<ProtectedRoute><Privacy /></ProtectedRoute>} />
-          <Route path="/about" element={<ProtectedRoute><About /></ProtectedRoute>} />
-          <Route path="/stocks/:id" element={<ProtectedRoute><StockDetails /></ProtectedRoute>} />
-          <Route path="/treatments/:id/edit" element={<ProtectedRoute><TreatmentEdit /></ProtectedRoute>} />
-          <Route path="/rattrapage" element={<ProtectedRoute><Rattrapage /></ProtectedRoute>} />
-          <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        </Suspense>
-        </NotificationSchedulerProvider>
-      </BrowserRouter>
+          <ProfileCompletionProvider>
+            <NotificationSchedulerProvider>
+            <Suspense fallback={<div className="flex items-center justify-center h-screen">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>}>
+            <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+            <Route path="/treatments" element={<ProtectedRoute><Treatments /></ProtectedRoute>} />
+            <Route path="/treatments/new" element={<ProtectedRoute><TreatmentForm /></ProtectedRoute>} />
+            <Route path="/stocks" element={<ProtectedRoute><Stock /></ProtectedRoute>} />
+            <Route path="/stocks/new" element={<ProtectedRoute><StockForm /></ProtectedRoute>} />
+            <Route path="/stocks/adjust" element={<ProtectedRoute><StockForm /></ProtectedRoute>} />
+            <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+            <Route path="/calendar-sync" element={<ProtectedRoute><CalendarSync /></ProtectedRoute>} />
+            <Route path="/profile-export" element={<ProtectedRoute><ProfileExport /></ProtectedRoute>} />
+            <Route path="/prescriptions" element={<ProtectedRoute><Prescriptions /></ProtectedRoute>} />
+            <Route path="/medications" element={<ProtectedRoute><MedicationCatalog /></ProtectedRoute>} />
+            <Route path="/referentials" element={<ProtectedRoute><Referentials /></ProtectedRoute>} />
+            <Route path="/referentials/health-professionals" element={<ProtectedRoute><HealthProfessionals /></ProtectedRoute>} />
+            <Route path="/referentials/pathologies" element={<ProtectedRoute><Pathologies /></ProtectedRoute>} />
+            <Route path="/referentials/allergies" element={<ProtectedRoute><Allergies /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/settings/navigation" element={<ProtectedRoute><NavigationManager /></ProtectedRoute>} />
+            <Route path="/settings/sections-order" element={<ProtectedRoute><SettingsSectionOrder /></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
+            <Route path="/notifications/debug" element={<ProtectedRoute><NotificationDebug /></ProtectedRoute>} />
+            <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/privacy" element={<ProtectedRoute><Privacy /></ProtectedRoute>} />
+            <Route path="/about" element={<ProtectedRoute><About /></ProtectedRoute>} />
+            <Route path="/stocks/:id" element={<ProtectedRoute><StockDetails /></ProtectedRoute>} />
+            <Route path="/treatments/:id/edit" element={<ProtectedRoute><TreatmentEdit /></ProtectedRoute>} />
+            <Route path="/rattrapage" element={<ProtectedRoute><Rattrapage /></ProtectedRoute>} />
+            <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          </Suspense>
+          </NotificationSchedulerProvider>
+          </ProfileCompletionProvider>
+        </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
   );

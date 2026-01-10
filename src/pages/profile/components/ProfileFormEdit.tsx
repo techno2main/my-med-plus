@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ModernDatePicker } from "@/components/ui/modern-date-picker";
-import type { ProfileFieldName } from "@/hooks/useProfileCompletion";
+import type { ProfileFieldName } from "@/contexts/ProfileCompletionContext";
 
 // Mapping entre les noms de champs DB et les IDs de formulaire
 const FIELD_TO_INPUT_ID: Record<ProfileFieldName, string> = {

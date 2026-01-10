@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { User, X, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
-import { useProfileCompletion } from "@/hooks/useProfileCompletion";
+import { useProfileCompletion } from "@/contexts/ProfileCompletionContext";
 
 const DISMISSED_KEY_PREFIX = "profileBannerDismissed_";
 const DISMISS_DURATION = 24 * 60 * 60 * 1000; // 24 heures
