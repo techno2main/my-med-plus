@@ -89,7 +89,7 @@ const Auth = () => {
           <p className="text-muted-foreground">
             {isSignUpMode 
               ? "Créez votre compte pour commencer" 
-              : "Connectez-vous pour accéder à votre espace santé"}
+              : "Connectez-vous à votre espace santé"}
           </p>
         </div>
 
