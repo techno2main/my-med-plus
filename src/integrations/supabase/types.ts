@@ -273,6 +273,13 @@ export type Database = {
             foreignKeyName: "medications_treatment_id_fkey"
             columns: ["treatment_id"]
             isOneToOne: false
+            referencedRelation: "medication_intakes_details"
+            referencedColumns: ["treatment_id"]
+          },
+          {
+            foreignKeyName: "medications_treatment_id_fkey"
+            columns: ["treatment_id"]
+            isOneToOne: false
             referencedRelation: "treatments"
             referencedColumns: ["id"]
           },
@@ -388,6 +395,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "health_professionals"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_visits_treatment_id_fkey"
+            columns: ["treatment_id"]
+            isOneToOne: false
+            referencedRelation: "medication_intakes_details"
+            referencedColumns: ["treatment_id"]
           },
           {
             foreignKeyName: "pharmacy_visits_treatment_id_fkey"
@@ -635,7 +649,43 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      medication_intakes_details: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          medication_id: string | null
+          medication_is_paused: boolean | null
+          medication_name: string | null
+          medication_strength: string | null
+          notes: string | null
+          pathology: string | null
+          posology: string | null
+          scheduled_time: string | null
+          status: string | null
+          taken_at: string | null
+          treatment_id: string | null
+          treatment_is_active: boolean | null
+          treatment_name: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medication_intakes_medication_id_fkey"
+            columns: ["medication_id"]
+            isOneToOne: false
+            referencedRelation: "medications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "treatments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       delete_future_intakes_on_pause: {
