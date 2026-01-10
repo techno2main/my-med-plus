@@ -63,7 +63,10 @@ export default function Onboarding() {
   const handleNext = useCallback(() => {
     if (currentSlide === SLIDES.length - 1) {
       completeOnboarding();
-      navigate("/", { replace: true });
+      // Small delay to ensure localStorage is updated before navigation
+      setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 50);
     } else {
       api?.scrollNext();
     }
@@ -71,7 +74,10 @@ export default function Onboarding() {
 
   const handleSkip = useCallback(() => {
     completeOnboarding();
-    navigate("/", { replace: true });
+    // Small delay to ensure localStorage is updated before navigation
+    setTimeout(() => {
+      navigate("/", { replace: true });
+    }, 50);
   }, [completeOnboarding, navigate]);
 
   const isLastSlide = currentSlide === SLIDES.length - 1;
