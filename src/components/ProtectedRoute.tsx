@@ -1,5 +1,5 @@
 import { ReactNode, useState, useEffect, useCallback, useRef } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 import { AppLockScreen } from './AppLockScreen';
@@ -8,12 +8,14 @@ import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
 
+
 interface ProtectedRouteProps {
   children: ReactNode;
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
+  const location = useLocation();
   const [isLocked, setIsLocked] = useState(false);
   const [lockLoading, setLockLoading] = useState(true);
   const [requireAuthOnOpen, setRequireAuthOnOpen] = useState(false);
@@ -107,8 +109,11 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  if (!user) {
-    return <Navigate to="/auth" replace />;
+  // Rediriger vers l'onboarding si c'est la première visite (sauf si on est déjà sur /onboarding)
+  // Lire directement depuis localStorage pour avoir la valeur à jour
+  const hasSeenOnboardingNow = localStorage.getItem('hasSeenOnboarding') === 'true';
+  if (!hasSeenOnboardingNow && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />;
   }
 
   if (isLocked && requireAuthOnOpen) {
