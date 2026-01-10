@@ -68,7 +68,7 @@ export const buildMedicationsData = (
     catalog_id: med.catalogId || null,
     name: med.name,
     posology: med.posology,
-    strength: null,
+    strength: med.strength || null,
     times: med.times.filter(t => t !== ""),
     initial_stock: formData.stocks[index] || 0,
     current_stock: formData.stocks[index] || 0,
