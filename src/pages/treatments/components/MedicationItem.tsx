@@ -41,7 +41,7 @@ export const MedicationItem = ({ medication, isArchived = false }: MedicationIte
             {medication.name} <span className="text-muted-foreground">• {medication.posology}</span>
           </p>
           {isArchived ? (
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-700 border-amber-200">
               Terminé
             </Badge>
           ) : (
