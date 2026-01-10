@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useProfileData } from "./hooks/useProfileData";
+import { useProfileWizard } from "./hooks/useProfileWizard";
 import { calculateAge, calculateBMI, getBMIColor } from "./utils/profileUtils";
 import { ProfileHeader } from "./components/ProfileHeader";
 import { ProfileFormEdit } from "./components/ProfileFormEdit";
@@ -11,6 +12,7 @@ import { ProfileFormView } from "./components/ProfileFormView";
 import { ProfileActions } from "./components/ProfileActions";
 import { ExportDataCard } from "./components/ExportDataCard";
 import { LogoutButton } from "./components/LogoutButton";
+import { ProfileWizardDialog } from "./components/ProfileWizard";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -41,8 +43,15 @@ export default function Profile() {
     handleLogout,
   } = useProfileData();
 
+  const { showWizard, closeWizard, completeWizard } = useProfileWizard();
+
   const age = calculateAge(dateOfBirth);
   const bmi = calculateBMI(height, weight);
+
+  const handleWizardComplete = async () => {
+    await handleSave();
+    completeWizard();
+  };
 
   if (loading) {
     return (
@@ -125,6 +134,25 @@ export default function Profile() {
 
         <LogoutButton onLogout={handleLogout} />
       </div>
+
+      {/* Wizard didacticiel pour compléter le profil */}
+      <ProfileWizardDialog
+        open={showWizard}
+        onOpenChange={closeWizard}
+        firstName={firstName}
+        lastName={lastName}
+        dateOfBirth={dateOfBirth}
+        bloodType={bloodType}
+        height={height}
+        weight={weight}
+        onFirstNameChange={setFirstName}
+        onLastNameChange={setLastName}
+        onDateOfBirthChange={setDateOfBirth}
+        onBloodTypeChange={setBloodType}
+        onHeightChange={setHeight}
+        onWeightChange={setWeight}
+        onComplete={handleWizardComplete}
+      />
     </AppLayout>
   );
 }
