@@ -85,7 +85,7 @@ export function AnimatedIllustration({ type, className }: AnimatedIllustrationPr
   };
 
   return (
-    <div className={cn("w-full h-64 flex items-center justify-center", className)}>
+    <div className={cn("w-full h-64 flex items-center justify-center animate-force", className)}>
       {illustrations[type]}
     </div>
   );
