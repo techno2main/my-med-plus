@@ -248,8 +248,17 @@ export function useMedicationCatalog() {
   };
 
   const handleStockClick = async (catalogId: string) => {
-    // Trouver le premier médicament dans les traitements qui utilise ce catalog_id
-    const { data } = await supabase.from("medications").select("id").eq("catalog_id", catalogId).limit(1).single();
+    // Trouver le premier médicament dans les traitements ACTIFS qui utilise ce catalog_id
+    const { data } = await supabase
+      .from("medications")
+      .select(`
+        id,
+        treatments!inner(is_active)
+      `)
+      .eq("catalog_id", catalogId)
+      .eq("treatments.is_active", true)
+      .limit(1)
+      .single();
 
     if (data) {
       navigate(`/stocks/${data.id}`);
