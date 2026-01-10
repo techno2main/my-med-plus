@@ -8,6 +8,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { UpdateNotification } from "./components/UpdateNotification";
 import { NotificationSchedulerProvider } from "./components/NotificationSchedulerProvider";
 import { useAutoRegenerateIntakes } from "./hooks/useAutoRegenerateIntakes";
+import { useAutoArchiveTreatments } from "./hooks/useAutoArchiveTreatments";
 
 // Lazy loading des pages
 const Index = lazy(() => import("./pages/index/Index"));
@@ -44,6 +45,9 @@ const queryClient = new QueryClient();
 const App = () => {
   // Régénération automatique des prises toutes les 6h
   useAutoRegenerateIntakes();
+  
+  // Archivage automatique des traitements expirés au démarrage
+  useAutoArchiveTreatments();
   
   return (
     <QueryClientProvider client={queryClient}>

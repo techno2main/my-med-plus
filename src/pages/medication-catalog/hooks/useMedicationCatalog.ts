@@ -92,13 +92,19 @@ export function useMedicationCatalog() {
 
       if (error) throw error;
 
-      // Pour chaque médicament du catalogue, calculer le stock total et le seuil minimal
+      // Pour chaque médicament du catalogue, calculer le stock total des traitements ACTIFS uniquement
       const medsWithStock = await Promise.all(
         (data || []).map(async (med: any) => {
+          // Récupérer uniquement les médicaments liés à des traitements actifs
           const { data: stockData } = await supabase
             .from("medications")
-            .select("current_stock, min_threshold")
-            .eq("catalog_id", med.id);
+            .select(`
+              current_stock, 
+              min_threshold,
+              treatments!inner(is_active)
+            `)
+            .eq("catalog_id", med.id)
+            .eq("treatments.is_active", true);
 
           const totalStock = stockData?.reduce((sum, item) => sum + (item.current_stock || 0), 0) || 0;
 
@@ -242,8 +248,17 @@ export function useMedicationCatalog() {
   };
 
   const handleStockClick = async (catalogId: string) => {
-    // Trouver le premier médicament dans les traitements qui utilise ce catalog_id
-    const { data } = await supabase.from("medications").select("id").eq("catalog_id", catalogId).limit(1).single();
+    // Trouver le premier médicament dans les traitements ACTIFS qui utilise ce catalog_id
+    const { data } = await supabase
+      .from("medications")
+      .select(`
+        id,
+        treatments!inner(is_active)
+      `)
+      .eq("catalog_id", catalogId)
+      .eq("treatments.is_active", true)
+      .limit(1)
+      .single();
 
     if (data) {
       navigate(`/stocks/${data.id}`);

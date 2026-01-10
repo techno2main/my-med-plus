@@ -118,7 +118,7 @@ export const useDashboardData = () => {
         `)
         .gte("scheduled_time", today.toISOString())
         .lt("scheduled_time", tomorrow.toISOString())
-        .in("status", ["pending", "taken", "skipped"])
+        .in("status", ["pending", "taken", "skipped", "missed"])
         .eq("medications.treatments.is_active", true)
         .order("scheduled_time", { ascending: true })
 
