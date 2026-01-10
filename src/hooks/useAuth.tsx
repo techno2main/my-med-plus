@@ -4,14 +4,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 
+// URL de production fixe pour éviter les problèmes avec les URLs de preview Lovable
+const PRODUCTION_URL = 'https://my-med-plus.lovable.app';
+
 // Détermine la bonne URL de redirection selon la plateforme
 const getRedirectUrl = () => {
   if (Capacitor.isNativePlatform()) {
     // Deep link pour l'app mobile
     return 'com.myhealthplus.app://auth/callback';
   }
-  // URL web standard
-  return `${window.location.origin}/`;
+  // Toujours utiliser l'URL de production pour OAuth web
+  // (les URLs de preview Lovable ne sont pas autorisées dans Supabase)
+  return `${PRODUCTION_URL}/`;
 };
 
 export function useAuth() {
@@ -159,7 +163,8 @@ export function useAuth() {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
+        // Utiliser l'URL de production pour la confirmation email
+        emailRedirectTo: `${PRODUCTION_URL}/`,
       },
     });
     return { error };
