@@ -43,7 +43,7 @@ export default function Profile() {
     handleLogout,
   } = useProfileData();
 
-  const { showWizard, closeWizard, completeWizard } = useProfileWizard();
+  const { showWizard, closeWizard, completeWizard, skipWizard } = useProfileWizard();
 
   const age = calculateAge(dateOfBirth);
   const bmi = calculateBMI(height, weight);
@@ -152,6 +152,7 @@ export default function Profile() {
         onHeightChange={setHeight}
         onWeightChange={setWeight}
         onComplete={handleWizardComplete}
+        onSkip={skipWizard}
       />
     </AppLayout>
   );

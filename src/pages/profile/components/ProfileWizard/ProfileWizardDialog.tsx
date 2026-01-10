@@ -24,6 +24,7 @@ interface ProfileWizardDialogProps {
   onHeightChange: (value: string) => void;
   onWeightChange: (value: string) => void;
   onComplete: () => void;
+  onSkip?: () => void;
 }
 
 type WizardStep = 'intro' | 'firstName' | 'lastName' | 'dateOfBirth' | 'bloodType' | 'height' | 'weight' | 'complete';
@@ -46,6 +47,7 @@ export function ProfileWizardDialog({
   onHeightChange,
   onWeightChange,
   onComplete,
+  onSkip,
 }: ProfileWizardDialogProps) {
   const [currentStep, setCurrentStep] = useState<WizardStep>('intro');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -77,6 +79,7 @@ export function ProfileWizardDialog({
   };
 
   const handleLater = () => {
+    onSkip?.();
     onOpenChange(false);
     setCurrentStep('intro');
   };

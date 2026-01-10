@@ -1,81 +1,47 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Card } from "@/components/ui/card";
 import { User, X, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-
-interface ProfileData {
-  first_name: string | null;
-  last_name: string | null;
-  date_of_birth: string | null;
-  blood_type: string | null;
-  height: number | null;
-  weight: number | null;
-  avatar_url: string | null;
-}
+import { useProfileCompletion } from "@/hooks/useProfileCompletion";
 
 const DISMISSED_KEY_PREFIX = "profileBannerDismissed_";
 const DISMISS_DURATION = 24 * 60 * 60 * 1000; // 24 heures
+const WIZARD_SHOWN_PREFIX = "profileWizardShownOnce_";
 
 export function ProfileCompletionBanner() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const { isLoading, completionPercent, missingFieldsCount, isComplete } = useProfileCompletion();
   const [isVisible, setIsVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      loadProfile();
+    if (!user || isLoading) return;
+
+    // Ne pas afficher si profil complet
+    if (isComplete) {
+      setIsVisible(false);
+      return;
     }
-  }, [user]);
 
-  const loadProfile = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("first_name, last_name, date_of_birth, blood_type, height, weight, avatar_url")
-        .eq("id", user?.id)
-        .maybeSingle();
+    // Vérifier si c'est la première connexion (wizard géré séparément)
+    const wizardShownKey = `${WIZARD_SHOWN_PREFIX}${user.id}`;
+    const hasShownWizard = localStorage.getItem(wizardShownKey) === 'true';
 
-      if (error) throw error;
-
-      setProfile(data);
-
-      // Vérifier si le banner a été dismiss récemment
-      const dismissKey = `${DISMISSED_KEY_PREFIX}${user?.id}`;
-      const dismissedAt = localStorage.getItem(dismissKey);
-      const shouldShow = !dismissedAt || Date.now() - parseInt(dismissedAt) > DISMISS_DURATION;
-
-      // Calculer le pourcentage et décider d'afficher
-      const completion = calculateCompletion(data);
-      setIsVisible(completion < 100 && shouldShow);
-    } catch (error) {
-      console.error("Error loading profile for banner:", error);
-    } finally {
-      setIsLoading(false);
+    // Ne pas afficher le banner si le wizard n'a jamais été montré (il va s'afficher)
+    if (!hasShownWizard) {
+      setIsVisible(false);
+      return;
     }
-  };
 
-  const calculateCompletion = (data: ProfileData | null): number => {
-    if (!data) return 0;
+    // Vérifier si le banner a été dismiss récemment
+    const dismissKey = `${DISMISSED_KEY_PREFIX}${user.id}`;
+    const dismissedAt = localStorage.getItem(dismissKey);
+    const shouldShow = !dismissedAt || Date.now() - parseInt(dismissedAt) > DISMISS_DURATION;
 
-    const fields = [
-      data.first_name,
-      data.last_name,
-      data.date_of_birth,
-      data.blood_type,
-      data.height,
-      data.weight,
-    ];
-
-    const filledFields = fields.filter((field) => field !== null && field !== "").length;
-    return Math.round((filledFields / fields.length) * 100);
-  };
+    setIsVisible(shouldShow);
+  }, [user, isLoading, isComplete]);
 
   const handleDismiss = () => {
     if (user) {
@@ -89,85 +55,73 @@ export function ProfileCompletionBanner() {
     navigate("/profile");
   };
 
-  const completion = calculateCompletion(profile);
-
-  if (isLoading || !isVisible || completion === 100) {
+  if (isLoading || !isVisible || isComplete) {
     return null;
   }
-
-  const getCompletionMessage = () => {
-    if (completion === 0) return "Votre profil est vide";
-    if (completion < 50) return "Votre profil est incomplet";
-    if (completion < 100) return "Plus que quelques infos !";
-    return "Profil complet";
-  };
-
-  const getCompletionColor = () => {
-    if (completion < 50) return "text-orange-500";
-    if (completion < 100) return "text-yellow-500";
-    return "text-green-500";
-  };
 
   return (
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ opacity: 0, y: -20, scale: 0.95 }}
+          initial={{ opacity: 0, y: 50, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -20, scale: 0.95 }}
+          exit={{ opacity: 0, y: 50, scale: 0.9 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
-          className="fixed top-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm"
+          className="fixed bottom-24 left-4 right-4 z-40 md:left-auto md:right-4 md:max-w-xs"
         >
-          <Card className="p-4 shadow-lg border-primary/20 bg-card/95 backdrop-blur-sm">
-            <div className="flex items-start gap-3">
-              {/* Icône avec badge de pourcentage */}
+          <div className="relative bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-2xl p-4 shadow-2xl">
+            {/* Bouton fermer */}
+            <button
+              onClick={handleDismiss}
+              className="absolute top-2 right-2 p-1 rounded-full hover:bg-white/20 transition-colors"
+              aria-label="Fermer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              {/* Icône avec badge */}
               <div className="relative flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <User className="w-5 h-5 text-primary" />
+                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                  <User className="w-6 h-6" />
                 </div>
-                <div className={`absolute -bottom-1 -right-1 text-xs font-bold px-1.5 py-0.5 rounded-full bg-background border ${getCompletionColor()}`}>
-                  {completion}%
+                <div className="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 bg-white text-primary rounded-full flex items-center justify-center text-xs font-bold shadow-md">
+                  {missingFieldsCount}
                 </div>
               </div>
 
               {/* Contenu */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-1">
-                  <h4 className="font-medium text-sm">{getCompletionMessage()}</h4>
-                  <button
-                    onClick={handleDismiss}
-                    className="p-1 rounded-full hover:bg-muted transition-colors -mr-1"
-                    aria-label="Fermer"
-                  >
-                    <X className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                </div>
-
-                {/* Barre de progression */}
-                <Progress value={completion} className="h-1.5 mb-3" />
-
-                {/* Actions */}
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={handleComplete}
-                    size="sm"
-                    className="flex-1 h-8 text-xs"
-                  >
-                    Compléter
-                    <ChevronRight className="w-3 h-3 ml-1" />
-                  </Button>
-                  <Button
-                    onClick={handleDismiss}
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 text-xs text-muted-foreground"
-                  >
-                    Plus tard
-                  </Button>
-                </div>
+                <h4 className="font-semibold text-sm mb-0.5">
+                  Complétez votre profil
+                </h4>
+                <p className="text-xs opacity-90">
+                  {missingFieldsCount} champ{missingFieldsCount > 1 ? 's' : ''} restant{missingFieldsCount > 1 ? 's' : ''} ({completionPercent}%)
+                </p>
               </div>
             </div>
-          </Card>
+
+            {/* Actions */}
+            <div className="flex items-center gap-2 mt-3">
+              <Button
+                onClick={handleComplete}
+                size="sm"
+                variant="secondary"
+                className="flex-1 h-9 text-xs bg-white text-primary hover:bg-white/90"
+              >
+                Compléter
+                <ChevronRight className="w-3 h-3 ml-1" />
+              </Button>
+              <Button
+                onClick={handleDismiss}
+                variant="ghost"
+                size="sm"
+                className="h-9 text-xs hover:bg-white/20"
+              >
+                Plus tard
+              </Button>
+            </div>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

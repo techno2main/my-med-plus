@@ -8,6 +8,7 @@ import { fr } from "date-fns/locale"
 import { supabase } from "@/integrations/supabase/client"
 import { useTheme } from "@/components/theme-provider"
 import { useUserRole } from "@/hooks/useUserRole"
+import { useProfileCompletion } from "@/hooks/useProfileCompletion"
 import { generateUserInitials } from "./helpers"
 import { getAuthenticatedUser } from "@/lib/auth-guard"
 import { useStatusBarTheme } from "@/hooks/useStatusBarTheme"
@@ -16,6 +17,7 @@ export function AppHeader() {
   const navigate = useNavigate()
   const { theme, setTheme } = useTheme()
   const { isAdmin } = useUserRole()
+  const { missingFieldsCount, isComplete } = useProfileCompletion()
   
   // Mettre à jour la barre de statut selon le thème
   useStatusBarTheme(theme)
@@ -88,6 +90,7 @@ export function AppHeader() {
               }}
               badge={{
                 isAdmin,
+                notificationCount: isComplete ? 0 : missingFieldsCount,
                 className: "cursor-pointer",
                 onClick: () => navigate("/profile"),
               }}
