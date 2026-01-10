@@ -89,8 +89,8 @@ export const useProfileData = () => {
     }
   };
 
-  const handleSave = async () => {
-    if (!user) return;
+  const handleSave = async (): Promise<boolean> => {
+    if (!user) return false;
 
     setSaving(true);
     try {
@@ -102,7 +102,7 @@ export const useProfileData = () => {
           console.error("Error formatting date:", e);
           toast.error("Format de date invalide");
           setSaving(false);
-          return;
+          return false;
         }
       }
 
@@ -127,9 +127,11 @@ export const useProfileData = () => {
 
       toast.success("Profil mis à jour avec succès");
       setIsEditing(false);
+      return true;
     } catch (error: any) {
       console.error("Error saving profile:", error);
       toast.error(error?.message || "Erreur lors de la sauvegarde du profil");
+      return false;
     } finally {
       setSaving(false);
     }

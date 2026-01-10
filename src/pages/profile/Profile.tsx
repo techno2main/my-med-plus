@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useProfileCompletion } from "@/hooks/useProfileCompletion";
 import { useProfileData } from "./hooks/useProfileData";
 import { useProfileWizard } from "./hooks/useProfileWizard";
 import { calculateAge, calculateBMI, getBMIColor } from "./utils/profileUtils";
@@ -21,6 +22,7 @@ export default function Profile() {
   const { user } = useAuth();
   const { isAdmin } = useUserRole();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { refetch: refetchProfileCompletion } = useProfileCompletion();
   
   const {
     loading,
@@ -65,8 +67,20 @@ export default function Profile() {
   const age = calculateAge(dateOfBirth);
   const bmi = calculateBMI(height, weight);
 
+  // Wrapper pour sauvegarder et rafraîchir le badge de complétion
+  const handleSaveWithRefresh = async () => {
+    const success = await handleSave();
+    if (success) {
+      // Rafraîchir le statut de complétion pour mettre à jour le badge dans le header
+      await refetchProfileCompletion();
+    }
+  };
+
   const handleWizardComplete = async () => {
-    await handleSave();
+    const success = await handleSave();
+    if (success) {
+      await refetchProfileCompletion();
+    }
     completeWizard();
   };
 
@@ -144,7 +158,7 @@ export default function Profile() {
             isEditing={isEditing}
             saving={saving}
             onCancel={() => setIsEditing(false)}
-            onSave={handleSave}
+            onSave={handleSaveWithRefresh}
           />
         </Card>
 
