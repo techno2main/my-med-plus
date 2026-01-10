@@ -6,7 +6,7 @@ import { OnboardingSlide } from "./components/OnboardingSlide";
 import { AnimatedIllustration } from "./components/AnimatedIllustration";
 import { ProgressDots } from "./components/ProgressDots";
 import { useOnboarding } from "@/hooks/useOnboarding";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Loader2 } from "lucide-react";
 
 const SLIDES = [
   {
@@ -46,6 +46,7 @@ export default function Onboarding() {
   const { completeOnboarding } = useOnboarding();
   const [api, setApi] = useState<CarouselApi>();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   useEffect(() => {
     if (!api) return;
@@ -60,32 +61,43 @@ export default function Onboarding() {
     };
   }, [api]);
 
-  const handleNext = useCallback(() => {
-    if (currentSlide === SLIDES.length - 1) {
-      completeOnboarding();
-      // Rediriger vers le profil pour que l'utilisateur renseigne ses infos
+  const handleComplete = useCallback(async () => {
+    if (isCompleting) return;
+    
+    setIsCompleting(true);
+    
+    // Attendre que l'onboarding soit complété
+    const success = await completeOnboarding();
+    
+    if (success) {
+      // Petit délai pour que le localStorage soit bien synchronisé
       setTimeout(() => {
         navigate("/profile", { replace: true });
-      }, 50);
+      }, 100);
+    } else {
+      console.error('Échec de la complétion de l\'onboarding');
+      setIsCompleting(false);
+    }
+  }, [completeOnboarding, navigate, isCompleting]);
+
+  const handleNext = useCallback(() => {
+    if (currentSlide === SLIDES.length - 1) {
+      handleComplete();
     } else {
       api?.scrollNext();
     }
-  }, [api, currentSlide, completeOnboarding, navigate]);
+  }, [api, currentSlide, handleComplete]);
 
   const handleSkip = useCallback(() => {
-    completeOnboarding();
-    // Rediriger vers le profil pour que l'utilisateur renseigne ses infos
-    setTimeout(() => {
-      navigate("/profile", { replace: true });
-    }, 50);
-  }, [completeOnboarding, navigate]);
+    handleComplete();
+  }, [handleComplete]);
 
   const isLastSlide = currentSlide === SLIDES.length - 1;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Skip button */}
-      {!isLastSlide && (
+      {!isLastSlide && !isCompleting && (
         <div className="absolute top-6 right-6 z-10">
           <Button 
             variant="ghost" 
@@ -131,9 +143,19 @@ export default function Onboarding() {
           onClick={handleNext}
           size="lg"
           className="w-full h-14 text-lg font-semibold shadow-glow"
+          disabled={isCompleting}
         >
-          {isLastSlide ? "Commencer" : "Suivant"}
-          <ChevronRight className="ml-2 h-5 w-5" />
+          {isCompleting ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Chargement...
+            </>
+          ) : (
+            <>
+              {isLastSlide ? "Commencer" : "Suivant"}
+              <ChevronRight className="ml-2 h-5 w-5" />
+            </>
+          )}
         </Button>
       </div>
     </div>

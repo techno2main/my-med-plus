@@ -1,7 +1,6 @@
 import { ReactNode, useState, useEffect, useCallback, useRef } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useOnboarding } from '@/hooks/useOnboarding';
 import { Loader2 } from 'lucide-react';
 import { AppLockScreen } from './AppLockScreen';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,9 +12,23 @@ interface ProtectedRouteProps {
   children: ReactNode;
 }
 
+// Fonction utilitaire pour vérifier l'onboarding directement depuis localStorage
+const checkOnboardingStatus = (userId: string): boolean => {
+  return localStorage.getItem(`hasSeenOnboarding_${userId}`) === 'true';
+};
+
+const checkFirstLoginStatus = (userId: string): boolean => {
+  const hasSeenOnboarding = localStorage.getItem(`hasSeenOnboarding_${userId}`) === 'true';
+  const firstLoginHandled = localStorage.getItem(`isFirstLogin_${userId}`) === 'true';
+  return !hasSeenOnboarding && !firstLoginHandled;
+};
+
+const markFirstLoginAsHandled = (userId: string): void => {
+  localStorage.setItem(`isFirstLogin_${userId}`, 'true');
+};
+
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
-  const { hasSeenOnboarding, isFirstLogin, markFirstLoginHandled } = useOnboarding();
   const location = useLocation();
   const [isLocked, setIsLocked] = useState(false);
   const [lockLoading, setLockLoading] = useState(true);
@@ -124,15 +137,18 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
+  // LECTURE DIRECTE depuis localStorage pour éviter les problèmes de synchronisation React
+  const hasSeenOnboarding = checkOnboardingStatus(user.id);
+  const isFirstLogin = checkFirstLoginStatus(user.id);
+
   // Rediriger vers l'onboarding si c'est la première visite de cet utilisateur
   if (!hasSeenOnboarding && location.pathname !== '/onboarding') {
     return <Navigate to="/onboarding" replace />;
   }
 
   // Après l'onboarding, rediriger les nouveaux utilisateurs vers leur profil
-  // pour qu'ils renseignent leurs informations
   if (isFirstLogin && location.pathname !== '/profile' && location.pathname !== '/onboarding') {
-    markFirstLoginHandled();
+    markFirstLoginAsHandled(user.id);
     return <Navigate to="/profile" replace />;
   }
 
