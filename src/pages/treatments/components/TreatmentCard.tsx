@@ -81,7 +81,7 @@ export const TreatmentCard = ({ treatment }: TreatmentCardProps) => {
         <div ref={detailsRef}>
           <div className="space-y-2">
             {treatment.medications.map((med, idx) => (
-              <MedicationItem key={idx} medication={med} />
+              <MedicationItem key={idx} medication={med} isArchived={!treatment.is_active} />
             ))}
           </div>
 

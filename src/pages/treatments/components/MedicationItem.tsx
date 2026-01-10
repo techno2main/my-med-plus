@@ -12,6 +12,7 @@ interface MedicationItemProps {
     minThreshold: number
     isPaused: boolean
   }
+  isArchived?: boolean
 }
 
 const getStockColor = (stock: number, threshold: number) => {
@@ -26,7 +27,7 @@ const getStockBgColor = (stock: number, threshold: number) => {
   return "bg-success/10"
 }
 
-export const MedicationItem = ({ medication }: MedicationItemProps) => {
+export const MedicationItem = ({ medication, isArchived = false }: MedicationItemProps) => {
   return (
     <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
       {medication.isPaused ? (
@@ -39,12 +40,18 @@ export const MedicationItem = ({ medication }: MedicationItemProps) => {
           <p className="font-medium text-sm">
             {medication.name} <span className="text-muted-foreground">• {medication.posology}</span>
           </p>
-          <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${getStockBgColor(medication.currentStock, medication.minThreshold)}`}>
-            <Pill className={`h-3 w-3 ${getStockColor(medication.currentStock, medication.minThreshold)}`} />
-            <span className={`text-xs font-semibold ${getStockColor(medication.currentStock, medication.minThreshold)}`}>
-              {medication.currentStock}
-            </span>
-          </div>
+          {isArchived ? (
+            <Badge variant="secondary" className="text-xs">
+              Terminé
+            </Badge>
+          ) : (
+            <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${getStockBgColor(medication.currentStock, medication.minThreshold)}`}>
+              <Pill className={`h-3 w-3 ${getStockColor(medication.currentStock, medication.minThreshold)}`} />
+              <span className={`text-xs font-semibold ${getStockColor(medication.currentStock, medication.minThreshold)}`}>
+                {medication.currentStock}
+              </span>
+            </div>
+          )}
         </div>
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
