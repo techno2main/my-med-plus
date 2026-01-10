@@ -2,22 +2,36 @@ import { useState, useRef } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Calendar, User, Download, Pill, Eye, EyeOff } from "lucide-react"
+import { Calendar, User, Download, Pill, Eye, EyeOff, Archive } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { formatToFrenchDate } from "@/lib/dateUtils"
 import { MedicationItem } from "./MedicationItem"
 import { usePrescriptionDownload } from "@/hooks/usePrescriptionDownload"
+import { useTerminateTreatment } from "../hooks/useTerminateTreatment"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import type { Treatment } from "../types"
 
 interface TreatmentCardProps {
   treatment: Treatment
+  onTreatmentTerminated?: () => void
 }
 
-export const TreatmentCard = ({ treatment }: TreatmentCardProps) => {
+export const TreatmentCard = ({ treatment, onTreatmentTerminated }: TreatmentCardProps) => {
   const navigate = useNavigate()
   const [showDetails, setShowDetails] = useState(treatment.is_active) // Par défaut : visible si actif, masqué si archivé
+  const [showTerminateDialog, setShowTerminateDialog] = useState(false)
   const detailsRef = useRef<HTMLDivElement>(null)
   const { downloadPrescription } = usePrescriptionDownload()
+  const { terminateTreatment, isTerminating } = useTerminateTreatment()
 
   const handleToggleDetails = () => {
     const newShowDetails = !showDetails
@@ -38,109 +52,161 @@ export const TreatmentCard = ({ treatment }: TreatmentCardProps) => {
     }
   }
 
+  const handleConfirmTerminate = async () => {
+    const success = await terminateTreatment(treatment.id, treatment.name)
+    if (success) {
+      setShowTerminateDialog(false)
+      onTreatmentTerminated?.()
+    }
+  }
+
   return (
-    <Card className="p-4 space-y-3">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-lg">{treatment.name}</h3>
-            {!treatment.is_active && (
-              <button
-                onClick={handleToggleDetails}
-                className="p-1 hover:bg-muted rounded transition-colors"
-                aria-label={showDetails ? "Masquer les détails" : "Afficher les détails"}
+    <>
+      <Card className="p-4 space-y-3">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-lg">{treatment.name}</h3>
+              {!treatment.is_active && (
+                <button
+                  onClick={handleToggleDetails}
+                  className="p-1 hover:bg-muted rounded transition-colors"
+                  aria-label={showDetails ? "Masquer les détails" : "Afficher les détails"}
+                >
+                  {showDetails ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </button>
+              )}
+            </div>
+            {treatment.is_active ? (
+              <Badge variant="default" className="mt-1 bg-success text-white">
+                Actif
+              </Badge>
+            ) : (
+              <Badge variant="secondary" className="mt-1 bg-muted text-muted-foreground">
+                Archivé
+              </Badge>
+            )}
+          </div>
+          {treatment.is_active && (
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowTerminateDialog(true)}
+                className="text-amber-700 border-amber-300 hover:bg-amber-50"
               >
-                {showDetails ? (
-                  <EyeOff className="h-4 w-4 text-muted-foreground" />
-                ) : (
-                  <Eye className="h-4 w-4 text-muted-foreground" />
-                )}
+                <Archive className="h-4 w-4 mr-1" />
+                Terminer
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate(`/treatments/${treatment.id}/edit`)}>
+                Modifier
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Medications - Affichés seulement si showDetails est true */}
+        {showDetails && (
+          <div ref={detailsRef}>
+            <div className="space-y-2">
+              {treatment.medications.map((med, idx) => (
+                <MedicationItem key={idx} medication={med} isArchived={!treatment.is_active} />
+              ))}
+            </div>
+
+            {/* Metadata Footer */}
+            <div className="pt-2 border-t border-border space-y-1">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Calendar className="h-3 w-3" />
+            <span className="whitespace-nowrap">
+              Début : {formatToFrenchDate(treatment.start_date)}
+              {treatment.qsp_days && (
+                <span className="text-[10px]"> (QSP {Math.round(treatment.qsp_days / 30)} mois)</span>
+              )}
+              {treatment.end_date && (
+                <> • Fin : {formatToFrenchDate(treatment.end_date)}</>
+              )}
+            </span>
+          </div>
+          {treatment.prescribing_doctor && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <User className="h-3 w-3" />
+              <span>{treatment.prescribing_doctor.name}</span>
+            </div>
+          )}
+          {treatment.prescription_id && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Download className="h-3 w-3" />
+              <button 
+                onClick={() => navigate(`/prescriptions?open=${treatment.prescription_id}`)}
+                className="hover:text-primary underline cursor-pointer"
+              >
+                Consulter l'ordonnance
               </button>
-            )}
-          </div>
-          {treatment.is_active ? (
-            <Badge variant="default" className="mt-1 bg-success text-white">
-              Actif
-            </Badge>
-          ) : (
-            <Badge variant="secondary" className="mt-1 bg-muted text-muted-foreground">
-              Archivé
-            </Badge>
+            </div>
           )}
-        </div>
-        {treatment.is_active && (
-          <Button variant="ghost" size="sm" onClick={() => navigate(`/treatments/${treatment.id}/edit`)}>
-            Modifier
-          </Button>
-        )}
-      </div>
-
-      {/* Medications - Affichés seulement si showDetails est true */}
-      {showDetails && (
-        <div ref={detailsRef}>
-          <div className="space-y-2">
-            {treatment.medications.map((med, idx) => (
-              <MedicationItem key={idx} medication={med} isArchived={!treatment.is_active} />
-            ))}
+          {treatment.next_pharmacy_visit && treatment.end_date && (
+            (() => {
+              // Afficher le prochain rechargement seulement si :
+              // 1. La visite est AVANT la fin du traitement
+              // 2. Ce n'est PAS la visite initiale (visit_number > 1)
+              const nextVisitDate = new Date(treatment.next_pharmacy_visit.visit_date);
+              const endDate = new Date(treatment.end_date);
+              const isRefill = treatment.next_pharmacy_visit.visit_number > 1;
+              
+              // Pas d'affichage si :
+              // - Visite après ou à la fin du traitement
+              // - C'est la visite initiale (pas un rechargement)
+              if (nextVisitDate >= endDate || !isRefill) return null;
+              
+              return (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Pill className="h-3 w-3" />
+                  <span>Prochain rechargement : {nextVisitDate.toLocaleDateString("fr-FR")}</span>
+                </div>
+                );
+              })()
+            )}
           </div>
-
-          {/* Metadata Footer */}
-          <div className="pt-2 border-t border-border space-y-1">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Calendar className="h-3 w-3" />
-          <span className="whitespace-nowrap">
-            Début : {formatToFrenchDate(treatment.start_date)}
-            {treatment.qsp_days && (
-              <span className="text-[10px]"> (QSP {Math.round(treatment.qsp_days / 30)} mois)</span>
-            )}
-            {treatment.end_date && (
-              <> • Fin : {formatToFrenchDate(treatment.end_date)}</>
-            )}
-          </span>
-        </div>
-        {treatment.prescribing_doctor && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <User className="h-3 w-3" />
-            <span>{treatment.prescribing_doctor.name}</span>
           </div>
         )}
-        {treatment.prescription_id && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Download className="h-3 w-3" />
-            <button 
-              onClick={() => navigate(`/prescriptions?open=${treatment.prescription_id}`)}
-              className="hover:text-primary underline cursor-pointer"
+      </Card>
+
+      {/* Dialog de confirmation pour terminer le traitement */}
+      <AlertDialog open={showTerminateDialog} onOpenChange={setShowTerminateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Terminer ce traitement ?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                Cette action mettra fin au traitement <strong>{treatment.name}</strong> avant sa date de fin prévue
+                {treatment.end_date && <> ({formatToFrenchDate(treatment.end_date)})</>}.
+              </p>
+              <p className="text-amber-600 font-medium">
+                ⚠️ Toutes les prises de médicaments futures seront supprimées.
+              </p>
+              <p className="text-muted-foreground text-sm">
+                Cette action est irréversible.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isTerminating}>Annuler</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmTerminate}
+              disabled={isTerminating}
+              className="bg-amber-600 hover:bg-amber-700"
             >
-              Consulter l'ordonnance
-            </button>
-          </div>
-        )}
-        {treatment.next_pharmacy_visit && treatment.end_date && (
-          (() => {
-            // Afficher le prochain rechargement seulement si :
-            // 1. La visite est AVANT la fin du traitement
-            // 2. Ce n'est PAS la visite initiale (visit_number > 1)
-            const nextVisitDate = new Date(treatment.next_pharmacy_visit.visit_date);
-            const endDate = new Date(treatment.end_date);
-            const isRefill = treatment.next_pharmacy_visit.visit_number > 1;
-            
-            // Pas d'affichage si :
-            // - Visite après ou à la fin du traitement
-            // - C'est la visite initiale (pas un rechargement)
-            if (nextVisitDate >= endDate || !isRefill) return null;
-            
-            return (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Pill className="h-3 w-3" />
-                <span>Prochain rechargement : {nextVisitDate.toLocaleDateString("fr-FR")}</span>
-              </div>
-              );
-            })()
-          )}
-        </div>
-        </div>
-      )}
-    </Card>
+              {isTerminating ? "Terminaison..." : "Confirmer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

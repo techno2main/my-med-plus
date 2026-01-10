@@ -7,7 +7,7 @@ import { EmptyState } from "./components/EmptyState"
 
 const Treatments = () => {
   const navigate = useNavigate()
-  const { treatments, loading } = useTreatmentsList()
+  const { treatments, loading, reloadTreatments } = useTreatmentsList()
 
   const activeTreatmentsCount = treatments.filter(t => t.is_active).length
   
@@ -44,7 +44,11 @@ const Treatments = () => {
             <EmptyState />
           ) : (
             treatments.map((treatment) => (
-              <TreatmentCard key={treatment.id} treatment={treatment} />
+              <TreatmentCard 
+                key={treatment.id} 
+                treatment={treatment} 
+                onTreatmentTerminated={reloadTreatments}
+              />
             ))
           )}
         </div>

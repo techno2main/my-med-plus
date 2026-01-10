@@ -688,6 +688,7 @@ export type Database = {
       }
     }
     Functions: {
+      auto_archive_expired_treatments: { Args: never; Returns: number }
       delete_future_intakes_on_pause: {
         Args: { med_id: string }
         Returns: number
