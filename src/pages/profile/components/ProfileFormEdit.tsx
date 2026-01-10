@@ -1,7 +1,19 @@
+import { useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ModernDatePicker } from "@/components/ui/modern-date-picker";
+import type { ProfileFieldName } from "@/hooks/useProfileCompletion";
+
+// Mapping entre les noms de champs DB et les IDs de formulaire
+const FIELD_TO_INPUT_ID: Record<ProfileFieldName, string> = {
+  first_name: "firstName",
+  last_name: "lastName",
+  date_of_birth: "dateOfBirth",
+  blood_type: "bloodType",
+  height: "height",
+  weight: "weight",
+};
 
 interface ProfileFormEditProps {
   firstName: string;
@@ -12,6 +24,7 @@ interface ProfileFormEditProps {
   weight: string;
   age: number | null;
   bmi: string | null;
+  focusField?: ProfileFieldName | null;
   getBMIColor: (bmi: number) => string;
   onFirstNameChange: (value: string) => void;
   onLastNameChange: (value: string) => void;
@@ -30,6 +43,7 @@ export function ProfileFormEdit({
   weight,
   age,
   bmi,
+  focusField,
   getBMIColor,
   onFirstNameChange,
   onLastNameChange,
@@ -38,8 +52,25 @@ export function ProfileFormEdit({
   onHeightChange,
   onWeightChange,
 }: ProfileFormEditProps) {
+  const formRef = useRef<HTMLDivElement>(null);
+
+  // Focus sur le champ demandé
+  useEffect(() => {
+    if (focusField && formRef.current) {
+      const inputId = FIELD_TO_INPUT_ID[focusField];
+      // Petit délai pour laisser le DOM se mettre à jour
+      setTimeout(() => {
+        const input = document.getElementById(inputId);
+        if (input) {
+          input.focus();
+          input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    }
+  }, [focusField]);
+
   return (
-    <>
+    <div ref={formRef}>
       {/* Informations personnelles */}
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
@@ -133,6 +164,6 @@ export function ProfileFormEdit({
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

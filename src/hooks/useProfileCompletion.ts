@@ -13,6 +13,8 @@ interface ProfileData {
 
 const PROFILE_FIELDS = ['first_name', 'last_name', 'date_of_birth', 'blood_type', 'height', 'weight'] as const;
 
+export type ProfileFieldName = typeof PROFILE_FIELDS[number];
+
 export interface ProfileCompletionState {
   isLoading: boolean;
   completionPercent: number;
@@ -21,6 +23,8 @@ export interface ProfileCompletionState {
   totalFields: number;
   isComplete: boolean;
   profile: ProfileData | null;
+  missingFields: ProfileFieldName[];
+  firstMissingField: ProfileFieldName | null;
   refetch: () => Promise<void>;
 }
 
@@ -62,17 +66,22 @@ export const useProfileCompletion = (): ProfileCompletionState => {
   }, [fetchProfile, authLoading]);
 
   const calculateCompletion = (data: ProfileData | null) => {
-    if (!data) return { filled: 0, total: PROFILE_FIELDS.length };
+    if (!data) return { filled: 0, total: PROFILE_FIELDS.length, missing: [...PROFILE_FIELDS] };
 
+    const missing: ProfileFieldName[] = [];
     const filledFields = PROFILE_FIELDS.filter((field) => {
       const value = data[field];
-      return value !== null && value !== "" && value !== undefined;
+      const isFilled = value !== null && value !== "" && value !== undefined;
+      if (!isFilled) {
+        missing.push(field);
+      }
+      return isFilled;
     }).length;
 
-    return { filled: filledFields, total: PROFILE_FIELDS.length };
+    return { filled: filledFields, total: PROFILE_FIELDS.length, missing };
   };
 
-  const { filled, total } = calculateCompletion(profile);
+  const { filled, total, missing } = calculateCompletion(profile);
   const completionPercent = Math.round((filled / total) * 100);
   const missingFieldsCount = total - filled;
 
@@ -81,12 +90,14 @@ export const useProfileCompletion = (): ProfileCompletionState => {
 
   return {
     isLoading: stillLoading,
-    completionPercent: stillLoading ? 100 : completionPercent, // Default à 100% pendant le chargement pour ne pas afficher de badge
+    completionPercent: stillLoading ? 100 : completionPercent,
     missingFieldsCount: stillLoading ? 0 : missingFieldsCount,
     filledFieldsCount: stillLoading ? total : filled,
     totalFields: total,
-    isComplete: stillLoading ? true : completionPercent === 100, // Default à true pendant le chargement
+    isComplete: stillLoading ? true : completionPercent === 100,
     profile,
+    missingFields: stillLoading ? [] : missing,
+    firstMissingField: stillLoading ? null : (missing[0] || null),
     refetch: fetchProfile,
   };
 };

@@ -17,7 +17,7 @@ export function AppHeader() {
   const navigate = useNavigate()
   const { theme, setTheme } = useTheme()
   const { isAdmin } = useUserRole()
-  const { missingFieldsCount, isComplete, isLoading: profileLoading } = useProfileCompletion()
+  const { missingFieldsCount, isComplete, isLoading: profileLoading, firstMissingField } = useProfileCompletion()
   
   // Mettre à jour la barre de statut selon le thème
   useStatusBarTheme(theme)
@@ -93,7 +93,15 @@ export function AppHeader() {
                 // Ne pas afficher de notification pendant le chargement ou si profil complet
                 notificationCount: profileLoading || isComplete ? 0 : missingFieldsCount,
                 className: "cursor-pointer touch-manipulation",
-                onClick: () => navigate("/profile"),
+                onClick: () => {
+                  // Naviguer vers le profil avec le champ à focus
+                  const params = new URLSearchParams();
+                  params.set('edit', 'true');
+                  if (firstMissingField) {
+                    params.set('focus', firstMissingField);
+                  }
+                  navigate(`/profile?${params.toString()}`);
+                },
               }}
             />
           </div>

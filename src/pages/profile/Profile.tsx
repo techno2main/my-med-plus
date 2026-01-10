@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card } from "@/components/ui/card";
@@ -13,10 +15,12 @@ import { ProfileActions } from "./components/ProfileActions";
 import { ExportDataCard } from "./components/ExportDataCard";
 import { LogoutButton } from "./components/LogoutButton";
 import { ProfileWizardDialog } from "./components/ProfileWizard";
+import type { ProfileFieldName } from "@/hooks/useProfileCompletion";
 
 export default function Profile() {
   const { user } = useAuth();
   const { isAdmin } = useUserRole();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   const {
     loading,
@@ -44,6 +48,19 @@ export default function Profile() {
   } = useProfileData();
 
   const { showWizard, closeWizard, completeWizard, skipWizard } = useProfileWizard();
+
+  // Lire les query params pour auto-edit et focus
+  const shouldEdit = searchParams.get('edit') === 'true';
+  const focusField = searchParams.get('focus') as ProfileFieldName | null;
+
+  // Auto-ouvrir le mode édition si demandé via query params
+  useEffect(() => {
+    if (shouldEdit && !loading) {
+      setIsEditing(true);
+      // Nettoyer les query params après avoir lu
+      setSearchParams({}, { replace: true });
+    }
+  }, [shouldEdit, loading, setIsEditing, setSearchParams]);
 
   const age = calculateAge(dateOfBirth);
   const bmi = calculateBMI(height, weight);
@@ -102,6 +119,7 @@ export default function Profile() {
               weight={weight}
               age={age}
               bmi={bmi}
+              focusField={focusField}
               getBMIColor={getBMIColor}
               onFirstNameChange={setFirstName}
               onLastNameChange={setLastName}

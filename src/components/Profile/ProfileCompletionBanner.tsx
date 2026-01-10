@@ -13,7 +13,7 @@ const WIZARD_SHOWN_PREFIX = "profileWizardShownOnce_";
 export function ProfileCompletionBanner() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { isLoading, completionPercent, missingFieldsCount, isComplete } = useProfileCompletion();
+  const { isLoading, completionPercent, missingFieldsCount, isComplete, firstMissingField } = useProfileCompletion();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -52,7 +52,13 @@ export function ProfileCompletionBanner() {
   };
 
   const handleComplete = () => {
-    navigate("/profile");
+    // Naviguer vers le profil avec le champ à focus
+    const params = new URLSearchParams();
+    params.set('edit', 'true');
+    if (firstMissingField) {
+      params.set('focus', firstMissingField);
+    }
+    navigate(`/profile?${params.toString()}`);
   };
 
   if (isLoading || !isVisible || isComplete) {
