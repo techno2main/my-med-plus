@@ -63,9 +63,9 @@ export default function Onboarding() {
   const handleNext = useCallback(() => {
     if (currentSlide === SLIDES.length - 1) {
       completeOnboarding();
-      // Small delay to ensure localStorage is updated before navigation
+      // Rediriger vers le profil pour que l'utilisateur renseigne ses infos
       setTimeout(() => {
-        navigate("/", { replace: true });
+        navigate("/profile", { replace: true });
       }, 50);
     } else {
       api?.scrollNext();
@@ -74,9 +74,9 @@ export default function Onboarding() {
 
   const handleSkip = useCallback(() => {
     completeOnboarding();
-    // Small delay to ensure localStorage is updated before navigation
+    // Rediriger vers le profil pour que l'utilisateur renseigne ses infos
     setTimeout(() => {
-      navigate("/", { replace: true });
+      navigate("/profile", { replace: true });
     }, 50);
   }, [completeOnboarding, navigate]);
 

@@ -20,7 +20,7 @@ export const useEmailAuth = () => {
     setIsSubmitting(false);
   };
 
-  const handleSignUp = async (email: string, password: string) => {
+  const handleSignUp = async (email: string, password: string, onSuccess?: () => void) => {
     setIsSubmitting(true);
     
     const { error } = await signUp(email, password);
@@ -30,11 +30,16 @@ export const useEmailAuth = () => {
         description: error.message,
       });
     } else {
-      // Message clair expliquant que la confirmation email est requise
-      toast.success('Vérifiez votre boîte mail !', {
-        description: `Un email de confirmation a été envoyé à ${email}. Cliquez sur le lien pour activer votre compte.`,
-        duration: 10000, // Afficher 10 secondes
+      // Message très clair avec action requise
+      toast.success('📧 Vérifiez votre boîte mail !', {
+        description: `Un email de confirmation a été envoyé à ${email}. Vous devez cliquer sur le lien dans l'email pour activer votre compte avant de pouvoir vous connecter.`,
+        duration: 15000, // Afficher 15 secondes pour bien laisser le temps de lire
       });
+      
+      // Callback pour revenir au mode connexion
+      if (onSuccess) {
+        onSuccess();
+      }
     }
     
     setIsSubmitting(false);

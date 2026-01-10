@@ -54,7 +54,12 @@ const Auth = () => {
         toast.error('Le mot de passe doit contenir au moins 6 caractères');
         return;
       }
-      handleSignUp(email, password);
+      // Après inscription réussie, revenir au mode connexion
+      handleSignUp(email, password, () => {
+        setIsSignUpMode(false);
+        setPassword('');
+        setConfirmPassword('');
+      });
     } else {
       handleSignIn(email, password);
     }
