@@ -4,7 +4,7 @@ import { useState } from "react"
 import { TreatmentFormData } from "./types"
 import { useStep2Medications } from "./hooks/useStep2Medications"
 import { MedicationsList } from "./components/MedicationsList"
-import { CatalogDialog } from "./components/CatalogDialog"
+import { CatalogDialogEnhanced } from "./components/CatalogDialogEnhanced"
 import { CustomMedicationDialog } from "./components/CustomMedicationDialog"
 import { MedicationsProvider } from "./contexts/MedicationsContext"
 import {
@@ -96,11 +96,15 @@ export function Step2Medications({ formData, setFormData }: Step2MedicationsProp
         <MedicationsList />
       </MedicationsProvider>
 
-      <CatalogDialog
+      <CatalogDialogEnhanced
         open={showDialog}
         onOpenChange={setShowDialog}
         catalog={catalog}
         onSelect={addMedicationFromCatalog}
+        onCreateCustom={() => {
+          setShowDialog(false)
+          setShowCustomDialog(true)
+        }}
       />
 
       <CustomMedicationDialog
