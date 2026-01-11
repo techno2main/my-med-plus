@@ -110,7 +110,7 @@ export type Database = {
         Row: {
           color: string | null
           created_at: string | null
-          created_by: string
+          created_by: string | null
           default_posology: string | null
           default_times: string[] | null
           description: string | null
@@ -128,7 +128,7 @@ export type Database = {
         Insert: {
           color?: string | null
           created_at?: string | null
-          created_by?: string
+          created_by?: string | null
           default_posology?: string | null
           default_times?: string[] | null
           description?: string | null
@@ -146,7 +146,7 @@ export type Database = {
         Update: {
           color?: string | null
           created_at?: string | null
-          created_by?: string
+          created_by?: string | null
           default_posology?: string | null
           default_times?: string[] | null
           description?: string | null
@@ -321,7 +321,7 @@ export type Database = {
       pathologies: {
         Row: {
           created_at: string | null
-          created_by: string
+          created_by: string | null
           description: string | null
           id: string
           is_approved: boolean | null
@@ -331,7 +331,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          created_by?: string
+          created_by?: string | null
           description?: string | null
           id?: string
           is_approved?: boolean | null
@@ -341,7 +341,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
-          created_by?: string
+          created_by?: string | null
           description?: string | null
           id?: string
           is_approved?: boolean | null
