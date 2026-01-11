@@ -2,7 +2,7 @@ import { useState, useRef } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Calendar, User, Download, Pill, Eye, EyeOff, Archive } from "lucide-react"
+import { Calendar, User, Download, Pill, Eye, EyeOff, Archive, Pencil } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { formatToFrenchDate } from "@/lib/dateUtils"
 import { MedicationItem } from "./MedicationItem"
@@ -96,15 +96,21 @@ export const TreatmentCard = ({ treatment, onTreatmentTerminated }: TreatmentCar
             <div className="flex gap-2">
               <Button 
                 variant="outline" 
-                size="sm" 
+                size="icon" 
                 onClick={() => setShowTerminateDialog(true)}
-                className="text-amber-700 border-amber-300 hover:bg-amber-50"
+                className="h-8 w-8 text-amber-600 border-amber-400 hover:bg-amber-100 hover:text-amber-700"
+                title="Terminer le traitement"
               >
-                <Archive className="h-4 w-4 mr-1" />
-                Terminer
+                <Archive className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => navigate(`/treatments/${treatment.id}/edit`)}>
-                Modifier
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => navigate(`/treatments/${treatment.id}/edit`)}
+                className="h-8 w-8"
+                title="Modifier le traitement"
+              >
+                <Pencil className="h-4 w-4" />
               </Button>
             </div>
           )}
