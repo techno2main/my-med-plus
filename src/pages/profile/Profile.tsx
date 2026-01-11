@@ -4,6 +4,7 @@ import { AppLayout } from "@/components/Layout/AppLayout";
 import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
+import { setFilePickerActive } from "@/hooks/useFilePicker";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useProfileCompletion } from "@/contexts/ProfileCompletionContext";
 import { useProfileData } from "./hooks/useProfileData";
@@ -126,7 +127,10 @@ export default function Profile() {
             isAdmin={isAdmin}
             isEditing={isEditing}
             onEditClick={() => setIsEditing(true)}
-            onAvatarClick={() => fileInputRef.current?.click()}
+            onAvatarClick={() => {
+              setFilePickerActive(true);
+              fileInputRef.current?.click();
+            }}
           />
 
           <input
@@ -134,7 +138,10 @@ export default function Profile() {
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={handleAvatarUpload}
+            onChange={(e) => {
+              setFilePickerActive(false);
+              handleAvatarUpload(e);
+            }}
           />
 
           {isEditing ? (

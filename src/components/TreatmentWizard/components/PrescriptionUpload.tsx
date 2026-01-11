@@ -2,6 +2,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Upload, FileText, X } from "lucide-react"
+import { setFilePickerActive } from "@/hooks/useFilePicker"
 import type { TreatmentFormData } from "../types"
 
 interface PrescriptionUploadProps {
@@ -10,7 +11,15 @@ interface PrescriptionUploadProps {
 }
 
 export const PrescriptionUpload = ({ formData, setFormData }: PrescriptionUploadProps) => {
+  const handleFileInputClick = () => {
+    // Signal that file picker is about to open (prevents biometric lock on mobile)
+    setFilePickerActive(true)
+  }
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // File picker has closed
+    setFilePickerActive(false)
+    
     const file = e.target.files?.[0]
     if (file) {
       setFormData({
@@ -47,6 +56,7 @@ export const PrescriptionUpload = ({ formData, setFormData }: PrescriptionUpload
             id="file-upload"
             type="file"
             accept="image/*,application/pdf"
+            onClick={handleFileInputClick}
             onChange={handleFileChange}
             className="hidden"
           />

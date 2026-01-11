@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
+import { isFilePickerActive } from '@/hooks/useFilePicker';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -88,8 +89,8 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     if (!Capacitor.isNativePlatform() || !requireAuthOnOpen) return;
 
     const listener = App.addListener("appStateChange", async ({ isActive }) => {
-      // Ne pas verrouiller si on vient juste de déverrouiller
-      if (isActive && requireAuthOnOpen && !justUnlockedRef.current) {
+      // Ne pas verrouiller si on vient juste de déverrouiller ou si un file picker est ouvert
+      if (isActive && requireAuthOnOpen && !justUnlockedRef.current && !isFilePickerActive()) {
         setIsLocked(true);
       }
     });
