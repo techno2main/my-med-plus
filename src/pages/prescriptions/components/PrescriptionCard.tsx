@@ -148,10 +148,10 @@ export function PrescriptionCard({ prescription, onDownload, onToggleVisit, defa
           <p className="text-sm font-medium mb-3">Dates de rechargements</p>
           <div className="space-y-2">
             {prescription.refillVisits.map((visit, index) => {
-              // Déterminer si ce rechargement est cliquable
+              // Déterminer si ce rechargement est cliquable (désactivé si archivé)
               const isPreviousCompleted =
                 index === 0 || prescription.refillVisits[index - 1]?.isCompleted;
-              const isClickable = visit.visitNumber !== 1 && isPreviousCompleted;
+              const isClickable = !allTreatmentsArchived && visit.visitNumber !== 1 && isPreviousCompleted;
               
               // Si c'est une date unique et qu'elle est dépassée, considérer comme complétée
               const isAutoChecked = isSingleDatePast(visit);
