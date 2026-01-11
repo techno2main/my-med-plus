@@ -32,8 +32,6 @@ export function useAuth() {
       async (event, session) => {
         if (isCleanedUp) return;
 
-        console.log('🔄 Auth state change:', event, session?.user?.email);
-
         // Gérer les événements d'erreur de token
         if (event === 'TOKEN_REFRESHED' && !session) {
           setTimeout(() => {
