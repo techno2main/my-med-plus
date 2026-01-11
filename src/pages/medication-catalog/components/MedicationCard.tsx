@@ -59,38 +59,16 @@ export function MedicationCard({ medication, onEdit, onDelete, onStockClick }: M
           </div>
         </div>
 
-        {/* Ligne 2: Pathologie + Stock */}
-        {(medication.pathologies || medication.total_stock !== undefined) && (
-          <div className="flex items-center justify-between">
-            <div>
-              {medication.pathologies && (
-                <Badge variant="secondary">
-                  {medication.pathologies.name}
-                </Badge>
-              )}
-            </div>
-            {medication.total_stock !== undefined && (
-              <button
-                onClick={onStockClick}
-                className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${getStockBgColor(medication.total_stock, medication.effective_threshold || 10)} hover:opacity-80 transition-opacity cursor-pointer`}
-              >
-                <Pill className={`h-3 w-3 ${getStockColor(medication.total_stock, medication.effective_threshold || 10)}`} />
-                <span className={`text-xs font-semibold ${getStockColor(medication.total_stock, medication.effective_threshold || 10)}`}>
-                  {medication.total_stock}
-                </span>
-              </button>
-            )}
+        {/* Ligne 2: Pathologie */}
+        {medication.pathologies && (
+          <div>
+            <Badge variant="secondary">
+              {medication.pathologies.name}
+            </Badge>
           </div>
         )}
 
-        {/* Ligne 3: Posologie */}
-        {medication.default_posology && (
-          <p className="text-sm text-muted-foreground">
-            {medication.default_posology}
-          </p>
-        )}
-
-        {/* Ligne 4: Description */}
+        {/* Ligne 3: Description (substance active) */}
         {medication.description && (
           <p className="text-sm text-muted-foreground">
             {medication.description}
