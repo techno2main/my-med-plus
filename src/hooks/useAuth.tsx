@@ -66,10 +66,40 @@ export function useAuth() {
         if (url.includes('auth/callback') || url.includes('access_token')) {
           try {
             // Parser l'URL pour extraire les paramètres
-            const urlObj = new URL(url.replace('com.myhealthplus.app://', 'https://placeholder/'));
-            const hashParams = new URLSearchParams(urlObj.hash.substring(1));
-            const accessToken = hashParams.get('access_token');
-            const refreshToken = hashParams.get('refresh_token');
+            // Remplacer le scheme custom par https pour permettre le parsing URL standard
+            const normalizedUrl = url.replace('com.myhealthplus.app://', 'https://placeholder/');
+            const urlObj = new URL(normalizedUrl);
+            
+            // Les tokens peuvent être dans le hash (#) OU dans les query params (?)
+            // Supabase peut utiliser l'un ou l'autre selon la configuration
+            let accessToken: string | null = null;
+            let refreshToken: string | null = null;
+            
+            // D'abord essayer le hash (fragment)
+            if (urlObj.hash) {
+              const hashParams = new URLSearchParams(urlObj.hash.substring(1));
+              accessToken = hashParams.get('access_token');
+              refreshToken = hashParams.get('refresh_token');
+            }
+            
+            // Si pas trouvé dans le hash, essayer les query params
+            if (!accessToken || !refreshToken) {
+              accessToken = urlObj.searchParams.get('access_token') || accessToken;
+              refreshToken = urlObj.searchParams.get('refresh_token') || refreshToken;
+            }
+            
+            // Vérifier aussi le format avec code (PKCE flow)
+            const code = urlObj.searchParams.get('code');
+            if (code && !accessToken) {
+              console.log('🔑 Code PKCE reçu, échange contre tokens...');
+              const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+              if (error) {
+                console.error('❌ Erreur exchangeCodeForSession:', error);
+              } else {
+                console.log('✅ Session OAuth configurée via PKCE avec succès');
+              }
+              return;
+            }
             
             if (accessToken && refreshToken) {
               console.log('🔑 Tokens OAuth reçus, configuration de la session...');
@@ -83,6 +113,8 @@ export function useAuth() {
               } else {
                 console.log('✅ Session OAuth configurée avec succès');
               }
+            } else {
+              console.warn('⚠️ Tokens non trouvés dans l\'URL:', url);
             }
           } catch (err) {
             console.error('❌ Erreur parsing deep link:', err);
