@@ -39,3 +39,8 @@ android/capacitor-cordova-android-plugins/cordova.variables.gradle
 
 # Supabase temporary files
 supabase/.temp/
+
+# Données médicaments (fichiers volumineux)
+datas/
+*.txt
+!README.txt
