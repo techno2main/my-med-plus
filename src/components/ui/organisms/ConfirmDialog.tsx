@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface ConfirmDialogProps {
   /**
@@ -29,7 +29,7 @@ interface ConfirmDialogProps {
   /**
    * Description/question to display
    */
-  description: string;
+  description: ReactNode;
   /**
    * Optional additional content to display
    */
