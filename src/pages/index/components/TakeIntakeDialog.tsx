@@ -109,7 +109,7 @@ export const TakeIntakeDialog = ({ open, intake, onConfirm, onCancel, processing
                 htmlFor="early-confirm" 
                 className="text-sm font-medium cursor-pointer select-none text-foreground"
               >
-                Je confirme vouloir valider cette prise en avance
+                Je confirme valider cette prise en avance
               </label>
             </div>
           </div>

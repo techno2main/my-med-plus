@@ -1,7 +1,7 @@
 import { ConfirmDialog } from "@/components/ui/organisms/ConfirmDialog";
 import { TimePickerInput } from "@/components/ui/time-picker-dialog";
 import type { ConfirmationDialog } from "../utils/rattrapageTypes";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 
 interface ConfirmationDialogProps {
@@ -17,15 +17,39 @@ export function RattrapageConfirmationDialog({
 }: ConfirmationDialogProps) {
   const [actualTakenTime, setActualTakenTime] = useState(confirmDialog.displayTime);
   
+  // Réinitialiser l'heure à l'heure prévue quand le dialogue s'ouvre
+  useEffect(() => {
+    if (confirmDialog.isOpen) {
+      setActualTakenTime(confirmDialog.displayTime);
+    }
+  }, [confirmDialog.isOpen, confirmDialog.displayTime]);
+  
   const getConfirmationMessage = () => {
     switch (confirmDialog.action) {
       case 'taken':
-        return "Confirmer l'heure à laquelle vous avez pris ce médicament";
+        return "Confirmez l'heure de prise de ce médicament";
       case 'taken_now':
         const currentTime = format(new Date(), 'HH:mm');
-        return `Confirmer que vous voulez prendre ce médicament maintenant (heure actuelle réelle) : ${currentTime} ?`;
+        return (
+          <>
+            Confirmez que vous voulez prendre ce médicament<br />
+            maintenant (il est actuellement : {currentTime}) ?
+          </>
+        );
       case 'skipped':
-        return "Confirmer que vous n'avez pas pris ce médicament et qu'il est trop tard pour le prendre ?";
+        return (
+          <>
+            Confirmez que vous avez<br />
+            volontairement sauté cette prise ?
+          </>
+        );
+      case 'missed':
+        return (
+          <>
+            Confirmez que vous n'avez pas pris ce médicament<br />
+            et qu'il est trop tard pour le prendre maintenant ?
+          </>
+        );
       default:
         return "Confirmer cette action ?";
     }
@@ -49,10 +73,13 @@ export function RattrapageConfirmationDialog({
     >
       <div className="space-y-4">
         <div className="font-medium text-foreground">
-          {confirmDialog.medicationName}
+          {confirmDialog.medicationName}{' '}
+          {confirmDialog.dosage && (
+            <span className="text-muted-foreground">{confirmDialog.dosage}</span>
+          )}
         </div>
         <div className="text-sm text-muted-foreground">
-          {confirmDialog.dayName} - {confirmDialog.displayTime}
+          {confirmDialog.dayName} - Prévu à {confirmDialog.displayTime}
         </div>
         
         {confirmDialog.action === 'taken' && (

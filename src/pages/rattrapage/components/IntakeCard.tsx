@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Clock, CheckCircle2, XCircle, Pill } from "lucide-react";
+import { Clock, CheckCircle2, XCircle, Pill, SkipForward } from "lucide-react";
 import { IntakeAction } from "../utils/rattrapageTypes";
 
 interface MissedIntake {
@@ -19,7 +19,7 @@ interface MissedIntake {
 interface IntakeCardProps {
   intake: MissedIntake;
   currentAction: IntakeAction;
-  onActionClick: (intakeId: string, action: 'taken' | 'skipped' | 'taken_now') => void;
+  onActionClick: (intakeId: string, action: 'taken' | 'missed' | 'skipped' | 'taken_now') => void;
 }
 
 export function IntakeCard({
@@ -29,23 +29,26 @@ export function IntakeCard({
 }: IntakeCardProps) {
   const isToday = intake.status === 'missed_today';
   
-  const getActionIcon = (action: 'taken' | 'skipped' | 'taken_now' | 'pending') => {
+  const getActionIcon = (action: 'taken' | 'missed' | 'skipped' | 'taken_now' | 'pending') => {
     switch (action) {
       case 'taken':
         return <CheckCircle2 className="h-4 w-4 text-success" />;
       case 'taken_now':
         return <Pill className="h-4 w-4 text-primary" />;
-      case 'skipped':
+      case 'missed':
         return <XCircle className="h-4 w-4 text-danger" />;
+      case 'skipped':
+        return <SkipForward className="h-4 w-4 text-warning" />;
       default:
         return <Clock className="h-4 w-4 text-warning" />;
     }
   };
 
-  const getActionLabel = (action: 'taken' | 'skipped' | 'taken_now' | 'pending') => {
+  const getActionLabel = (action: 'taken' | 'missed' | 'skipped' | 'taken_now' | 'pending') => {
     switch (action) {
       case 'taken':
       case 'taken_now':
+      case 'missed':
       case 'skipped':
         return 'Prêt';
       default:
@@ -90,14 +93,19 @@ export function IntakeCard({
           </div>
           <div className="text-sm text-muted-foreground pl-6 space-y-1">
             <p>Prévu à {intake.displayTime}</p>
-            {currentAction?.actualTakenTime && currentAction.action !== 'pending' && currentAction.action !== 'skipped' && (
+            {currentAction?.actualTakenTime && currentAction.action !== 'pending' && currentAction.action !== 'missed' && currentAction.action !== 'skipped' && (
               <p className="text-primary font-medium">
                 Pris à {currentAction.actualTakenTime}
               </p>
             )}
-            {currentAction?.action === 'skipped' && (
+            {currentAction?.action === 'missed' && (
               <p className="text-danger font-medium">
                 Prise manquée
+              </p>
+            )}
+            {currentAction?.action === 'skipped' && (
+              <p className="text-orange-500 font-medium">
+                Prise sautée
               </p>
             )}
           </div>
@@ -105,14 +113,14 @@ export function IntakeCard({
 
         {/* Actions */}
         <TooltipProvider>
-          <div className="flex gap-2 pt-2">
+          <div className="grid grid-cols-2 gap-2 pt-2">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => onActionClick(intake.id, 'taken')}
-                  className={`flex-1 gap-1 ${
+                  className={`w-full gap-1 ${
                     currentAction?.action === 'taken' 
                       ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700' 
                       : ''
@@ -133,7 +141,7 @@ export function IntakeCard({
                   size="sm"
                   variant="outline"
                   onClick={() => onActionClick(intake.id, 'taken_now')}
-                  className={`flex-1 gap-1 ${
+                  className={`w-full gap-1 ${
                     currentAction?.action === 'taken_now' 
                       ? 'bg-orange-500 text-white border-orange-500 hover:bg-orange-600' 
                       : ''
@@ -152,16 +160,37 @@ export function IntakeCard({
               <TooltipTrigger asChild>
                 <Button
                   size="sm"
-                  variant={currentAction?.action === 'skipped' ? "destructive" : "outline"}
+                  variant="outline"
                   onClick={() => onActionClick(intake.id, 'skipped')}
-                  className={`flex-1 gap-1 ${
+                  className={`w-full gap-1 ${
                     currentAction?.action === 'skipped' 
+                      ? 'bg-yellow-500 text-white border-yellow-500 hover:bg-yellow-600' 
+                      : ''
+                  }`}
+                >
+                  <SkipForward className="h-3 w-3" />
+                  Sautée
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>J'ai volontairement sauté cette prise</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant={currentAction?.action === 'missed' ? "destructive" : "outline"}
+                  onClick={() => onActionClick(intake.id, 'missed')}
+                  className={`w-full gap-1 ${
+                    currentAction?.action === 'missed' 
                       ? 'bg-red-600 text-white border-red-600 hover:bg-red-700' 
                       : ''
                   }`}
                 >
                   <XCircle className="h-3 w-3" />
-                  Manqué
+                  Manquée
                 </Button>
               </TooltipTrigger>
               <TooltipContent>

@@ -24,6 +24,7 @@ export function useRattrapageActions(missedIntakes: MissedIntake[]) {
     intakeId: '',
     action: 'pending',
     medicationName: '',
+    dosage: undefined,
     scheduledTime: '',
     displayTime: '',
     dayName: '',
@@ -44,7 +45,7 @@ export function useRattrapageActions(missedIntakes: MissedIntake[]) {
 
   const openConfirmDialog = (
     intakeId: string,
-    action: 'taken' | 'taken_now' | 'skipped'
+    action: 'taken' | 'taken_now' | 'missed' | 'skipped'
   ) => {
     const intake = missedIntakes.find(i => i.id === intakeId);
     if (!intake) return;
@@ -54,6 +55,7 @@ export function useRattrapageActions(missedIntakes: MissedIntake[]) {
       intakeId,
       action,
       medicationName: intake.medication,
+      dosage: intake.dosage,
       scheduledTime: intake.scheduledTime,
       displayTime: intake.displayTime,
       dayName: intake.dayName,
@@ -130,15 +132,18 @@ export function useRattrapageActions(missedIntakes: MissedIntake[]) {
         const intake = missedIntakes.find(i => i.id === actionItem.id);
         if (!intake) continue;
 
-        const updateData: any = {
-          status: actionItem.action === 'skipped' ? 'skipped' : 'taken',
-        };
+        const updateData: any = {};
 
-        // Ajouter taken_at si pris
+        // Ajouter taken_at et status selon l'action
         if (actionItem.action === 'taken' || actionItem.action === 'taken_now') {
+          updateData.status = 'taken';
           updateData.taken_at = actionItem.takenAt;
           takenCount++;
-        } else {
+        } else if (actionItem.action === 'missed') {
+          updateData.status = 'missed';
+          skippedCount++;
+        } else if (actionItem.action === 'skipped') {
+          updateData.status = 'skipped';
           skippedCount++;
         }
 
@@ -157,10 +162,12 @@ export function useRattrapageActions(missedIntakes: MissedIntake[]) {
           const takenDate = new Date(actionItem.takenAt || new Date());
           const takenTimeStr = `${takenDate.getHours().toString().padStart(2, '0')}:${takenDate.getMinutes().toString().padStart(2, '0')}`;
           updateData.notes = IntakeNotes.takenInCatchup(takenTimeStr);
-        } else if (actionItem.action === 'skipped') {
+        } else if (actionItem.action === 'missed') {
           // Note pour une prise marquée comme manquée lors du rattrapage
           updateData.notes = IntakeNotes.markedAsMissed();
-          updateData.status = 'missed'; // Status explicite pour distinguer de skipped volontaire
+        } else if (actionItem.action === 'skipped') {
+          // Note pour une prise volontairement sautée
+          updateData.notes = IntakeNotes.skippedVoluntarily();
         }
 
         // Mettre à jour la prise

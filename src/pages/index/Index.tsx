@@ -147,6 +147,35 @@ const Index = () => {
     setShowActionDialog(true)
   }
 
+  const handlePostponeIntake = async (minutes: number) => {
+    if (!selectedIntake) return
+    
+    try {
+      const newScheduledTime = new Date(selectedIntake.date)
+      newScheduledTime.setMinutes(newScheduledTime.getMinutes() + minutes)
+      
+      const { supabase } = await import("@/integrations/supabase/client")
+      
+      // Mettre à jour la prise
+      const { error: updateError } = await supabase
+        .from('medication_intakes')
+        .update({ 
+          scheduled_time: newScheduledTime.toISOString()
+        })
+        .eq('id', selectedIntake.id)
+      
+      if (updateError) throw updateError
+      
+      toast.success(`Prise décalée de ${minutes} minutes`)
+      setShowActionDialog(false)
+      setSelectedIntake(null)
+      reload()
+    } catch (error) {
+      console.error('Erreur lors du décalage de la prise:', error)
+      toast.error("Erreur lors du décalage de la prise")
+    }
+  }
+
   const handleTreatmentClick = (treatmentId: string) => {
     setSelectedTreatmentId(treatmentId)
     
@@ -234,6 +263,7 @@ const Index = () => {
         intake={selectedIntake}
         onConfirmIntake={handleConfirmIntakeChoice}
         onSkipIntake={handleSkipIntakeChoice}
+        onPostponeIntake={handlePostponeIntake}
         onCancel={cancelActionDialog}
       />
 
