@@ -22,7 +22,6 @@ const Settings = lazy(() => import("./pages/settings/Settings"));
 const History = lazy(() => import("./pages/history/History"));
 const TreatmentForm = lazy(() => import("./pages/treatment-form/TreatmentForm"));
 const StockForm = lazy(() => import("./pages/stocks/StockForm"));
-const MedicationCatalog = lazy(() => import("./pages/medication-catalog/MedicationCatalog"));
 const Referentials = lazy(() => import("./pages/referentials/Referentials"));
 const HealthProfessionals = lazy(() => import("./pages/health-professionals/HealthProfessionals"));
 const Pathologies = lazy(() => import("./pages/pathologies/Pathologies"));
@@ -75,7 +74,6 @@ const App = () => {
             <Route path="/calendar-sync" element={<ProtectedRoute><CalendarSync /></ProtectedRoute>} />
             <Route path="/profile-export" element={<ProtectedRoute><ProfileExport /></ProtectedRoute>} />
             <Route path="/prescriptions" element={<ProtectedRoute><Prescriptions /></ProtectedRoute>} />
-            <Route path="/medications" element={<ProtectedRoute><MedicationCatalog /></ProtectedRoute>} />
             <Route path="/referentials" element={<ProtectedRoute><Referentials /></ProtectedRoute>} />
             <Route path="/referentials/health-professionals" element={<ProtectedRoute><HealthProfessionals /></ProtectedRoute>} />
             <Route path="/referentials/pathologies" element={<ProtectedRoute><Pathologies /></ProtectedRoute>} />

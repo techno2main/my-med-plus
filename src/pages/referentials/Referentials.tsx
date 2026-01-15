@@ -2,12 +2,10 @@ import { AppLayout } from "@/components/Layout/AppLayout"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useNavigate } from "react-router-dom"
-import { Users, Stethoscope, AlertCircle, Pill, ArrowLeft } from "lucide-react"
-import { useUserRole } from "@/hooks/useUserRole"
+import { Stethoscope, AlertCircle, ArrowLeft } from "lucide-react"
 
 const Referentials = () => {
   const navigate = useNavigate()
-  const { isAdmin } = useUserRole()
 
   const categories = [
     {
@@ -27,13 +25,7 @@ const Referentials = () => {
       description: "Mes allergies",
       icon: AlertCircle,
       path: "/referentials/allergies"
-    },
-    ...(isAdmin ? [{
-      title: "Médicaments",
-      description: "Catalogue de médicaments (Admin)",
-      icon: Pill,
-      path: "/medications"
-    }] : [])
+    }
   ]
 
   return (
