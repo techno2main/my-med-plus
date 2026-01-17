@@ -125,8 +125,8 @@ export default function Settings() {
         />
         <NavigationCard
           icon={RotateCcw}
-          title="Revoir l'onboarding"
-          description="Présentation de l'application"
+          title="Présentation de l'application"
+          description="Revoir l'onboarding"
           onClick={handleReplayOnboarding}
         />
       </div>
