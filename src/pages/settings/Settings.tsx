@@ -87,7 +87,7 @@ export default function Settings() {
         <NavigationCard
           icon={Clock}
           title="Mise à jour des prises"
-          description="Gérer les prises non trraitées"
+          description="Gérer les prises non traitées"
           onClick={() => navigate("/rattrapage")}
         />
       </div>
