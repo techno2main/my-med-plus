@@ -2,7 +2,8 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
-import { Pencil, Pause, Trash2 } from "lucide-react"
+import { Pencil, Pause, Trash2, CheckCircle2 } from "lucide-react"
+import clsx from "clsx"
 import type { Medication } from "../types"
 import { useMedicationPause } from "../hooks/useMedicationPause"
 import { useMedicationDelete } from "../hooks/useMedicationDelete"
@@ -128,14 +129,38 @@ export const MedicationsList = ({
               {/* Ligne 4: Toggle "En pause" */}
               <div className="flex items-center justify-between mt-3 pt-3 border-t">
                 <div className="flex items-center gap-2">
-                  <Pause className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">En pause</span>
+                  {med.is_paused ? (
+                    <Pause className="h-4 w-4 text-orange-500" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  )}
+                  <span className={clsx("text-sm", med.is_paused ? "text-orange-500" : "text-green-500") }>
+                    {med.is_paused ? "Médicament en pause" : "Médicament actif"}
+                  </span>
                 </div>
-                <Switch
-                  checked={med.is_paused || false}
-                  onCheckedChange={() => handleTogglePause(med)}
+                <button
+                  type="button"
+                  aria-pressed={med.is_paused}
+                  onClick={() => handleTogglePause(med)}
                   disabled={loading}
-                />
+                  className={clsx(
+                    "relative w-8 h-5 flex items-center rounded-full transition-colors focus:outline-none border-2",
+                    med.is_paused ? "bg-orange-100 border-orange-400" : "bg-green-100 border-green-400"
+                  )}
+                >
+                  <span
+                    className={clsx(
+                      "flex items-center justify-center w-4 h-4 rounded-full shadow-md transform transition-transform",
+                      med.is_paused ? "translate-x-3 bg-orange-500" : "translate-x-0 bg-green-500"
+                    )}
+                  >
+                    {med.is_paused ? (
+                      <Pause className="h-3 w-3 text-white" />
+                    ) : (
+                      <CheckCircle2 className="h-3 w-3 text-white" />
+                    )}
+                  </span>
+                </button>
               </div>
             </Card>
           ))
