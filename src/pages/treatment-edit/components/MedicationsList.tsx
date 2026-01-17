@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch"
 import { Pencil, Pause, Trash2, CheckCircle2 } from "lucide-react"
 import clsx from "clsx"
 import type { Medication } from "../types"
-import { useMedicationPause } from "../hooks/useMedicationPause"
+// import { useMedicationPause } from "../hooks/useMedicationPause"
 import { useMedicationDelete } from "../hooks/useMedicationDelete"
 import {
   AlertDialog,
@@ -24,27 +24,24 @@ interface MedicationsListProps {
   onAddMedication: () => void
   onEditMedication: (medication: Medication) => void
   onMedicationUpdated: () => void
+  onMedicationPauseToggle?: (medId: string, newPaused: boolean) => void
 }
 
 export const MedicationsList = ({
   medications,
   onAddMedication,
   onEditMedication,
-  onMedicationUpdated
+  onMedicationUpdated,
+  onMedicationPauseToggle
 }: MedicationsListProps) => {
-  const { togglePause, loading } = useMedicationPause();
+  // const { togglePause, loading } = useMedicationPause();
   const { deleteMedication, loading: deleteLoading } = useMedicationDelete();
   const [medicationToDelete, setMedicationToDelete] = useState<Medication | null>(null);
 
-  const handleTogglePause = async (med: Medication) => {
-    const success = await togglePause(
-      med.id,
-      med.is_paused || false,
-      med.name
-    );
-    
-    if (success) {
-      onMedicationUpdated();
+  // Nouvelle gestion : toggle local uniquement
+  const handleTogglePause = (med: Medication) => {
+    if (onMedicationPauseToggle) {
+      onMedicationPauseToggle(med.id, !(med.is_paused || false));
     }
   };
 
@@ -142,7 +139,6 @@ export const MedicationsList = ({
                   type="button"
                   aria-pressed={med.is_paused}
                   onClick={() => handleTogglePause(med)}
-                  disabled={loading}
                   className={clsx(
                     "relative w-8 h-5 flex items-center rounded-full transition-colors focus:outline-none border-2",
                     med.is_paused ? "bg-orange-100 border-orange-400" : "bg-green-100 border-green-400"
