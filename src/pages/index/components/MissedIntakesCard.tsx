@@ -75,8 +75,8 @@ export const MissedIntakesCard = ({ missedIntakes, totalMissed, onManage }: Miss
               <div>
                 <h3 className="font-semibold text-sm text-orange-800">
                   {groupedByDay.today.length === 1 
-                    ? `1 prise non traitée aujourd'hui :` 
-                    : `${groupedByDay.today.length} prises à rattraper aujourd'hui :`
+                    ? `Il reste 1 prise non traitée aujourd'hui :` 
+                    : `Il reste ${groupedByDay.today.length} prises à traiter aujourd'hui :`
                   }
                 </h3>
                 <div className="ml-2 space-y-1">
