@@ -17,7 +17,7 @@ export const getDayIndicator = (
   if (nextPharmacyVisit) {
     const pharmacyDateString = getLocalDateString(nextPharmacyVisit);
     if (dateString === pharmacyDateString) {
-      return <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 text-base">⚕️</div>;
+      return <div className="absolute top-0 right-0 text-xs bg-green-500/80 rounded-full w-4 h-4 flex items-center justify-center">⚕️</div>;
     }
   }
   
@@ -25,7 +25,7 @@ export const getDayIndicator = (
   if (nextDoctorVisit) {
     const doctorDateString = getLocalDateString(nextDoctorVisit);
     if (dateString === doctorDateString) {
-      return <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 text-base">🩺</div>;
+      return <div className="absolute top-0 right-0 text-xs bg-purple-500/80 rounded-full w-4 h-4 flex items-center justify-center">🩺</div>;
     }
   }
   

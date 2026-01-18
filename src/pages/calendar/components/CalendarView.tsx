@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { format, isSameDay, setMonth, setYear, getYear, getMonth } from "date-fns";
 import { fr } from "date-fns/locale";
-import { RefreshCw, ChevronLeft, ChevronRight, ArrowLeft, CalendarDays } from "lucide-react";
+import { RefreshCw, ChevronLeft, ChevronRight, ArrowLeft, CalendarDays, CalendarCheck2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DayPicker } from "react-day-picker";
 import { getDayIndicator } from "../utils";
@@ -45,7 +45,9 @@ export const CalendarView = ({
   const renderDay = (date: Date) => {
     return (
       <div className="relative w-full h-full flex items-center justify-center">
-        {format(date, "d")}
+        <span className="relative z-20">
+          {format(date, "d")}
+        </span>
         {getDayIndicator(date, monthIntakes, nextPharmacyVisit, nextDoctorVisit)}
       </div>
     );
@@ -199,22 +201,42 @@ export const CalendarView = ({
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               
-              <div className="flex items-center gap-1 flex-1 justify-center">
+              <div className="flex items-center gap-0.5 flex-1 justify-center">
                 <Button
                   variant="ghost"
-                  onClick={() => setShowMonthYearSelector(true)}
-                  className="text-sm font-medium hover:bg-accent/50 rounded-full px-3 h-8 capitalize"
+                  onClick={() => {
+                    setSelectorMode('month');
+                    setShowMonthYearSelector(true);
+                  }}
+                  className="text-sm font-medium hover:bg-accent/50 rounded-full px-2 h-8 capitalize"
                 >
                   {format(currentMonth, 'MMMM', { locale: fr })}
                 </Button>
                 <Button
                   variant="ghost"
-                  onClick={() => setShowMonthYearSelector(true)}
-                  className="text-sm font-medium hover:bg-accent/50 rounded-full px-3 h-8"
+                  onClick={() => {
+                    setSelectorMode('year');
+                    setShowMonthYearSelector(true);
+                  }}
+                  className="text-sm font-medium hover:bg-accent/50 rounded-full px-2 h-8"
                 >
                   {format(currentMonth, 'yyyy', { locale: fr })}
                 </Button>
               </div>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  const today = new Date();
+                  onDateSelect(today);
+                  onMonthChange(today);
+                }}
+                className="h-9 w-9 rounded-full hover:bg-accent/50 flex-shrink-0"
+                title="Aller à aujourd'hui"
+              >
+                <CalendarCheck2 className="h-4 w-4" />
+              </Button>
 
               <Button
                 variant="ghost"
@@ -263,8 +285,8 @@ export const CalendarView = ({
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 ),
                 selected: cn(
-                  "bg-primary text-primary-foreground font-semibold",
-                  "hover:bg-primary hover:text-primary-foreground"
+                  "text-primary font-bold ring-2 ring-primary",
+                  "hover:text-primary"
                 ),
                 today: cn(
                   "bg-primary/20 text-primary font-bold"
