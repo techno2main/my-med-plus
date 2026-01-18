@@ -33,14 +33,12 @@ export function usePrescriptionDownload() {
             try {
               const base64Data = (reader.result as string).split(',')[1];
               
-              // Sauvegarder dans le dossier Documents
+              // Sauvegarder dans le cache
               const savedFile = await Filesystem.writeFile({
                 path: fileName,
                 data: base64Data,
-                directory: Directory.Documents,
+                directory: Directory.Cache,
               });
-
-              console.log('[Prescription] PDF saved:', savedFile.uri);
 
               // Ouvrir le fichier avec l'application par défaut
               await FileOpener.open({
@@ -50,7 +48,8 @@ export function usePrescriptionDownload() {
 
               toast.success("Le PDF s'ouvre automatiquement");
               resolve(true);
-            } catch (err) {
+            } catch (err: any) {
+              toast.error("Impossible d'ouvrir le PDF");
               reject(err);
             }
           };
@@ -70,7 +69,6 @@ export function usePrescriptionDownload() {
         toast.success("Téléchargement réussi");
       }
     } catch (error) {
-      console.error("Error downloading prescription:", error);
       toast.error("Erreur lors du téléchargement");
     }
   };
