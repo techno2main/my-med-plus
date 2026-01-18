@@ -48,14 +48,9 @@ export const DayDetailsPanel = ({ selectedDate, dayDetails, loading, treatmentSt
   return (
     <Card className="p-6 surface-elevated">
       <div className="flex items-baseline gap-2 mb-4">
-        <h3 className="text-lg font-semibold">
+        <h3 className={`text-lg font-semibold ${isToday ? 'text-primary' : ''}`}>
           {format(selectedDate, "d MMMM yyyy", { locale: fr })}
         </h3>
-        {isToday && (
-          <span className="text-sm text-muted-foreground">
-            (Aujourd'hui)
-          </span>
-        )}
         {dayDetails.length > 0 && (() => {
           const missedCount = dayDetails.filter(d => d.status === 'missed').length;
           const skippedCount = dayDetails.filter(d => d.status === 'skipped').length;
@@ -78,7 +73,6 @@ export const DayDetailsPanel = ({ selectedDate, dayDetails, loading, treatmentSt
           
           return (
             <span className="text-sm text-muted-foreground">
-              {isToday && " | "}
               {total} prise{total > 1 ? 's' : ''}{statusText ? ` (${statusText})` : ''}
             </span>
           );
