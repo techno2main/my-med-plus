@@ -1,4 +1,4 @@
-import { CheckCircle2, XCircle, Clock, ClockAlert, Pill, AlertCircle, Pause } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, ClockAlert, Pill, AlertCircle, Pause, SkipForward } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useIntakeOverdue } from "@/hooks/useIntakeOverdue";
 import type { IntakeDetail } from "../types";
@@ -72,7 +72,7 @@ export const IntakeDetailCard = ({ intake, isToday = false, isPastDate = false, 
       case 'missed':
         return <XCircle className="h-6 w-6 text-danger" />;
       case 'skipped':
-        return <XCircle className="h-6 w-6 text-danger" />;
+        return <SkipForward className="h-6 w-6 text-warning" />;
       case 'upcoming':
         // Vérifier si la prise est en retard pour changer l'icône
         if (intake.scheduledTimestamp) {
@@ -87,8 +87,9 @@ export const IntakeDetailCard = ({ intake, isToday = false, isPastDate = false, 
     }
   };
 
-  // Déterminer si l'heure doit être en rouge (missed/skipped) ou orange (en retard non traité)
-  const isMissedOrSkipped = intake.status === 'missed' || intake.status === 'skipped';
+  // Déterminer si l'heure doit être en rouge (missed), orange (skipped) ou orange (en retard non traité)
+  const isMissed = intake.status === 'missed';
+  const isSkipped = intake.status === 'skipped';
   const isOverdue = intake.status === 'upcoming' && 
                     intake.scheduledTimestamp && 
                     isIntakeOverdue(new Date(intake.scheduledTimestamp));
@@ -106,7 +107,7 @@ export const IntakeDetailCard = ({ intake, isToday = false, isPastDate = false, 
         <div className="flex items-center gap-2">
           {getStatusIcon()}
           <span className={`text-sm font-medium ${
-            isMissedOrSkipped ? 'text-danger' : isOverdue ? 'text-warning' : ''
+            isMissed ? 'text-danger' : isSkipped ? 'text-warning' : isOverdue ? 'text-warning' : ''
           }`}>
             {intake.time}
             {intake.takenAt && intake.status === 'taken' && (
