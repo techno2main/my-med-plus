@@ -68,9 +68,6 @@ export function IntakeCard({
             >
               {intake.dayName}
             </Badge>
-            <span className="text-sm text-muted-foreground">
-              {intake.dayName}
-            </span>
           </div>
           <div className="flex items-center gap-1">
             {getActionIcon(currentAction?.action || 'pending')}

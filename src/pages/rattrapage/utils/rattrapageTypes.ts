@@ -30,6 +30,6 @@ export const getActionLabel = (action: 'taken' | 'missed' | 'skipped' | 'taken_n
     case 'skipped':
       return 'Prêt';
     default:
-      return 'À traiter';
+      return 'À mettre à jour';
   }
 };

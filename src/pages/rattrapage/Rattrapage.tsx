@@ -36,8 +36,8 @@ export default function Rattrapage() {
     <AppLayout>
       <div className="container max-w-3xl mx-auto px-4 py-6 space-y-6">
         <PageHeader
-          title="Rattrapage des prises"
-          subtitle={totalMissed === 0 ? "Aucune prise à rattraper" : `${totalMissed} prise${totalMissed > 1 ? 's' : ''} manquée${totalMissed > 1 ? 's' : ''} à traiter`}
+          title="Mise à jour des prises"
+          subtitle={totalMissed === 0 ? "Aucune prise non traitée" : `${totalMissed} prise${totalMissed > 1 ? 's' : ''} non traitée${totalMissed > 1 ? 's' : ''} à mettre à jour`}
           backTo="/"
         />
 

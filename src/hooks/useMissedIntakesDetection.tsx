@@ -109,6 +109,9 @@ export const useMissedIntakesDetection = () => {
         }
       });
 
+      // Tri alphabétique par nom de médicament
+      missed.sort((a, b) => a.medication.localeCompare(b.medication, 'fr'));
+
       setMissedIntakes(missed);
 
     } catch (error) {

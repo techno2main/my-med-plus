@@ -49,7 +49,7 @@ interface EmptyStateProps {
  * ```tsx
  * <EmptyState
  *   visual={{ icon: CheckCircle2, iconColor: "text-success", title: "Tout est à jour !" }}
- *   content={{ description: "Aucune prise manquée détectée" }}
+ *   content={{ description: "Aucune prise non traitéée détectée" }}
  *   action={{ label: "Retour à l'accueil", onClick: () => navigate("/") }}
  * />
  * ```

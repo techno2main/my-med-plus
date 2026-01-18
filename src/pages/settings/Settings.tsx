@@ -86,8 +86,8 @@ export default function Settings() {
         <h3 className="text-sm font-medium text-muted-foreground px-1">Rattrapage</h3>
         <NavigationCard
           icon={Clock}
-          title="Rattrapage des prises"
-          description="Gérer les prises manquées"
+          title="Mise à jour des prises"
+          description="Gérer les prises non traitées"
           onClick={() => navigate("/rattrapage")}
         />
       </div>
@@ -125,8 +125,8 @@ export default function Settings() {
         />
         <NavigationCard
           icon={RotateCcw}
-          title="Revoir l'onboarding"
-          description="Revoir la présentation de l'application"
+          title="Présentation de l'application"
+          description="Revoir l'onboarding"
           onClick={handleReplayOnboarding}
         />
       </div>

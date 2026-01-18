@@ -52,7 +52,7 @@ export const MissedIntakesCard = ({ missedIntakes, totalMissed, onManage }: Miss
               <div>
                 <h3 className="font-semibold text-sm text-orange-800">
                   {groupedByDay.yesterday.length === 1 
-                    ? `1 prise à rattraper hier :` 
+                    ? `1 prise non traitée hier :` 
                     : `${groupedByDay.yesterday.length} prises à rattraper hier :`
                   }
                 </h3>
@@ -75,8 +75,8 @@ export const MissedIntakesCard = ({ missedIntakes, totalMissed, onManage }: Miss
               <div>
                 <h3 className="font-semibold text-sm text-orange-800">
                   {groupedByDay.today.length === 1 
-                    ? `1 prise à rattraper aujourd'hui :` 
-                    : `${groupedByDay.today.length} prises à rattraper aujourd'hui :`
+                    ? `Il reste 1 prise non traitée aujourd'hui :` 
+                    : `Il reste ${groupedByDay.today.length} prises à traiter aujourd'hui :`
                   }
                 </h3>
                 <div className="ml-2 space-y-1">
@@ -94,13 +94,13 @@ export const MissedIntakesCard = ({ missedIntakes, totalMissed, onManage }: Miss
               </div>
             )}
           </div>
-          <Button 
+            <Button 
             size="sm" 
             className="mt-3 bg-gray-800 text-white hover:bg-gray-900 border-0"
             onClick={onManage}
-          >
-            Gérer les rattrapages
-          </Button>
+            >
+            {totalMissed === 1 ? "Mettre à jour la prise" : "Mettre à jour les prises"}
+            </Button>
         </div>
       </div>
     </Card>

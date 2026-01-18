@@ -24,10 +24,10 @@ export function ActionSummary({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4 text-xs">
           <span className="font-medium">
-            {processedCount}/{totalMissed} prises traitées
+            {processedCount}/{totalMissed} prises
           </span>
           <span className="text-muted-foreground">
-            {pendingCount} en attente de traitement
+            {pendingCount} à traiter
           </span>
         </div>
         <div className="flex gap-2">
@@ -39,7 +39,7 @@ export function ActionSummary({
             className="gap-1 text-xs"
           >
             <XCircle className="h-3 w-3" />
-            Reset
+            Effacer
           </Button>
           <Button
             size="sm"

@@ -62,6 +62,12 @@ export const IntakeCard = ({ intake, isOverdue, isTomorrowSection = false, onTak
   const isPaused = intake.medicationIsPaused || false
   const isDisabled = intake.currentStock === 0 || isOverdue || isTomorrowSection || isDisabledByTime || isTaken || isMissed || isPaused
   
+  // Vérifier si l'heure de prise est proche de l'heure actuelle (+/- 10 minutes)
+  const now = new Date()
+  const intakeTime = intake.date
+  const timeDiff = Math.abs(now.getTime() - intakeTime.getTime()) / (1000 * 60) // en minutes
+  const isCurrentIntake = isToday && !isTaken && !isMissed && !isPaused && timeDiff <= 10
+  
   const shouldShowOrangeBadge = isOverdue && !isTaken && !isMissed
   const isTakenLate = isTaken && intake.takenAt && 
     ((intake.takenAt.getTime() - intake.date.getTime()) / (1000 * 60) > 30)
@@ -110,7 +116,13 @@ export const IntakeCard = ({ intake, isOverdue, isTomorrowSection = false, onTak
   }
   
   return (
-    <Card className="p-3 surface-elevated hover:shadow-md transition-shadow">
+    <Card className={`p-3 surface-elevated hover:shadow-md transition-shadow ${
+      isOverdue && !isTaken && !isMissed
+        ? 'border-2 border-orange-500'
+        : isCurrentIntake 
+          ? 'border-2 border-primary'
+          : ''
+    }`}>
       <div className="flex items-center gap-3">
         <div className={`flex flex-col items-center justify-center min-w-[60px] p-1.5 rounded-lg ${getTimeBadgeBgColor()}`}>
           {getLeftIcon()}

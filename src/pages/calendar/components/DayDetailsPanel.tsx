@@ -5,15 +5,17 @@ import { useNavigate } from "react-router-dom";
 import { getLocalDateString } from "@/lib/dateUtils";
 import { IntakeDetailCard } from "./IntakeDetailCard";
 import type { IntakeDetail } from "../types";
+import { ChevronUp } from "lucide-react";
 
 interface DayDetailsPanelProps {
   selectedDate: Date;
   dayDetails: IntakeDetail[];
   loading: boolean;
   treatmentStartDate: Date | null;
+  onScrollToCalendar?: () => void;
 }
 
-export const DayDetailsPanel = ({ selectedDate, dayDetails, loading, treatmentStartDate }: DayDetailsPanelProps) => {
+export const DayDetailsPanel = ({ selectedDate, dayDetails, loading, treatmentStartDate, onScrollToCalendar }: DayDetailsPanelProps) => {
   const navigate = useNavigate();
   
   const isBeforeTreatmentStart = () => {
@@ -54,11 +56,41 @@ export const DayDetailsPanel = ({ selectedDate, dayDetails, loading, treatmentSt
             (Aujourd'hui)
           </span>
         )}
-        {dayDetails.length > 0 && (
-          <span className="text-sm text-muted-foreground">
-            {isToday && " | "}
-            {dayDetails.filter(d => d.status === 'taken').length}/{dayDetails.length}
-          </span>
+        {dayDetails.length > 0 && (() => {
+          const missedCount = dayDetails.filter(d => d.status === 'missed').length;
+          const skippedCount = dayDetails.filter(d => d.status === 'skipped').length;
+          const total = dayDetails.length;
+          const totalProblems = missedCount + skippedCount;
+          
+          let statusText = '';
+          if (totalProblems > 0) {
+            if (missedCount > 0 && skippedCount > 0) {
+              // Mix des deux
+              statusText = `${totalProblems} manquée${totalProblems > 1 ? 's' : ''} ou sautée${totalProblems > 1 ? 's' : ''}`;
+            } else if (missedCount > 0) {
+              // Seulement manquées
+              statusText = `${missedCount} manquée${missedCount > 1 ? 's' : ''}`;
+            } else if (skippedCount > 0) {
+              // Seulement sautées
+              statusText = `${skippedCount} sautée${skippedCount > 1 ? 's' : ''}`;
+            }
+          }
+          
+          return (
+            <span className="text-sm text-muted-foreground">
+              {isToday && " | "}
+              {total} prise{total > 1 ? 's' : ''}{statusText ? ` (${statusText})` : ''}
+            </span>
+          );
+        })()}
+        {onScrollToCalendar && (
+          <button
+            onClick={onScrollToCalendar}
+            className="ml-auto md:hidden text-muted-foreground hover:text-foreground transition-colors"
+            title="Remonter au calendrier"
+          >
+            <ChevronUp className="h-4 w-4" />
+          </button>
         )}
       </div>
       

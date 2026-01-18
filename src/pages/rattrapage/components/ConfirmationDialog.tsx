@@ -27,27 +27,31 @@ export function RattrapageConfirmationDialog({
   const getConfirmationMessage = () => {
     switch (confirmDialog.action) {
       case 'taken':
-        return "Confirmez l'heure de prise de ce médicament";
+        return (
+            <>
+            Confirmez <span className="text-primary font-semibold">l'heure de prise </span>de ce médicament
+            </>
+               );
       case 'taken_now':
         const currentTime = format(new Date(), 'HH:mm');
         return (
-          <>
-            Confirmez que vous voulez prendre ce médicament<br />
-            maintenant (il est actuellement : {currentTime}) ?
-          </>
+            <>
+            Confirmez la prise de ce médicament<br />
+            <strong>maintenant</strong> <span className="text-primary font-semibold">(il est actuellement {currentTime}) ?</span>
+            </>
         );
       case 'skipped':
         return (
           <>
             Confirmez que vous avez<br />
-            volontairement sauté cette prise ?
+            <span className="text-primary font-semibold">volontairement sauté</span> cette prise ?
           </>
         );
       case 'missed':
         return (
           <>
-            Confirmez que vous n'avez pas pris ce médicament<br />
-            et qu'il est trop tard pour le prendre maintenant ?
+            Confirmez que vous n'avez <strong>pas pris</strong><br />
+            ce médicament et <span className="text-primary font-semibold">qu'il est trop tard ?</span>
           </>
         );
       default:

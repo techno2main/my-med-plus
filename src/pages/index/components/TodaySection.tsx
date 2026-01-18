@@ -46,14 +46,26 @@ export const TodaySection = forwardRef<HTMLDivElement, TodaySectionProps>(
       group.intakes = sortIntakesByTimeAndName(group.intakes)
     })
 
+    // Calculer le nombre de prises restantes (non prises, non manquées, non sautées)
+    const remainingIntakes = todayIntakes.filter(
+      intake => intake.status !== 'taken' && intake.status !== 'missed' && intake.status !== 'skipped'
+    ).length
+    const totalIntakes = todayIntakes.length
+
     return (
       <div className="space-y-3" ref={ref}>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
             Aujourd'hui
           </h3>
           <span className="text-xs text-muted-foreground/60">
             {format(today, "dd/MM/yyyy", { locale: fr })}
+          </span>
+          <span className="text-xs font-medium text-primary">
+            • {remainingIntakes === 0 
+              ? `${totalIntakes}/${totalIntakes}`
+              : `${remainingIntakes} ${remainingIntakes > 1 ? 'prises' : 'prise'} à traiter (sur ${totalIntakes})`
+            }
           </span>
         </div>
         <TreatmentAccordion
