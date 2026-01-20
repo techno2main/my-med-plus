@@ -5,6 +5,8 @@ import { PageHeader } from "@/components/Layout/PageHeader";
 import { useMonthIntakes } from "./hooks/useMonthIntakes";
 import { useDayDetails } from "./hooks/useDayDetails";
 import { useVisitDates } from "./hooks/useVisitDates";
+import { useDayVisits } from "./hooks/useDayVisits";
+import { useMonthVisits } from "./hooks/useMonthVisits";
 import { CalendarHeader } from "./components/CalendarHeader";
 import { CalendarView } from "./components/CalendarView";
 import { DayDetailsPanel } from "./components/DayDetailsPanel";
@@ -16,18 +18,27 @@ const Calendar = () => {
   const pageTopRef = useRef<HTMLDivElement>(null);
   const detailsRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
+  const shouldScrollToDetails = useRef(false);
   
   // State
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   
+  // Handler pour sélectionner une date (avec scroll)
+  const handleDateSelect = (date: Date) => {
+    shouldScrollToDetails.current = true;
+    setSelectedDate(date);
+  };
+  
   // Hooks
   const visitDates = useVisitDates();
   const { monthIntakes, observanceRate, loading: monthLoading } = useMonthIntakes({ currentMonth });
+  const { visits: monthVisits, loading: monthVisitsLoading } = useMonthVisits({ currentMonth });
   const { dayDetails, loading: dayLoading } = useDayDetails({ 
     selectedDate, 
     treatmentStartDate: visitDates.treatmentStartDate 
   });
+  const { visits: dayVisits, loading: visitsLoading } = useDayVisits(selectedDate);
   
   // Scroll vers les détails quand la date change (mobile uniquement)
   useEffect(() => {
@@ -37,11 +48,15 @@ const Calendar = () => {
       return;
     }
     
-    if (window.innerWidth < 768 && detailsRef.current) {
+    // Ne scroller que si c'est un clic sur une date (pas lors de la navigation de mois)
+    if (shouldScrollToDetails.current && window.innerWidth < 768 && detailsRef.current) {
       setTimeout(() => {
         detailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
     }
+    
+    // Réinitialiser le flag
+    shouldScrollToDetails.current = false;
   }, [selectedDate]);
   
   // Handler pour remonter vers le haut de la page
@@ -66,8 +81,9 @@ const Calendar = () => {
               currentMonth={currentMonth}
               selectedDate={selectedDate}
               onMonthChange={setCurrentMonth}
-              onDateSelect={setSelectedDate}
+              onDateSelect={handleDateSelect}
               monthIntakes={monthIntakes}
+              monthVisits={monthVisits}
               treatmentStartDate={visitDates.treatmentStartDate}
               nextPharmacyVisit={visitDates.nextPharmacyVisit}
               nextDoctorVisit={visitDates.nextDoctorVisit}
@@ -79,8 +95,11 @@ const Calendar = () => {
             <DayDetailsPanel
               selectedDate={selectedDate}
               dayDetails={dayDetails}
+              dayVisits={dayVisits}
               loading={dayLoading}
               treatmentStartDate={visitDates.treatmentStartDate}
+              nextPharmacyVisit={visitDates.nextPharmacyVisit}
+              nextDoctorVisit={visitDates.nextDoctorVisit}
               onScrollToCalendar={scrollToCalendar}
             />
           </div>

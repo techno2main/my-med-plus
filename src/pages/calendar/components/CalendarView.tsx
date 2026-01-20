@@ -8,6 +8,7 @@ import { DayPicker } from "react-day-picker";
 import { getDayIndicator } from "../utils";
 import { cn } from "@/lib/utils";
 import type { DayIntake } from "../types";
+import type { MonthVisit } from "../hooks/useMonthVisits";
 import { useState } from "react";
 
 interface CalendarViewProps {
@@ -16,6 +17,7 @@ interface CalendarViewProps {
   onMonthChange: (date: Date) => void;
   onDateSelect: (date: Date) => void;
   monthIntakes: DayIntake[];
+  monthVisits: MonthVisit[];
   treatmentStartDate: Date | null;
   nextPharmacyVisit: Date | null;
   nextDoctorVisit: Date | null;
@@ -27,6 +29,7 @@ export const CalendarView = ({
   onMonthChange,
   onDateSelect,
   monthIntakes,
+  monthVisits,
   treatmentStartDate,
   nextPharmacyVisit,
   nextDoctorVisit
@@ -48,7 +51,7 @@ export const CalendarView = ({
         <span className="relative z-20">
           {format(date, "d")}
         </span>
-        {getDayIndicator(date, monthIntakes, nextPharmacyVisit, nextDoctorVisit)}
+        {getDayIndicator(date, monthIntakes, monthVisits)}
       </div>
     );
   };
@@ -333,12 +336,14 @@ export const CalendarView = ({
                 <span className="text-muted-foreground">Prochaines</span>
               </div>
               <div className="flex items-center gap-2">
-                <span>⚕️</span>
+                <div className="w-3 h-3 bg-green-500" />
                 <span className="text-muted-foreground">Pharmacie</span>
+                <span>⚕️</span>
               </div>
               <div className="flex items-center gap-2">
-                <span>🩺</span>
+                <div className="w-3 h-3 bg-purple-500" />
                 <span className="text-muted-foreground">Médecin</span>
+                <span>🩺</span>
               </div>
             </div>
 

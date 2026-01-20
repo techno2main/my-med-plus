@@ -26,3 +26,11 @@ export interface VisitDates {
   nextDoctorVisit: Date | null;
   treatmentStartDate: Date | null;
 }
+
+export interface VisitDetail {
+  id: string;
+  type: 'pharmacy' | 'doctor';
+  date: Date;
+  title: string;
+  description?: string;
+}
