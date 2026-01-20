@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "flow:build": "npm run build && npx cap sync android && npx cap open android",
-    "flow:lovable": "powershell -ExecutionPolicy Bypass -File ./scripts/flow-lovable.ps1"
+    "flow:lovable": "powershell -ExecutionPolicy Bypass -File ./scripts/flow-lovable.ps1",
+    "postinstall": "powershell -ExecutionPolicy Bypass -File ./scripts/fix-android-dependencies.ps1"
   },
   "dependencies": {
     "@capacitor-community/file-opener": "^8.0.0",
@@ -102,6 +103,7 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^15.15.0",
     "lovable-tagger": "^1.1.10",
+    "patch-package": "^8.0.1",
     "postcss": "^8.5.6",
     "supabase": "^2.70.5",
     "tailwindcss": "^3.4.17",
