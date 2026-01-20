@@ -1,6 +1,7 @@
 import { CheckCircle2, XCircle, Clock, ClockAlert, Pill, AlertCircle, Pause, SkipForward } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useIntakeOverdue } from "@/hooks/useIntakeOverdue";
+import { isIntakeValidationAllowed } from "@/lib/dateUtils";
 import type { IntakeDetail } from "../types";
 
 interface IntakeDetailCardProps {
@@ -13,10 +14,14 @@ interface IntakeDetailCardProps {
 export const IntakeDetailCard = ({ intake, isToday = false, isPastDate = false, onClick }: IntakeDetailCardProps) => {
   const { isIntakeOverdue } = useIntakeOverdue();
 
+  // Vérifier si l'heure actuelle permet la validation (>= 06:00)
+  const isValidationAllowed = isIntakeValidationAllowed();
+  const isDisabledByTime = isToday && !isValidationAllowed && intake.status === 'upcoming';
+
   // Détermine si la carte est cliquable
-  // - Pour aujourd'hui : uniquement les prises 'upcoming' ET non en pause
+  // - Pour aujourd'hui : uniquement les prises 'upcoming' ET non en pause ET heure >= 06:00
   // - Pour les dates antérieures : toutes les prises sauf celles en pause
-  const isClickable = onClick && !intake.isPaused && ((isToday && intake.status === 'upcoming') || isPastDate);
+  const isClickable = onClick && !intake.isPaused && !isDisabledByTime && ((isToday && intake.status === 'upcoming') || isPastDate);
 
   // Détermine si une alerte de stock doit être affichée
   const hasStockAlert = () => {
