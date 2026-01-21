@@ -5,6 +5,7 @@ import { User, X, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useGettingStartedCompletion } from "@/hooks/useGettingStartedCompletion";
+import { supabase } from "@/integrations/supabase/client";
 
 const WIZARD_SHOWN_PREFIX = "profileWizardShownOnce_";
 
@@ -13,62 +14,76 @@ export function ProfileCompletionBanner() {
   const location = useLocation();
   const { user } = useAuth();
   const completion = useGettingStartedCompletion();
-  const [isVisible, setIsVisible] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
+  const [completionPercent, setCompletionPercent] = useState<number | null>(null);
 
+  // Charger le % depuis la base
   useEffect(() => {
-    if (!user || completion.isLoading) return;
+    if (!user) return;
 
-    // Ne pas afficher sur getting-started et ses pages liées
-    const excludedPaths = [
-      '/getting-started',
-      '/profile',
-      '/referentials/health-professionals',
-      '/referentials/allergies'
-    ];
-    
-    if (excludedPaths.some(path => location.pathname.startsWith(path))) {
-      setIsVisible(false);
-      return;
-    }
+    const loadCompletion = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('completion_percent')
+        .eq('id', user.id)
+        .single();
+      
+      setCompletionPercent((data?.completion_percent as number) ?? 0);
+    };
 
-    // Ne pas afficher si configuration complète (profil 100% + au moins 1 pro de santé)
-    if (completion.overallPercent === 100) {
-      setIsVisible(false);
-      return;
-    }
+    loadCompletion();
+  }, [user, location.pathname]);
 
-    // Vérifier si getting-started est complété
-    const hasCompletedGettingStarted = localStorage.getItem(`gettingStartedCompleted_${user.id}`) === 'true';
-    if (!hasCompletedGettingStarted) {
-      setIsVisible(false);
-      return;
-    }
-
-    // Vérifier si c'est la première connexion (wizard géré séparément)
-    const wizardShownKey = `${WIZARD_SHOWN_PREFIX}${user.id}`;
-    const hasShownWizard = localStorage.getItem(wizardShownKey) === 'true';
-
-    // Ne pas afficher le banner si le wizard n'a jamais été montré (il va s'afficher)
-    if (!hasShownWizard) {
-      setIsVisible(false);
-      return;
-    }
-
-    // Réafficher le banner à chaque changement de page
-    setIsVisible(true);
-  }, [user, completion.isLoading, completion.overallPercent, location.pathname]);
+  // Réinitialiser le dismiss à chaque changement de page
+  useEffect(() => {
+    setIsDismissed(false);
+  }, [location.pathname]);
 
   const handleDismiss = () => {
-    // Fermer temporairement (réapparaît au prochain changement de page)
-    setIsVisible(false);
+    setIsDismissed(true);
   };
 
   const handleComplete = () => {
-    // Naviguer vers getting-started pour voir toutes les étapes
     navigate('/getting-started');
   };
 
-  if (completion.isLoading || !isVisible || completion.overallPercent === 100) {
+  // ATTENDRE que le % soit chargé
+  if (completionPercent === null || !user) {
+    return null;
+  }
+
+  // SI = 100% → NE JAMAIS AFFICHER
+  if (completionPercent === 100) {
+    return null;
+  }
+
+  // Ne pas afficher sur certaines pages
+  const excludedPaths = [
+    '/getting-started',
+    '/profile',
+    '/referentials/health-professionals',
+    '/referentials/allergies'
+  ];
+  
+  if (excludedPaths.some(path => location.pathname.startsWith(path))) {
+    return null;
+  }
+
+  // Ne pas afficher si getting-started pas encore complété
+  const hasCompletedGettingStarted = localStorage.getItem(`gettingStartedCompleted_${user.id}`) === 'true';
+  if (!hasCompletedGettingStarted) {
+    return null;
+  }
+
+  // Ne pas afficher si wizard jamais montré
+  const wizardShownKey = `${WIZARD_SHOWN_PREFIX}${user.id}`;
+  const hasShownWizard = localStorage.getItem(wizardShownKey) === 'true';
+  if (!hasShownWizard) {
+    return null;
+  }
+
+  // Ne pas afficher si l'utilisateur a cliqué sur "Plus tard"
+  if (isDismissed) {
     return null;
   }
 
@@ -79,14 +94,13 @@ export function ProfileCompletionBanner() {
 
   return (
     <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          initial={{ opacity: 0, y: 50, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 50, scale: 0.9 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="fixed bottom-24 left-4 right-4 z-40 md:left-auto md:right-4 md:max-w-xs"
-        >
+      <motion.div
+        initial={{ opacity: 0, y: 50, scale: 0.9 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 50, scale: 0.9 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="fixed bottom-24 left-4 right-4 z-40 md:left-auto md:right-4 md:max-w-xs"
+      >
           <div className="relative bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-2xl p-4 shadow-2xl">
             {/* Bouton fermer */}
             <button
@@ -114,7 +128,7 @@ export function ProfileCompletionBanner() {
                   Finalisez votre configuration
                 </h4>
                 <p className="text-xs opacity-90">
-                  Configuration à {completion.overallPercent}%
+                  Configuration à {completionPercent}%
                 </p>
               </div>
             </div>
@@ -141,7 +155,6 @@ export function ProfileCompletionBanner() {
             </div>
           </div>
         </motion.div>
-      )}
     </AnimatePresence>
   );
 }

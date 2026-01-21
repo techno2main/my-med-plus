@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { User, Building2, AlertCircle, ChevronRight, Loader2, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function GettingStarted() {
   const navigate = useNavigate();
@@ -26,6 +27,12 @@ export default function GettingStarted() {
       
       // Marquer que le wizard a été montré (pour activer le ProfileCompletionBanner)
       localStorage.setItem(`profileWizardShownOnce_${user.id}`, 'true');
+
+      // Mettre à jour le % de complétion en base
+      await supabase
+        .from('profiles')
+        .update({ completion_percent: completion.overallPercent })
+        .eq('id', user.id);
 
       toast.success('Configuration enregistrée !');
       
@@ -215,13 +222,13 @@ export default function GettingStarted() {
           </div>
         </Card>
 
-        {/* Bouton "Plus tard" */}
+        {/* Bouton "Plus tard" ou "Commencer" */}
         <div className="pt-4">
           <Button 
             onClick={handleComplete}
             disabled={isCompleting}
             className="w-full h-12"
-            variant="outline"
+            variant={completion.overallPercent === 100 ? "default" : "outline"}
           >
             {isCompleting ? (
               <>
@@ -229,11 +236,14 @@ export default function GettingStarted() {
                 Enregistrement...
               </>
             ) : (
-              'Je complèterai plus tard'
+              completion.overallPercent === 100 ? 'Commencer' : 'Je complèterai plus tard'
             )}
           </Button>
           <p className="text-xs text-center text-muted-foreground mt-2">
-            Vous pourrez compléter ces informations depuis votre profil
+            {completion.overallPercent === 100 
+              ? 'Votre configuration est complète !'
+              : 'Vous pourrez compléter ces informations depuis votre profil'
+            }
           </p>
         </div>
       </div>
