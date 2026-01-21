@@ -1,26 +1,45 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { User, X, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
-import { useProfileCompletion } from "@/contexts/ProfileCompletionContext";
+import { useGettingStartedCompletion } from "@/hooks/useGettingStartedCompletion";
 
-const DISMISSED_KEY_PREFIX = "profileBannerDismissed_";
-const DISMISS_DURATION = 24 * 60 * 60 * 1000; // 24 heures
 const WIZARD_SHOWN_PREFIX = "profileWizardShownOnce_";
 
 export function ProfileCompletionBanner() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
-  const { isLoading, completionPercent, missingFieldsCount, isComplete, firstMissingField } = useProfileCompletion();
+  const completion = useGettingStartedCompletion();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    if (!user || isLoading) return;
+    if (!user || completion.isLoading) return;
 
-    // Ne pas afficher si profil complet
-    if (isComplete) {
+    // Ne pas afficher sur getting-started et ses pages liées
+    const excludedPaths = [
+      '/getting-started',
+      '/profile',
+      '/referentials/health-professionals',
+      '/referentials/allergies'
+    ];
+    
+    if (excludedPaths.some(path => location.pathname.startsWith(path))) {
+      setIsVisible(false);
+      return;
+    }
+
+    // Ne pas afficher si configuration complète (profil 100% + au moins 1 pro de santé)
+    if (completion.overallPercent === 100) {
+      setIsVisible(false);
+      return;
+    }
+
+    // Vérifier si getting-started est complété
+    const hasCompletedGettingStarted = localStorage.getItem(`gettingStartedCompleted_${user.id}`) === 'true';
+    if (!hasCompletedGettingStarted) {
       setIsVisible(false);
       return;
     }
@@ -35,35 +54,28 @@ export function ProfileCompletionBanner() {
       return;
     }
 
-    // Vérifier si le banner a été dismiss récemment
-    const dismissKey = `${DISMISSED_KEY_PREFIX}${user.id}`;
-    const dismissedAt = localStorage.getItem(dismissKey);
-    const shouldShow = !dismissedAt || Date.now() - parseInt(dismissedAt) > DISMISS_DURATION;
-
-    setIsVisible(shouldShow);
-  }, [user, isLoading, isComplete]);
+    // Réafficher le banner à chaque changement de page
+    setIsVisible(true);
+  }, [user, completion.isLoading, completion.overallPercent, location.pathname]);
 
   const handleDismiss = () => {
-    if (user) {
-      const dismissKey = `${DISMISSED_KEY_PREFIX}${user.id}`;
-      localStorage.setItem(dismissKey, Date.now().toString());
-    }
+    // Fermer temporairement (réapparaît au prochain changement de page)
     setIsVisible(false);
   };
 
   const handleComplete = () => {
-    // Naviguer vers le profil avec le champ à focus
-    const params = new URLSearchParams();
-    params.set('edit', 'true');
-    if (firstMissingField) {
-      params.set('focus', firstMissingField);
-    }
-    navigate(`/profile?${params.toString()}`);
+    // Naviguer vers getting-started pour voir toutes les étapes
+    navigate('/getting-started');
   };
 
-  if (isLoading || !isVisible || isComplete) {
+  if (completion.isLoading || !isVisible || completion.overallPercent === 100) {
     return null;
   }
+
+  // Calculer le nombre total d'éléments manquants
+  const totalMissingItems = completion.profileMissingFields + 
+    (completion.healthProfessionals.hasMedecin ? 0 : 1) + 
+    (completion.healthProfessionals.hasPharmacie ? 0 : 1);
 
   return (
     <AnimatePresence>
@@ -92,17 +104,17 @@ export function ProfileCompletionBanner() {
                   <User className="w-6 h-6" />
                 </div>
                 <div className="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 bg-white text-primary rounded-full flex items-center justify-center text-xs font-bold shadow-md">
-                  {missingFieldsCount}
+                  {totalMissingItems}
                 </div>
               </div>
 
               {/* Contenu */}
               <div className="flex-1 min-w-0">
                 <h4 className="font-semibold text-sm mb-0.5">
-                  Complétez votre profil
+                  Finalisez votre configuration
                 </h4>
                 <p className="text-xs opacity-90">
-                  {missingFieldsCount} champ{missingFieldsCount > 1 ? 's' : ''} restant{missingFieldsCount > 1 ? 's' : ''} ({completionPercent}%)
+                  Configuration à {completion.overallPercent}%
                 </p>
               </div>
             </div>
