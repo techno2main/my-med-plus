@@ -66,12 +66,12 @@ export function ProfessionalDialog({
     >
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Nom *</Label>
+          <Label htmlFor="name">Nom complet *</Label>
           <Input
             id="name"
             value={formData.name}
             onChange={(e) => onFormChange({ ...formData, name: e.target.value })}
-            placeholder="Nom complet"
+            placeholder="Dr. Prénom NOM"
             className="bg-surface"
           />
         </div>

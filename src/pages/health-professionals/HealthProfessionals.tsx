@@ -1,8 +1,8 @@
 import { AppLayout } from "@/components/Layout/AppLayout";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { filterByType, TabType, mapTypeToDb, ProfessionalType, type HealthProfessional, type HealthProfessionalFormData } from "./utils/professionalUtils";
 import { useEntityCrud } from "@/hooks/generic/useEntityCrud";
 import { useEntityDialog } from "@/hooks/generic/useEntityDialog";
@@ -13,9 +13,18 @@ import { FloatingAddButton } from "./components/FloatingAddButton";
 
 const HealthProfessionals = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<TabType>("medecins");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Lire le paramètre tab de l'URL au chargement
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'pharmacies' || tabParam === 'laboratoires') {
+      setActiveTab(tabParam as TabType);
+    }
+  }, [searchParams]);
 
   // Hook générique CRUD
   const {
