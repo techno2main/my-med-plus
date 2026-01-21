@@ -3,7 +3,25 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
-  ({ className, type, ...props }, ref) => {
+  ({ className, type, onFocus, ...props }, ref) => {
+    const hasAutoSelectedRef = React.useRef(false);
+
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      // Sélectionner automatiquement seulement sur desktop (pas tactile)
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      
+      if (!isTouchDevice && !hasAutoSelectedRef.current && e.target.value) {
+        e.target.select();
+        hasAutoSelectedRef.current = true;
+      }
+      
+      if (onFocus) onFocus(e);
+    };
+
+    const handleBlur = () => {
+      hasAutoSelectedRef.current = false;
+    };
+
     return (
       <input
         type={type}
@@ -12,6 +30,8 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
           className,
         )}
         ref={ref}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         {...props}
       />
     );
