@@ -12,36 +12,38 @@ const Referentials = () => {
       title: "Professionnels de Santé",
       description: "Mon réseau de professionnels",
       icon: Stethoscope,
-      path: "/referentials/health-professionals"
+      path: "/profile?tab=reseau"
     },
     {
       title: "Pathologies",
       description: "Mes pathologies",
       icon: AlertCircle,
-      path: "/referentials/pathologies"
+      path: "/profile?tab=sante&subtab=pathologies"
     },
     {
       title: "Allergies",
       description: "Mes allergies",
       icon: AlertCircle,
-      path: "/referentials/allergies"
+      path: "/profile?tab=sante&subtab=allergies"
     }
   ]
 
   return (
     <AppLayout>
-      <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/settings")}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <header>
-            <h1 className="text-2xl font-bold">Référentiels</h1>
-            <p className="text-sm text-muted-foreground">Gérer les référentiels</p>
-          </header>
+      <div className="container max-w-2xl mx-auto px-4 pb-6">
+        <div className="sticky top-0 z-20 bg-background pt-6 pb-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/settings")}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <header>
+              <h1 className="text-lg font-bold">Référentiels</h1>
+              <p className="text-sm text-muted-foreground">Gérer les référentiels</p>
+            </header>
+          </div>
         </div>
 
-        <div className="grid gap-4">
+        <div className="grid gap-4 mt-4">
           {categories.map((category) => (
             <Card
               key={category.path}

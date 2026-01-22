@@ -114,16 +114,20 @@ export default function TreatmentEdit() {
 
   return (
     <AppLayout>
-      <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/treatments")}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold">Modifier le traitement</h1>
-            <p className="text-muted-foreground">{treatment.name}</p>
+      <div className="container max-w-2xl mx-auto px-4 pb-6">
+        <div className="sticky top-0 z-20 bg-background pt-6 pb-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/treatments")}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="flex-1">
+              <h1 className="text-lg font-bold">Modifier le traitement</h1>
+              <p className="text-sm text-muted-foreground">{treatment.name}</p>
+            </div>
           </div>
         </div>
+
+        <div className="space-y-6 mt-4">
 
         <TreatmentInfoForm
           formData={localFormData}
@@ -155,6 +159,7 @@ export default function TreatmentEdit() {
           treatmentId={treatment.id}
           onSave={handleMedicationSaved}
         />
+        </div>
       </div>
     </AppLayout>
   )

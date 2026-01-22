@@ -70,34 +70,38 @@ export default function ProfileExport() {
 
   return (
     <AppLayout>
-      <div className="container max-w-2xl mx-auto px-3 md:px-4 py-6 space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold">Télécharger les données</h1>
-            <p className="text-muted-foreground">
-              Choisir les éléments à exporter
-            </p>
+      <div className="container max-w-2xl mx-auto px-3 md:px-4 pb-6">
+        <div className="sticky top-0 z-20 bg-background pt-6 pb-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h1 className="text-lg font-bold">Télécharger les données</h1>
+              <p className="text-sm text-muted-foreground">
+                Choisir les éléments à exporter
+              </p>
+            </div>
           </div>
         </div>
 
-        <ExportConfigSection 
-          config={config}
-          onConfigChange={updateConfig}
-        />
+        <div className="space-y-6 mt-4">
+          <ExportConfigSection 
+            config={config}
+            onConfigChange={updateConfig}
+          />
 
-        <PeriodSelector 
-          config={config}
-          onConfigChange={updateConfig}
-        />
+          <PeriodSelector 
+            config={config}
+            onConfigChange={updateConfig}
+          />
 
-        <ExportActions
-          onExportPDF={handleExportPDF}
-          onExportJSON={handleExportJSON}
-          loading={exportLoading}
-        />
+          <ExportActions
+            onExportPDF={handleExportPDF}
+            onExportJSON={handleExportJSON}
+            loading={exportLoading}
+          />
+        </div>
       </div>
     </AppLayout>
   );

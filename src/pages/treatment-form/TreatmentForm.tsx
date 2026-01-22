@@ -9,20 +9,24 @@ export default function TreatmentForm() {
 
   return (
     <AppLayout>
-      <div className="container max-w-3xl mx-auto px-3 md:px-4 py-6 space-y-6 pb-28">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/treatments")}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Nouveau traitement</h1>
-            <p className="text-sm text-muted-foreground">
-              Créez votre traitement en 4 étapes
-            </p>
+      <div className="container max-w-3xl mx-auto px-3 md:px-4 pb-28">
+        <div className="sticky top-0 z-20 bg-background pt-6 pb-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/treatments")}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h1 className="text-lg font-bold">Nouveau traitement</h1>
+              <p className="text-sm text-muted-foreground">
+                Créez votre traitement en 4 étapes
+              </p>
+            </div>
           </div>
         </div>
 
-        <TreatmentWizard />
+        <div className="mt-4">
+          <TreatmentWizard />
+        </div>
       </div>
     </AppLayout>
   );

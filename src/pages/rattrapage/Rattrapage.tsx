@@ -34,12 +34,16 @@ export default function Rattrapage() {
 
   return (
     <AppLayout>
-      <div className="container max-w-3xl mx-auto px-4 py-6 space-y-6">
-        <PageHeader
-          title="Mise à jour des prises"
-          subtitle={totalMissed === 0 ? "Aucune prise non traitée" : `${totalMissed} prise${totalMissed > 1 ? 's' : ''} non traitée${totalMissed > 1 ? 's' : ''} à mettre à jour`}
-          backTo="/"
-        />
+      <div className="container max-w-3xl mx-auto px-4 pb-6">
+        <div className="sticky top-0 z-20 bg-background pt-6 pb-4">
+          <PageHeader
+            title="Mise à jour des prises"
+            subtitle={totalMissed === 0 ? "Aucune prise non traitée" : `${totalMissed} prise${totalMissed > 1 ? 's' : ''} non traitée${totalMissed > 1 ? 's' : ''} à mettre à jour`}
+            backTo="/"
+          />
+        </div>
+
+        <div className="mt-4 space-y-6">
 
         {totalMissed === 0 ? (
           <EmptyState />
@@ -72,6 +76,7 @@ export default function Rattrapage() {
             />
           </>
         )}
+        </div>
       </div>
     </AppLayout>
   );

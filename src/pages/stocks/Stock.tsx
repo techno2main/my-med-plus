@@ -20,8 +20,12 @@ export default function Stock() {
 
   return (
     <AppLayout>
-      <div className="container max-w-2xl mx-auto px-3 md:px-4 py-6 space-y-6">
-        <PageHeader title="Gestion des stocks" backTo="/settings" />
+      <div className="container max-w-2xl mx-auto px-3 md:px-4 pb-6">
+        <div className="sticky top-0 z-20 bg-background pt-6 pb-4">
+          <PageHeader title="Gestion des stocks" backTo="/settings" />
+        </div>
+
+        <div className="mt-4 space-y-6">
 
         <StockAlerts lowStockCount={lowStockCount} />
 
@@ -30,6 +34,7 @@ export default function Stock() {
           onAdjust={handleAdjust}
           onViewDetails={handleViewDetails}
         />
+        </div>
       </div>
     </AppLayout>
   );

@@ -10,12 +10,16 @@ export default function About() {
 
   return (
     <AppLayout>
-      <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
-        <PageHeader 
-          title="À propos"
-          subtitle="Informations sur l'application"
-          backTo="/settings"
-        />
+      <div className="container max-w-2xl mx-auto px-4 pb-6">
+        <div className="sticky top-0 z-20 bg-background pt-6 pb-4">
+          <PageHeader 
+            title="À propos"
+            subtitle="Informations sur l'application"
+            backTo="/settings"
+          />
+        </div>
+
+        <div className="mt-4 space-y-6">
 
         {/* Logo et version */}
         <Card className="p-8 text-center">
@@ -109,6 +113,7 @@ export default function About() {
             © 2025 • TAD • Tous droits réservés.
           </p>
         </Card>
+        </div>
       </div>
     </AppLayout>
   );

@@ -93,17 +93,21 @@ export default function History() {
 
   return (
     <AppLayout>
-      <div className="container max-w-2xl mx-auto px-3 md:px-4 py-6 space-y-6">
-        <PageHeader 
-          title="Historique"
-          subtitle="Suivi des prises de médicaments"
-        />
+      <div className="container max-w-2xl mx-auto px-3 md:px-4 pb-6">
+        <div className="sticky top-0 z-20 bg-background pt-6 pb-4">
+          <PageHeader 
+            title="Historique"
+            subtitle="Suivi des prises de médicaments"
+          />
+        </div>
 
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="history">Historique</TabsTrigger>
-            <TabsTrigger value="statistics">Statistiques</TabsTrigger>
-          </TabsList>
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-4">
+          <div className="sticky top-[72px] z-20 bg-background pb-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="history">Historique</TabsTrigger>
+              <TabsTrigger value="statistics">Statistiques</TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="history" className="space-y-4">
             <FilterButtons

@@ -30,16 +30,18 @@ const Treatments = () => {
 
   return (
     <AppLayout>
-      <div className="container max-w-2xl mx-auto px-3 md:px-4 py-6 space-y-6">
-        <PageHeader 
-          title="Traitement(s)"
-          subtitle={getSubtitle()}
-          showAddButton
-          onAdd={() => navigate("/treatments/new")}
-        />
+      <div className="container max-w-2xl mx-auto px-3 md:px-4 pb-6">
+        <div className="sticky top-0 z-20 bg-background pt-6 pb-4">
+          <PageHeader 
+            title="Traitement(s)"
+            subtitle={getSubtitle()}
+            showAddButton
+            onAdd={() => navigate("/treatments/new")}
+          />
+        </div>
 
         {/* Treatments List */}
-        <div className="space-y-4">
+        <div className="space-y-4 mt-4">
           {treatments.length === 0 ? (
             <EmptyState />
           ) : (

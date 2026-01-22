@@ -86,8 +86,12 @@ export default function Prescriptions() {
 
   return (
     <AppLayout>
-      <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
-        <PageHeader title="Ordonnances" subtitle="Vos prescriptions médicales" backTo="/treatments" />
+      <div className="container max-w-2xl mx-auto px-4 pb-6">
+        <div className="sticky top-0 z-20 bg-background pt-6 pb-4">
+          <PageHeader title="Ordonnances" subtitle="Vos prescriptions médicales" backTo="/treatments" />
+        </div>
+
+        <div className="mt-4 space-y-6">
 
         <PrescriptionList
           prescriptions={prescriptions}
@@ -106,6 +110,7 @@ export default function Prescriptions() {
           confirmText={dialogContent.confirmText}
           isWarning={dialogContent.isWarning}
         />
+        </div>
       </div>
     </AppLayout>
   );

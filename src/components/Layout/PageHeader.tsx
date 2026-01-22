@@ -25,7 +25,7 @@ export function PageHeader({
         <ArrowLeft className="h-4 w-4" />
       </Button>
       <div className="flex-1">
-        <h1 className="text-2xl font-bold">{title}</h1>
+        <h1 className="text-lg font-bold">{title}</h1>
         {subtitle && (
           <p className="text-sm text-muted-foreground">{subtitle}</p>
         )}

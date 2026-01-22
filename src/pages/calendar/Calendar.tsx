@@ -66,16 +66,18 @@ const Calendar = () => {
   
   return (
     <AppLayout>
-      <div ref={pageTopRef} className="container max-w-2xl mx-auto px-3 md:px-4 py-6 space-y-6">
-        <PageHeader 
-          title="Calendrier" 
-          subtitle="Suivi détaillé des prises"
-        />
+      <div ref={pageTopRef} className="container max-w-2xl mx-auto px-3 md:px-4 pb-6">
+        <div className="sticky top-0 z-20 bg-background pt-6 pb-4">
+          <PageHeader 
+            title="Calendrier" 
+            subtitle="Suivi détaillé des prises"
+          />
+        </div>
 
         {/* Stats Overview - Masqué */}
         {/* <CalendarHeader visitDates={visitDates} /> */}
 
-        <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr] gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr] gap-6 mt-4">
           {/* Calendar */}
           <CalendarView
               currentMonth={currentMonth}
