@@ -23,12 +23,12 @@ export function ProfileCompletionBanner() {
 
     const loadCompletion = async () => {
       const { data } = await supabase
-        .from('profiles')
-        .select('completion_percent')
-        .eq('id', user.id)
+        .from('user_preferences')
+        .select('getting_started_completion_percent')
+        .eq('user_id', user.id)
         .single();
       
-      setCompletionPercent((data?.completion_percent as number) ?? 0);
+      setCompletionPercent((data?.getting_started_completion_percent as number) ?? 0);
     };
 
     loadCompletion();

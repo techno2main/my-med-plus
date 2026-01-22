@@ -28,11 +28,14 @@ export default function GettingStarted() {
       // Marquer que le wizard a été montré (pour activer le ProfileCompletionBanner)
       localStorage.setItem(`profileWizardShownOnce_${user.id}`, 'true');
 
-      // Mettre à jour le % de complétion en base
+      // Mettre à jour le % de complétion dans user_preferences
       await supabase
-        .from('profiles')
-        .update({ completion_percent: completion.overallPercent })
-        .eq('id', user.id);
+        .from('user_preferences')
+        .update({ 
+          getting_started_completion_percent: completion.overallPercent,
+          getting_started_completed: true
+        })
+        .eq('user_id', user.id);
 
       toast.success('Configuration enregistrée !');
       
