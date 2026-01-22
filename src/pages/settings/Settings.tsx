@@ -1,8 +1,7 @@
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { PageHeader } from "@/components/Layout/PageHeader";
 import { useNavigate } from "react-router-dom";
-import { Bell, Shield, Smartphone, Database, CalendarSync, Clock, Navigation, ArrowUpDown, Bug, Package, RotateCcw } from "lucide-react";
-import { ThemeCard } from "./components/ThemeCard";
+import { Bell, Shield, Smartphone, CalendarSync, Clock, Navigation, ArrowUpDown, Bug, RotateCcw, User } from "lucide-react";
 import { NavigationCard } from "./components/NavigationCard";
 import { Button } from "@/components/ui/button";
 import { useSettingsSectionOrder } from "@/hooks/useSettingsSectionOrder";
@@ -20,64 +19,36 @@ export default function Settings() {
 
   // Mapping des sections vers leurs composants
   const sectionComponents: Record<string, JSX.Element> = {
-    theme: (
-      <div className="space-y-3" key="theme">
-        <h3 className="text-sm font-medium text-muted-foreground px-1">Thème de l'application</h3>
-        <ThemeCard />
-      </div>
-    ),
-    navigation: (
-      <div className="space-y-3" key="navigation">
+    personnalisation: (
+      <div className="space-y-3" key="personnalisation">
         <h3 className="text-sm font-medium text-muted-foreground px-1">Personnalisation</h3>
         <NavigationCard
           icon={Navigation}
-          title="Menu de navigation"
-          description="Gérer les éléments de navigation"
-          onClick={() => navigate("/settings/navigation")}
+          title="Personnalisation"
+          description="Apparence et menu de navigation"
+          onClick={() => navigate("/settings/personnalisation")}
         />
       </div>
     ),
-    notifications: (
-      <div className="space-y-3" key="notifications">
-        <h3 className="text-sm font-medium text-muted-foreground px-1">Notifications</h3>
+    profil: (
+      <div className="space-y-3" key="profil">
+        <h3 className="text-sm font-medium text-muted-foreground px-1">Profil utilisateur</h3>
+        <NavigationCard
+          icon={User}
+          title="Mon profil"
+          description="Gérer mon profil, réseau, santé et stocks"
+          onClick={() => navigate("/profile")}
+        />
+      </div>
+    ),
+    reglages: (
+      <div className="space-y-3" key="reglages">
+        <h3 className="text-sm font-medium text-muted-foreground px-1">Réglages</h3>
         <NavigationCard
           icon={Bell}
-          title="Notifications"
-          description="Configurer les rappels"
-          onClick={() => navigate("/notifications")}
-        />
-      </div>
-    ),
-    referentials: (
-      <div className="space-y-3" key="referentials">
-        <h3 className="text-sm font-medium text-muted-foreground px-1">Référentiels</h3>
-        <NavigationCard
-          icon={Database}
-          title="Référentiels"
-          description="Gérer les données de référence"
-          onClick={() => navigate("/referentials")}
-        />
-      </div>
-    ),
-    stocks: (
-      <div className="space-y-3" key="stocks">
-        <h3 className="text-sm font-medium text-muted-foreground px-1">Stocks</h3>
-        <NavigationCard
-          icon={Package}
-          title="Gestion des stocks"
-          description="Gérer les stocks de médicaments"
-          onClick={() => navigate("/stocks")}
-        />
-      </div>
-    ),
-    calendar: (
-      <div className="space-y-3" key="calendar">
-        <h3 className="text-sm font-medium text-muted-foreground px-1">Calendrier</h3>
-        <NavigationCard
-          icon={CalendarSync}
-          title="Synchronisation"
-          description="Synchroniser le calendrier"
-          onClick={() => navigate("/calendar-sync")}
+          title="Réglages"
+          description="Notifications, synchronisation et sécurité"
+          onClick={() => navigate("/settings/reglages")}
         />
       </div>
     ),
@@ -92,17 +63,7 @@ export default function Settings() {
         />
       </div>
     ),
-    security: (
-      <div className="space-y-3" key="security">
-        <h3 className="text-sm font-medium text-muted-foreground px-1">Sécurité</h3>
-        <NavigationCard
-          icon={Shield}
-          title="Confidentialité et sécurité"
-          description="Protection des données"
-          onClick={() => navigate("/privacy")}
-        />
-      </div>
-    ),
+
     diagnostics: (
       <div className="space-y-3" key="diagnostics">
         <h3 className="text-sm font-medium text-muted-foreground px-1">Diagnostics</h3>
@@ -135,21 +96,25 @@ export default function Settings() {
 
   return (
     <AppLayout>
-      <div className="container max-w-2xl mx-auto px-3 md:px-4 py-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <PageHeader 
-            title="Paramètres"
-            subtitle="Réglages généraux"
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate("/settings/sections-order")}
-          >
-            <ArrowUpDown className="h-4 w-4 mr-2" />
-            Réorganiser
-          </Button>
+      <div className="container max-w-2xl mx-auto px-3 md:px-4 pb-6">
+        <div className="sticky top-0 z-20 bg-background pt-6 pb-4">
+          <div className="flex items-center justify-between">
+            <PageHeader 
+              title="Paramètres"
+              subtitle="Réglages généraux"
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/settings/sections-order")}
+            >
+              <ArrowUpDown className="h-4 w-4 mr-2" />
+              Réorganiser
+            </Button>
+          </div>
         </div>
+
+        <div className="mt-4 space-y-6">
 
         {loading ? (
           <p className="text-center text-muted-foreground">Chargement...</p>
@@ -160,6 +125,7 @@ export default function Settings() {
               .map(section => sectionComponents[section.id])}
           </>
         )}
+        </div>
       </div>
     </AppLayout>
   );
