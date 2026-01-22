@@ -17,7 +17,7 @@ export const ActiveTreatmentsCard = ({ treatments, onViewAll, onTreatmentClick }
     <Card className="p-4">
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold">Traitements actifs</h3>
+          <h3 className="font-semibold">{treatments.length === 1 ? 'Traitement actif' : 'Traitements actifs'}</h3>
           <Button variant="ghost" size="sm" onClick={onViewAll}>
             Voir tout
           </Button>
