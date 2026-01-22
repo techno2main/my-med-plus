@@ -17,6 +17,12 @@ import { ProfileActions } from "./components/ProfileActions";
 import { ExportDataCard } from "./components/ExportDataCard";
 import { LogoutButton } from "./components/LogoutButton";
 import { ProfileWizardDialog } from "./components/ProfileWizard";
+import { ProfileTabs, ProfileTabType, getTabTitle } from "./components/ProfileTabs";
+import { HealthTabs } from "./components/HealthTabs";
+import { HealthProfessionalsContent } from "@/pages/health-professionals/HealthProfessionalsContent";
+import { AllergiesContent } from "@/pages/allergies/AllergiesContent";
+import { PathologiesContent } from "@/pages/pathologies/PathologiesContent";
+import { StockContent } from "@/pages/stocks/StockContent";
 import type { ProfileFieldName } from "@/contexts/ProfileCompletionContext";
 
 export default function Profile() {
@@ -24,6 +30,9 @@ export default function Profile() {
   const { isAdmin } = useUserRole();
   const [searchParams, setSearchParams] = useSearchParams();
   const { refetch: refetchProfileCompletion } = useProfileCompletion();
+  
+  // Gestion des onglets
+  const [activeTab, setActiveTab] = useState<ProfileTabType>("profil");
   
   // Stocker le champ à focus avant de nettoyer les query params
   const [fieldToFocus, setFieldToFocus] = useState<ProfileFieldName | null>(null);
@@ -55,9 +64,17 @@ export default function Profile() {
 
   const { showWizard, closeWizard, completeWizard, skipWizard } = useProfileWizard();
 
-  // Lire les query params pour auto-edit et focus
+  // Lire les query params pour auto-edit, focus et onglet
   const shouldEdit = searchParams.get('edit') === 'true';
   const focusFieldFromParams = searchParams.get('focus') as ProfileFieldName | null;
+  const tabParam = searchParams.get('tab') as ProfileTabType | null;
+
+  // Gérer l'onglet depuis les query params
+  useEffect(() => {
+    if (tabParam && ['profil', 'reseau', 'sante', 'stocks'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
 
   // Auto-ouvrir le mode édition si demandé via query params
   useEffect(() => {
@@ -109,83 +126,106 @@ export default function Profile() {
     );
   }
 
+  const currentTabInfo = getTabTitle(activeTab);
+
   return (
     <AppLayout>
-      <div className="container max-w-2xl mx-auto px-3 md:px-4 py-6 space-y-6 pb-24">
-        <PageHeader 
-          title="Profil utilisateur"
-          subtitle="Gérer vos informations"
-          backTo="/"
-        />
-
-        <Card className="p-4 sm:p-6">
-          <ProfileHeader
-            firstName={firstName}
-            lastName={lastName}
-            email={user?.email || ""}
-            avatarUrl={avatarUrl}
-            isAdmin={isAdmin}
-            isEditing={isEditing}
-            onEditClick={() => setIsEditing(true)}
-            onAvatarClick={() => {
-              setFilePickerActive(true);
-              fileInputRef.current?.click();
-            }}
+      <div className="container max-w-2xl mx-auto px-3 md:px-4 pb-24">
+        <div className="sticky top-0 z-20 bg-background pt-6 pb-4">
+          <PageHeader 
+            title={currentTabInfo.title}
+            subtitle={currentTabInfo.subtitle}
+            backTo="/"
           />
+        </div>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              setFilePickerActive(false);
-              handleAvatarUpload(e);
-            }}
-          />
+        <ProfileTabs
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        >
+          {{
+            profil: (
+              <>
+                <Card className="p-4 sm:p-6">
+                  <ProfileHeader
+                    firstName={firstName}
+                    lastName={lastName}
+                    email={user?.email || ""}
+                    avatarUrl={avatarUrl}
+                    isAdmin={isAdmin}
+                    isEditing={isEditing}
+                    onEditClick={() => setIsEditing(true)}
+                    onAvatarClick={() => {
+                      setFilePickerActive(true);
+                      fileInputRef.current?.click();
+                    }}
+                  />
 
-          {isEditing ? (
-            <ProfileFormEdit
-              firstName={firstName}
-              lastName={lastName}
-              dateOfBirth={dateOfBirth}
-              bloodType={bloodType}
-              height={height}
-              weight={weight}
-              age={age}
-              bmi={bmi}
-              focusField={fieldToFocus}
-              getBMIColor={getBMIColor}
-              onFirstNameChange={setFirstName}
-              onLastNameChange={setLastName}
-              onDateOfBirthChange={setDateOfBirth}
-              onBloodTypeChange={setBloodType}
-              onHeightChange={setHeight}
-              onWeightChange={setWeight}
-            />
-          ) : (
-            <ProfileFormView
-              dateOfBirth={dateOfBirth}
-              bloodType={bloodType}
-              height={height}
-              weight={weight}
-              age={age}
-              bmi={bmi}
-              getBMIColor={getBMIColor}
-            />
-          )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      setFilePickerActive(false);
+                      handleAvatarUpload(e);
+                    }}
+                  />
 
-          <ProfileActions
-            isEditing={isEditing}
-            saving={saving}
-            onCancel={() => setIsEditing(false)}
-            onSave={handleSaveWithRefresh}
-          />
-        </Card>
+                  {isEditing ? (
+                    <ProfileFormEdit
+                      firstName={firstName}
+                      lastName={lastName}
+                      dateOfBirth={dateOfBirth}
+                      bloodType={bloodType}
+                      height={height}
+                      weight={weight}
+                      age={age}
+                      bmi={bmi}
+                      focusField={fieldToFocus}
+                      getBMIColor={getBMIColor}
+                      onFirstNameChange={setFirstName}
+                      onLastNameChange={setLastName}
+                      onDateOfBirthChange={setDateOfBirth}
+                      onBloodTypeChange={setBloodType}
+                      onHeightChange={setHeight}
+                      onWeightChange={setWeight}
+                    />
+                  ) : (
+                    <ProfileFormView
+                      dateOfBirth={dateOfBirth}
+                      bloodType={bloodType}
+                      height={height}
+                      weight={weight}
+                      age={age}
+                      bmi={bmi}
+                      getBMIColor={getBMIColor}
+                    />
+                  )}
 
-        <ExportDataCard />
+                  <ProfileActions
+                    isEditing={isEditing}
+                    saving={saving}
+                    onCancel={() => setIsEditing(false)}
+                    onSave={handleSaveWithRefresh}
+                  />
+                </Card>
 
-        <LogoutButton onLogout={handleLogout} />
+                <ExportDataCard />
+
+                <LogoutButton onLogout={handleLogout} />
+              </>
+            ),
+            reseau: <HealthProfessionalsContent />,
+            sante: (
+              <HealthTabs
+                allergiesContent={<AllergiesContent />}
+                pathologiesContent={<PathologiesContent />}
+              />
+            ),
+            stocks: <StockContent />
+          }}
+        </ProfileTabs>
       </div>
 
       {/* Wizard didacticiel pour compléter le profil */}
