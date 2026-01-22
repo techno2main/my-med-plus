@@ -29,21 +29,21 @@ export function ProfileTabs({ activeTab, onTabChange, children }: ProfileTabsPro
     <Tabs value={activeTab} onValueChange={onTabChange}>
       <div className="sticky top-[72px] z-20 bg-background pb-4">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="profil" className="flex items-center gap-1.5">
+          <TabsTrigger value="profil" className="flex items-center gap-1">
             <User className="h-4 w-4 shrink-0" />
-            <span className="text-xs sm:text-sm truncate">Profil</span>
+            <span className="text-xs truncate">Profil</span>
           </TabsTrigger>
-          <TabsTrigger value="reseau" className="flex items-center gap-1.5">
+          <TabsTrigger value="reseau" className="flex items-center gap-1">
             <Building2 className="h-4 w-4 shrink-0" />
-            <span className="text-xs sm:text-sm truncate">Réseau</span>
+            <span className="text-xs truncate">Réseau</span>
           </TabsTrigger>
-          <TabsTrigger value="sante" className="flex items-center gap-1.5">
+          <TabsTrigger value="sante" className="flex items-center gap-1">
             <Heart className="h-4 w-4 shrink-0" />
-            <span className="text-xs sm:text-sm truncate">Santé</span>
+            <span className="text-xs truncate">Santé</span>
           </TabsTrigger>
-          <TabsTrigger value="stocks" className="flex items-center gap-1.5">
+          <TabsTrigger value="stocks" className="flex items-center gap-1">
             <Package className="h-4 w-4 shrink-0" />
-            <span className="text-xs sm:text-sm truncate">Stocks</span>
+            <span className="text-xs truncate">Stocks</span>
           </TabsTrigger>
         </TabsList>
       </div>

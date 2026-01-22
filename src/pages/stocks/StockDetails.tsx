@@ -52,6 +52,7 @@ export default function StockDetails() {
           <Edit className="h-4 w-4 mr-2" />
           Ajuster le stock
         </Button>
+        </div>
       </div>
     </AppLayout>
   );
