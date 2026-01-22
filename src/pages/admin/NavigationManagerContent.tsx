@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Plus, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +30,7 @@ import { useNavigationManager } from "./hooks/useNavigationManager";
 export function NavigationManagerContent() {
   const queryClient = useQueryClient();
   const { isAdmin } = useUserRole();
+  const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pendingChanges, setPendingChanges] = useState<Record<string, boolean>>({});
@@ -56,6 +58,28 @@ export function NavigationManagerContent() {
     })
   );
 
+  const showUnsavedChangesAlert = () => {
+    const { dismiss } = toast({
+      description: (
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">⚠️</span>
+          <div className="flex flex-col">
+            <span className="font-medium">Enregistrez d'abord</span>
+            <span className="text-sm">les modifications de visibilité</span>
+          </div>
+        </div>
+      ),
+      action: (
+        <button
+          onClick={() => dismiss()}
+          className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90"
+        >
+          OK
+        </button>
+      ),
+    });
+  };
+
   const { data: navItems, isLoading } = useQuery({
     queryKey: ["navigation-items"],
     queryFn: async () => {
@@ -65,6 +89,32 @@ export function NavigationManagerContent() {
         .order("position");
       
       if (error) throw error;
+      
+      // Charger les préférences utilisateur pour TOUS (admin et non-admin)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: userPrefs } = await supabase
+          .from("user_preferences")
+          .select("navigation_menu_preferences")
+          .eq("user_id", user.id)
+          .maybeSingle() as { data: { navigation_menu_preferences?: Array<{id: string, is_active: boolean, position?: number}> } | null };
+        
+        const preferences = userPrefs?.navigation_menu_preferences || [];
+        
+        // Appliquer les préférences utilisateur (is_active + position personnalisée)
+        const itemsWithPrefs = data.map(item => {
+          const userPref = preferences.find(p => p.id === item.id);
+          return {
+            ...item,
+            is_active: userPref !== undefined ? userPref.is_active : item.is_active,
+            position: userPref?.position !== undefined ? userPref.position : item.position
+          };
+        });
+        
+        // Trier par position personnalisée
+        return itemsWithPrefs.sort((a, b) => a.position - b.position);
+      }
+      
       return data;
     },
   });
@@ -122,13 +172,22 @@ export function NavigationManagerContent() {
     
     if (!over || active.id === over.id || !navItems) return;
     
+    // Bloquer si changements non enregistrés
+    if (hasUnsavedChanges) {
+      showUnsavedChangesAlert();
+      return;
+    }
+    
     const oldIndex = navItems.findIndex((item) => item.id === active.id);
     const newIndex = navItems.findIndex((item) => item.id === over.id);
     
-    const reorderedItems = arrayMove(navItems, oldIndex, newIndex);
-    const updates = reorderedItems.map((item, idx) => ({
+    const reorderedItems = arrayMove(navItems, oldIndex, newIndex).map((item, idx) => ({
+      ...item,
+      position: idx + 1
+    }));
+    const updates = reorderedItems.map((item) => ({
       id: item.id,
-      position: idx + 1,
+      position: item.position,
     }));
 
     queryClient.setQueryData(["navigation-items"], reorderedItems);
@@ -137,13 +196,23 @@ export function NavigationManagerContent() {
 
   const handleMoveUp = (id: string) => {
     if (!navItems) return;
+    
+    // Bloquer si changements non enregistrés
+    if (hasUnsavedChanges) {
+      showUnsavedChangesAlert();
+      return;
+    }
+    
     const index = navItems.findIndex((item) => item.id === id);
     if (index === -1 || index === 0) return;
 
-    const reorderedItems = arrayMove(navItems, index, index - 1);
-    const updates = reorderedItems.map((item, idx) => ({
+    const reorderedItems = arrayMove(navItems, index, index - 1).map((item, idx) => ({
+      ...item,
+      position: idx + 1
+    }));
+    const updates = reorderedItems.map((item) => ({
       id: item.id,
-      position: idx + 1,
+      position: item.position,
     }));
 
     queryClient.setQueryData(["navigation-items"], reorderedItems);
@@ -152,13 +221,23 @@ export function NavigationManagerContent() {
 
   const handleMoveDown = (id: string) => {
     if (!navItems) return;
+    
+    // Bloquer si changements non enregistrés
+    if (hasUnsavedChanges) {
+      showUnsavedChangesAlert();
+      return;
+    }
+    
     const index = navItems.findIndex((item) => item.id === id);
     if (index === -1 || index >= navItems.length - 1) return;
 
-    const reorderedItems = arrayMove(navItems, index, index + 1);
-    const updates = reorderedItems.map((item, idx) => ({
+    const reorderedItems = arrayMove(navItems, index, index + 1).map((item, idx) => ({
+      ...item,
+      position: idx + 1
+    }));
+    const updates = reorderedItems.map((item) => ({
       id: item.id,
-      position: idx + 1,
+      position: item.position,
     }));
 
     queryClient.setQueryData(["navigation-items"], reorderedItems);
@@ -190,7 +269,7 @@ export function NavigationManagerContent() {
     });
   };
 
-  const handleSaveChanges = () => {
+  const handleSaveChanges = async () => {
     if (Object.keys(pendingChanges).length === 0) return;
     
     const updates = Object.entries(pendingChanges).map(([id, is_active]) => ({
@@ -199,9 +278,11 @@ export function NavigationManagerContent() {
     }));
     
     toggleVisibilityMutation.mutate(updates, {
-      onSuccess: () => {
+      onSuccess: async () => {
         setPendingChanges({});
         setHasUnsavedChanges(false);
+        // Forcer le rechargement des données
+        await queryClient.invalidateQueries({ queryKey: ["navigation-items"] });
       }
     });
   };
@@ -230,7 +311,7 @@ export function NavigationManagerContent() {
           {isAdmin ? (
             <>Réorganisez les éléments par glisser-déposer ou avec les flèches, ajoutez, modifiez ou supprimez des sections selon vos besoins.</>
           ) : (
-            <>Réorganisez les éléments par glisser-déposer ou avec les flèches, masquez les sections que vous n'utilisez pas.</>
+            <>Personnalisez votre barre de navigation : réorganisez les éléments et masquez les sections que vous n'utilisez pas.</>
           )}
         </AlertDescription>
       </Alert>

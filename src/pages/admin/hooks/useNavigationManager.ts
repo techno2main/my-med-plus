@@ -1,10 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthenticatedUser } from "@/lib/auth-guard";
+import { useUserRole } from "@/hooks/useUserRole";
 
 export function useNavigationManager() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isAdmin } = useUserRole();
 
   const createMutation = useMutation({
     mutationFn: async (item: any) => {
@@ -73,33 +76,74 @@ export function useNavigationManager() {
 
   const toggleVisibilityMutation = useMutation({
     mutationFn: async (updates: Array<{ id: string; is_active: boolean }>) => {
-      const promises = updates.map(({ id, is_active }) =>
-        supabase
-          .from("navigation_items")
-          .update({ is_active })
-          .eq("id", id)
-      );
-      
-      await Promise.all(promises);
-    },
-    onSuccess: async (_, updates) => {
-      // Mettre à jour le cache de la liste complète
-      queryClient.setQueryData(["navigation-items"], (oldData: any) => {
-        if (!oldData) return oldData;
-        return oldData.map((item: any) => {
-          const update = updates.find(u => u.id === item.id);
-          if (update) {
-            return { ...item, is_active: update.is_active };
+      if (isAdmin) {
+        // ADMIN : modifier navigation_items (config globale)
+        const promises = updates.map(({ id, is_active }) =>
+          supabase
+            .from("navigation_items")
+            .update({ is_active })
+            .eq("id", id)
+        );
+        
+        const results = await Promise.all(promises);
+        console.log('[toggleVisibilityMutation] Résultats ADMIN:', results);
+        
+        const errors = results.filter(r => r.error);
+        if (errors.length > 0) {
+          console.error('[toggleVisibilityMutation] Erreurs ADMIN:', errors);
+          throw new Error('Erreur lors de la mise à jour');
+        }
+      } else {
+        // NON-ADMIN : sauvegarder dans user_preferences
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Utilisateur non authentifié');
+        
+        // Charger les préférences actuelles pour préserver les positions
+        const { data: existingPrefs } = await supabase
+          .from("user_preferences")
+          .select("navigation_menu_preferences")
+          .eq("user_id", user.id)
+          .maybeSingle() as { data: { navigation_menu_preferences?: Array<{id: string, is_active: boolean, position?: number}> } | null };
+        
+        let currentPreferences = existingPrefs?.navigation_menu_preferences || [];
+        
+        // Mettre à jour uniquement is_active, conserver les positions existantes
+        updates.forEach(({ id, is_active }) => {
+          const existingPrefIndex = currentPreferences.findIndex(p => p.id === id);
+          if (existingPrefIndex !== -1) {
+            currentPreferences[existingPrefIndex].is_active = is_active;
+          } else {
+            currentPreferences.push({ id, is_active });
           }
-          return item;
         });
-      });
-      
-      // Refetch la liste des items actifs pour la navigation
-      await queryClient.refetchQueries({ queryKey: ["navigation-items", "active"] });
-      toast({ title: "Modifications enregistrées avec succès" });
+        
+        const { error } = await supabase
+          .from("user_preferences")
+          .upsert({
+            user_id: user.id,
+            navigation_menu_preferences: currentPreferences
+          }, {
+            onConflict: 'user_id'
+          });
+        
+        if (error) {
+          console.error('Erreur sauvegarde préférences:', error);
+          throw error;
+        }
+      }
     },
-    onError: () => {
+    onSuccess: async () => {
+      // Invalider TOUS les caches liés à la navigation pour forcer un rechargement complet
+      await queryClient.invalidateQueries({ queryKey: ["navigation-items"] });
+      await queryClient.invalidateQueries({ queryKey: ["user-preferences"] });
+      
+      toast({ 
+        title: "✓ Modifications enregistrées", 
+        duration: 1500,
+        className: "bottom-20" // Pour ne pas masquer la barre de navigation
+      });
+    },
+    onError: (error) => {
       toast({
         title: "Erreur",
         description: "Impossible d'enregistrer les modifications",
@@ -110,17 +154,47 @@ export function useNavigationManager() {
 
   const updatePositionsMutation = useMutation({
     mutationFn: async (items: Array<{ id: string; position: number }>) => {
-      const updates = items.map(({ id, position }) =>
-        supabase
-          .from("navigation_items")
-          .update({ position })
-          .eq("id", id)
-      );
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Utilisateur non authentifié');
       
-      await Promise.all(updates);
+      // Charger les préférences actuelles
+      const { data: existingPrefs } = await supabase
+        .from("user_preferences")
+        .select("navigation_menu_preferences")
+        .eq("user_id", user.id)
+        .maybeSingle() as { data: { navigation_menu_preferences?: Array<{id: string, is_active: boolean, position?: number}> } | null };
+      
+      let currentPreferences = existingPrefs?.navigation_menu_preferences || [];
+      
+      // Mettre à jour les positions dans les préférences
+      items.forEach(({ id, position }) => {
+        const existingPrefIndex = currentPreferences.findIndex(p => p.id === id);
+        if (existingPrefIndex !== -1) {
+          currentPreferences[existingPrefIndex].position = position;
+        } else {
+          currentPreferences.push({ id, is_active: true, position });
+        }
+      });
+      
+      // Sauvegarder dans user_preferences
+      const { error } = await supabase
+        .from("user_preferences")
+        .upsert({
+          user_id: user.id,
+          navigation_menu_preferences: currentPreferences
+        }, {
+          onConflict: 'user_id'
+        });
+      
+      if (error) {
+        console.error('Erreur sauvegarde positions:', error);
+        throw error;
+      }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["navigation-items"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["navigation-items"] });
+      await queryClient.invalidateQueries({ queryKey: ["user-preferences"] });
+      toast({ title: "✓ Ordre personnalisé enregistré", duration: 2000 });
     },
     onError: () => {
       toast({
