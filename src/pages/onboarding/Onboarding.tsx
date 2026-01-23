@@ -7,6 +7,7 @@ import { AnimatedIllustration } from "./components/AnimatedIllustration";
 import { ProgressDots } from "./components/ProgressDots";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { ChevronRight, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const SLIDES = [
   {
@@ -47,6 +48,23 @@ export default function Onboarding() {
   const [api, setApi] = useState<CarouselApi>();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [hasAlreadySeenOnboarding, setHasAlreadySeenOnboarding] = useState(false);
+
+  // Vérifier si l'onboarding a déjà été vu au chargement
+  useEffect(() => {
+    const checkOnboardingSeen = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      
+      if (userId) {
+        const hasSeenKey = `hasSeenOnboarding_${userId}`;
+        const hasAlreadySeen = localStorage.getItem(hasSeenKey) === 'true';
+        setHasAlreadySeenOnboarding(hasAlreadySeen);
+      }
+    };
+    
+    checkOnboardingSeen();
+  }, []);
 
   useEffect(() => {
     if (!api) return;
@@ -70,7 +88,40 @@ export default function Onboarding() {
     const success = await completeOnboarding();
     
     if (success) {
-      // Petit délai pour que le localStorage soit bien synchronisé
+      // Vérifier si getting-started a déjà été complété
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      
+      if (userId) {
+        // Vérifier dans localStorage
+        const gettingStartedCompleted = localStorage.getItem(`gettingStartedCompleted_${userId}`) === 'true';
+        
+        // Si déjà complété, aller directement à l'accueil
+        if (gettingStartedCompleted) {
+          setTimeout(() => {
+            navigate("/", { replace: true });
+          }, 100);
+          return;
+        }
+        
+        // Sinon, vérifier en base de données
+        const { data: prefs } = await supabase
+          .from('user_preferences')
+          .select('getting_started_completed')
+          .eq('user_id', userId)
+          .maybeSingle();
+        
+        if (prefs?.getting_started_completed) {
+          // Synchroniser localStorage avec la base
+          localStorage.setItem(`gettingStartedCompleted_${userId}`, 'true');
+          setTimeout(() => {
+            navigate("/", { replace: true });
+          }, 100);
+          return;
+        }
+      }
+      
+      // Première fois : aller à getting-started
       setTimeout(() => {
         navigate("/getting-started", { replace: true });
       }, 100);
@@ -96,8 +147,8 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Skip button */}
-      {!isLastSlide && !isCompleting && (
+      {/* Skip button - Affiché uniquement si l'onboarding a déjà été vu */}
+      {!isLastSlide && !isCompleting && hasAlreadySeenOnboarding && (
         <div className="absolute top-6 right-6 z-10">
           <Button 
             variant="ghost" 
