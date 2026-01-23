@@ -18,6 +18,7 @@ interface SortableNavigationItemProps {
   isAdmin: boolean;
   getItemVisibility: (itemId: string, originalIsActive: boolean) => boolean;
   hasUnsavedChanges: boolean;
+  isToggleDisabled?: boolean;
 }
 
 export function SortableNavigationItem({ 
@@ -31,7 +32,8 @@ export function SortableNavigationItem({
   isLast, 
   isAdmin, 
   getItemVisibility, 
-  hasUnsavedChanges 
+  hasUnsavedChanges,
+  isToggleDisabled = false
 }: SortableNavigationItemProps) {
   const {
     attributes,
@@ -123,24 +125,25 @@ export function SortableNavigationItem({
             <div className="flex items-center justify-between gap-3">
               <h3 className="font-semibold">{item.name}</h3>
               
-              {/* Toggle comme pour les médicaments */}
-              <div className="flex items-center gap-2 shrink-0">
-                <span className={cn(
-                  "text-sm",
-                  currentVisibility 
-                    ? "text-green-500" 
-                    : "text-orange-500"
-                )}>
-                  {currentVisibility ? "Affiché" : "Masqué"}
-                </span>
-                <button
-                  type="button"
-                  aria-pressed={currentVisibility}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleVisibility(item.id);
-                  }}
-                  className={cn(
+              {/* Toggle comme pour les médicaments - désactivé pour le menu Plus */}
+              {!isToggleDisabled && (
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={cn(
+                    "text-sm",
+                    currentVisibility 
+                      ? "text-green-500" 
+                      : "text-orange-500"
+                  )}>
+                    {currentVisibility ? "Affiché" : "Masqué"}
+                  </span>
+                  <button
+                    type="button"
+                    aria-pressed={currentVisibility}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleVisibility(item.id);
+                    }}
+                    className={cn(
                     "relative w-8 h-5 flex items-center rounded-full transition-colors focus:outline-none border-2",
                     currentVisibility ? "bg-green-100 border-green-400" : "bg-orange-100 border-orange-400"
                   )}
@@ -153,6 +156,7 @@ export function SortableNavigationItem({
                   />
                 </button>
               </div>
+              )}
             </div>
             
             {/* Ligne 2 : Chemin à gauche + Icônes à droite */}

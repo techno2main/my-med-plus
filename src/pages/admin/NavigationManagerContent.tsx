@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Plus, Info } from "lucide-react";
+import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { PageHeaderWithHelp } from "@/components/Layout/PageHeaderWithHelp";
+import { useActiveTab } from "@/pages/settings/components/PersonnalisationTabs";
 import {
   DndContext,
   closestCenter,
@@ -31,6 +32,7 @@ export function NavigationManagerContent() {
   const queryClient = useQueryClient();
   const { isAdmin } = useUserRole();
   const { toast } = useToast();
+  const activeTab = useActiveTab();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pendingChanges, setPendingChanges] = useState<Record<string, boolean>>({});
@@ -81,7 +83,7 @@ export function NavigationManagerContent() {
   };
 
   const { data: navItems, isLoading } = useQuery({
-    queryKey: ["navigation-items"],
+    queryKey: ["navigation-items", isAdmin],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("navigation_items")
@@ -90,7 +92,12 @@ export function NavigationManagerContent() {
       
       if (error) throw error;
       
-      // Charger les préférences utilisateur pour TOUS (admin et non-admin)
+      // ADMIN : retourne la config globale sans préférences personnelles
+      if (isAdmin) {
+        return data;
+      }
+      
+      // NON-ADMIN : charge et applique les préférences personnelles
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data: userPrefs } = await supabase
@@ -303,18 +310,19 @@ export function NavigationManagerContent() {
     }
   };
 
+  const tabLabel = activeTab === "menus" ? "Menus" : "Apparence";
+  
   return (
     <div className="space-y-4">
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertDescription>
-          {isAdmin ? (
-            <>Réorganisez les éléments par glisser-déposer ou avec les flèches, ajoutez, modifiez ou supprimez des sections selon vos besoins.</>
-          ) : (
-            <>Personnalisez votre barre de navigation : réorganisez les éléments et masquez les sections que vous n'utilisez pas.</>
-          )}
-        </AlertDescription>
-      </Alert>
+      <PageHeaderWithHelp
+        title="Gestion des menus"
+        subtitle={tabLabel}
+        helpText={isAdmin 
+          ? "Réorganisez les éléments par glisser-déposer ou avec les flèches, ajoutez, modifiez ou supprimez des sections selon vos besoins. Le menu Plus ne peut pas être masqué car c'est le centre névralgique de l'application." 
+          : "Personnalisez votre barre de navigation : réorganisez les éléments et masquez les sections que vous n'utilisez pas. Le menu Plus reste toujours visible."
+        }
+        className="pl-9"
+      />
 
       {isAdmin && (
         <Button 
@@ -363,6 +371,7 @@ export function NavigationManagerContent() {
                   isAdmin={isAdmin}
                   getItemVisibility={getItemVisibility}
                   hasUnsavedChanges={hasUnsavedChanges}
+                  isToggleDisabled={item.path === '/settings'}
                 />
               ))
             )}

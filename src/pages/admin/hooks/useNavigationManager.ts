@@ -154,47 +154,63 @@ export function useNavigationManager() {
 
   const updatePositionsMutation = useMutation({
     mutationFn: async (items: Array<{ id: string; position: number }>) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Utilisateur non authentifié');
-      
-      // Charger les préférences actuelles
-      const { data: existingPrefs } = await supabase
-        .from("user_preferences")
-        .select("navigation_menu_preferences")
-        .eq("user_id", user.id)
-        .maybeSingle() as { data: { navigation_menu_preferences?: Array<{id: string, is_active: boolean, position?: number}> } | null };
-      
-      let currentPreferences = existingPrefs?.navigation_menu_preferences || [];
-      
-      // Mettre à jour les positions dans les préférences
-      items.forEach(({ id, position }) => {
-        const existingPrefIndex = currentPreferences.findIndex(p => p.id === id);
-        if (existingPrefIndex !== -1) {
-          currentPreferences[existingPrefIndex].position = position;
-        } else {
-          currentPreferences.push({ id, is_active: true, position });
+      if (isAdmin) {
+        // ADMIN : mettre à jour navigation_items directement (ordre global)
+        for (const { id, position } of items) {
+          const { error } = await supabase
+            .from("navigation_items")
+            .update({ position })
+            .eq("id", id);
+          
+          if (error) throw error;
         }
-      });
-      
-      // Sauvegarder dans user_preferences
-      const { error } = await supabase
-        .from("user_preferences")
-        .upsert({
-          user_id: user.id,
-          navigation_menu_preferences: currentPreferences
-        }, {
-          onConflict: 'user_id'
+      } else {
+        // NON-ADMIN : sauvegarder dans user_preferences (ordre personnel)
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Utilisateur non authentifié');
+        
+        // Charger les préférences actuelles
+        const { data: existingPrefs } = await supabase
+          .from("user_preferences")
+          .select("navigation_menu_preferences")
+          .eq("user_id", user.id)
+          .maybeSingle() as { data: { navigation_menu_preferences?: Array<{id: string, is_active: boolean, position?: number}> } | null };
+        
+        let currentPreferences = existingPrefs?.navigation_menu_preferences || [];
+        
+        // Mettre à jour les positions dans les préférences
+        items.forEach(({ id, position }) => {
+          const existingPrefIndex = currentPreferences.findIndex(p => p.id === id);
+          if (existingPrefIndex !== -1) {
+            currentPreferences[existingPrefIndex].position = position;
+          } else {
+            currentPreferences.push({ id, is_active: true, position });
+          }
         });
-      
-      if (error) {
-        console.error('Erreur sauvegarde positions:', error);
-        throw error;
+        
+        // Sauvegarder dans user_preferences
+        const { error } = await supabase
+          .from("user_preferences")
+          .upsert({
+            user_id: user.id,
+            navigation_menu_preferences: currentPreferences
+          }, {
+            onConflict: 'user_id'
+          });
+        
+        if (error) {
+          console.error('Erreur sauvegarde positions:', error);
+          throw error;
+        }
       }
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["navigation-items"] });
       await queryClient.invalidateQueries({ queryKey: ["user-preferences"] });
-      toast({ title: "✓ Ordre personnalisé enregistré", duration: 2000 });
+      toast({ 
+        title: isAdmin ? "✓ Ordre global mis à jour" : "✓ Ordre personnalisé enregistré", 
+        duration: 2000 
+      });
     },
     onError: () => {
       toast({
