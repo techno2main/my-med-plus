@@ -36,3 +36,8 @@ export interface GroupedIntakes {
 
 export type FilterStatus = 'all' | 'missed' | 'ontime' | 'late' | 'skipped'
 export type ActiveTab = 'history' | 'statistics'
+
+export interface DayData {
+  date: Date
+  intakes: GroupedIntakes['intakes']
+}
