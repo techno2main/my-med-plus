@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNativeCalendar } from './useNativeCalendar';
 import { useSyncConfig } from './useSyncConfig';
-import { filterEventsByDateRange, calculateDateRange } from '../utils/dateUtils';
+import { filterEventsByDateRange, calculateDateRange, filterEventsFromStartDate } from '../utils/dateUtils';
 import {
   mapIntakesToEvents,
   mapPharmacyVisitsToEvents,
@@ -156,8 +156,8 @@ export const useCalendarSync = () => {
           .order('prescription_date', { ascending: true });
 
         if (prescriptions) {
-          const filteredPrescriptions = filterEventsFromStartDate(prescriptions);
-          const renewalEvents = mapPrescriptionRenewalsToEvents(filteredPrescriptions);
+          // Note: filterEventsFromStartDate est un alias de filterEventsByDateRange
+          const renewalEvents = mapPrescriptionRenewalsToEvents(prescriptions);
           allEvents.push(...renewalEvents);
         }
       }
